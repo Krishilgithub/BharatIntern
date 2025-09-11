@@ -58,20 +58,22 @@ const Signup = () => {
 				location: formData.location,
 			};
 
-			const result = await signup(userData);
-			if (result.success) {
-				toast.success("Account created successfully!");
-				// Navigate to appropriate dashboard
-				const dashboardPath =
-					formData.role === "candidate"
-						? "/candidate/dashboard"
-						: formData.role === "company"
-						? "/company/dashboard"
-						: "/admin/dashboard";
-				navigate(dashboardPath);
-			}
+			await signup(userData);
+			toast.success("Account created successfully!");
+
+			// Navigate to appropriate dashboard
+			const dashboardPath =
+				formData.role === "candidate"
+					? "/candidate/dashboard"
+					: formData.role === "company"
+					? "/company/dashboard"
+					: "/admin/dashboard";
+			navigate(dashboardPath);
 		} catch (error) {
-			toast.error("Signup failed. Please try again.");
+			console.error("Signup error:", error);
+			toast.error(
+				error.response?.data?.detail || "Signup failed. Please try again."
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -342,13 +344,25 @@ const Signup = () => {
 								className="ml-2 block text-sm text-gray-900"
 							>
 								I agree to the{" "}
-								<a href="#" className="text-primary hover:text-blue-700">
+								<button
+									type="button"
+									className="text-primary hover:text-blue-700 underline bg-transparent border-none cursor-pointer p-0"
+									onClick={() => {
+										/* TODO: Open Terms and Conditions */
+									}}
+								>
 									Terms and Conditions
-								</a>{" "}
+								</button>{" "}
 								and{" "}
-								<a href="#" className="text-primary hover:text-blue-700">
+								<button
+									type="button"
+									className="text-primary hover:text-blue-700 underline bg-transparent border-none cursor-pointer p-0"
+									onClick={() => {
+										/* TODO: Open Privacy Policy */
+									}}
+								>
 									Privacy Policy
-								</a>
+								</button>
 							</label>
 						</div>
 

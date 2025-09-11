@@ -27,34 +27,38 @@ export const AuthProvider = ({ children }) => {
 	const login = async (email, password, role) => {
 		try {
 			const response = await apiService.login({ email, password, role });
-			const userData = response.data.user;
 
-			setUser(userData);
-			localStorage.setItem("user", JSON.stringify(userData));
-			return { success: true };
+			// Check if response has the expected structure
+			if (response.data && response.data.success && response.data.user) {
+				const userData = response.data.user;
+				setUser(userData);
+				localStorage.setItem("user", JSON.stringify(userData));
+				return { success: true };
+			} else {
+				throw new Error("Invalid response structure");
+			}
 		} catch (error) {
 			console.error("Login error:", error);
-			return {
-				success: false,
-				error: error.response?.data?.detail || "Login failed",
-			};
+			throw error; // Re-throw to let Login component handle it
 		}
 	};
 
 	const signup = async (userData) => {
 		try {
 			const response = await apiService.signup(userData);
-			const newUser = response.data.user;
 
-			setUser(newUser);
-			localStorage.setItem("user", JSON.stringify(newUser));
-			return { success: true };
+			// Check if response has the expected structure
+			if (response.data && response.data.success && response.data.user) {
+				const newUser = response.data.user;
+				setUser(newUser);
+				localStorage.setItem("user", JSON.stringify(newUser));
+				return { success: true };
+			} else {
+				throw new Error("Invalid response structure");
+			}
 		} catch (error) {
 			console.error("Signup error:", error);
-			return {
-				success: false,
-				error: error.response?.data?.detail || "Signup failed",
-			};
+			throw error; // Re-throw to let Signup component handle it
 		}
 	};
 

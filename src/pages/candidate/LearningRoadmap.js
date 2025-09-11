@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {
-	TrendingUp,
 	BookOpen,
-	Target,
 	CheckCircle,
 	Clock,
-	Award,
-	BarChart3,
 	Play,
 	ExternalLink,
-	Star,
 	X,
 } from "lucide-react";
 
@@ -304,14 +299,6 @@ const LearningRoadmap = () => {
 			default:
 				return <BookOpen className="w-4 h-4" />;
 		}
-	};
-
-	const getLevelColor = (current, target, max) => {
-		const percentage = (current / max) * 100;
-		if (percentage >= 80) return "text-green-600";
-		if (percentage >= 60) return "text-blue-600";
-		if (percentage >= 40) return "text-yellow-600";
-		return "text-red-600";
 	};
 
 	return (
