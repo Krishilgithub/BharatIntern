@@ -72,7 +72,7 @@ const Login = () => {
 			<div className="sm:mx-auto sm:w-full sm:max-w-md">
 				<div className="flex justify-center">
 					<div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-						<span className="text-white font-bold text-xl">PM</span>
+						<span className="text-white font-bold text-xl">BI</span>
 					</div>
 				</div>
 				<h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
