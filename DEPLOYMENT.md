@@ -45,12 +45,35 @@ vercel --prod
 
 ### 4. Build Configuration
 
-The project uses:
+The project uses modern Vercel configuration:
 
-- **Frontend**: `@vercel/static-build` - Builds React app to `/build` directory
-- **Backend**: `@vercel/python` - Deploys FastAPI as serverless functions
+- **Frontend**: Auto-detected Create React App with `CI=false` to treat warnings as warnings
+- **Backend**: Python FastAPI serverless functions in `/api` directory
+- **No explicit builds configuration** - Vercel auto-detects the framework
 
-### 5. API Routes
+### 5. Vercel Configuration (`vercel.json`)
+
+Simplified configuration without `builds` to avoid warnings:
+
+```json
+{
+	"env": {
+		"CI": "false"
+	},
+	"rewrites": [
+		{
+			"source": "/api/(.*)",
+			"destination": "/api/index.py"
+		},
+		{
+			"source": "/((?!api/.*).*)",
+			"destination": "/index.html"
+		}
+	]
+}
+```
+
+### 6. API Routes
 
 All API routes are accessible at `/api/*`:
 

@@ -1,14 +1,13 @@
 README.md
 DEPLOYMENT.md
+VERCEL_FIX.md
 start-dev.sh
 start-dev.bat
 backend/
 .git/
-.gitignore
-src/
-public/
 *.md
 *.log
 .env.local
 .env.development.local
 .env.test.local
+node_modules
