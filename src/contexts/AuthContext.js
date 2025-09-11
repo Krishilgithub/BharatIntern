@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { apiService } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -24,31 +25,31 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password, role) => {
-    // Mock authentication - in real app, this would call your API
-    const mockUser = {
-      id: Date.now(),
-      email,
-      role,
-      name: role === 'candidate' ? 'John Doe' : role === 'company' ? 'Tech Corp' : 'Admin User',
-      avatar: null
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    return { success: true };
+    try {
+      const response = await apiService.login({ email, password, role });
+      const userData = response.data.user;
+      
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: error.response?.data?.detail || 'Login failed' };
+    }
   };
 
   const signup = async (userData) => {
-    // Mock signup - in real app, this would call your API
-    const mockUser = {
-      id: Date.now(),
-      ...userData,
-      avatar: null
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    return { success: true };
+    try {
+      const response = await apiService.signup(userData);
+      const newUser = response.data.user;
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      return { success: true };
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { success: false, error: error.response?.data?.detail || 'Signup failed' };
+    }
   };
 
   const logout = () => {

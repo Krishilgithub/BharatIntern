@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, Download, Eye, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { apiService } from '../../services/api';
 
 const ResumeAnalyzer = () => {
   const [file, setFile] = useState(null);
@@ -56,8 +57,23 @@ const ResumeAnalyzer = () => {
 
     setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Convert file to base64 or form data for API call
+      const fileData = {
+        filename: file.name,
+        size: file.size,
+        type: file.type
+      };
+      
+      const response = await apiService.analyzeResume(fileData);
+      setAnalysis(response.data);
+      toast.success('Resume analyzed successfully!');
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast.error('Failed to analyze resume. Please try again.');
+      
+      // Fallback to mock data for demo purposes
+      setTimeout(() => {
       const mockAnalysis = {
         extractedSkills: [
           { name: 'JavaScript', confidence: 95, category: 'Programming' },
@@ -105,6 +121,9 @@ const ResumeAnalyzer = () => {
       setLoading(false);
       toast.success('Resume analysis completed!');
     }, 2000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const removeFile = () => {

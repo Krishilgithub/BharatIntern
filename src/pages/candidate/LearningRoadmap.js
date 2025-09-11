@@ -9,7 +9,8 @@ import {
   BarChart3,
   Play,
   ExternalLink,
-  Star
+  Star,
+  X
 } from 'lucide-react';
 
 const LearningRoadmap = () => {
