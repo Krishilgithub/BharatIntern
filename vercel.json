@@ -1,36 +1,15 @@
 {
-  "version": 2,
-  "env": {
-    "CI": "false"
-  },
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    },
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/static/(.*)",
-      "headers": {
-        "cache-control": "s-maxage=31536000,immutable"
-      },
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ]
+	"env": {
+		"CI": "false"
+	},
+	"rewrites": [
+		{
+			"source": "/api/(.*)",
+			"destination": "/api/index.py"
+		},
+		{
+			"source": "/((?!api/.*).*)",
+			"destination": "/index.html"
+		}
+	]
 }

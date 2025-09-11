@@ -90,7 +90,8 @@ python main.py
 
 ### Common Issues
 
-1. **Build Failures Due to ESLint Warnings**: 
+1. **Build Failures Due to ESLint Warnings**:
+
    - **Problem**: Vercel treats warnings as errors in CI mode
    - **Solution**: Added `CI=false` environment variable and `cross-env` package
    - **Fixed**: Build scripts now use `cross-env CI=false react-scripts build`
