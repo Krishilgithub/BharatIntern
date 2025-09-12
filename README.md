@@ -272,4 +272,4 @@ This project addresses **SIH25034** - AI-driven Internship Recommendation & Allo
 
 ---
 
-**Built with ❤️ for Smart India Hackathon 2024**
+**Built with ❤️ by Krishil Agrawal, Tirth Dalal, Dhyan Mehta, Mahek Paghadal, Dharini Thakkar, Hitarth Malviya for Smart India Hackathon 2025**
