@@ -13,7 +13,7 @@ const Login = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
 
-	const { login } = useAuth();
+	const { login, resetPassword, signInWithGoogle } = useAuth();
 	const navigate = useNavigate();
 
 	const handleChange = (e) => {
@@ -36,14 +36,12 @@ const Login = () => {
 				formData.role === "candidate"
 					? "/candidate/dashboard"
 					: formData.role === "company"
-					? "/company/dashboard"
-					: "/admin/dashboard";
+						? "/company/dashboard"
+						: "/admin/dashboard";
 			navigate(dashboardPath);
 		} catch (error) {
 			console.error("Login error:", error);
-			toast.error(
-				error.response?.data?.detail || "Login failed. Please try again."
-			);
+			toast.error(error.message || "Login failed. Please try again.");
 		} finally {
 			setLoading(false);
 		}
@@ -91,6 +89,32 @@ const Login = () => {
 
 			<div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
 				<div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+					{/* Google Sign In Button */}
+					<div className="mb-6">
+						<button
+							type="button"
+							onClick={() => signInWithGoogle(formData.role)}
+							disabled={loading}
+							className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+						>
+							<img
+								src="https://www.google.com/favicon.ico"
+								alt="Google"
+								className="w-5 h-5 mr-2"
+							/>
+							Sign in with Google
+						</button>
+					</div>
+
+					<div className="relative mb-6">
+						<div className="absolute inset-0 flex items-center">
+							<div className="w-full border-t border-gray-300"></div>
+						</div>
+						<div className="relative flex justify-center text-sm">
+							<span className="px-2 bg-white text-gray-500">Or continue with</span>
+						</div>
+					</div>
+
 					<form className="space-y-6" onSubmit={handleSubmit}>
 						{/* Role Selection */}
 						<div>
@@ -101,11 +125,10 @@ const Login = () => {
 								{roleOptions.map((option) => (
 									<label
 										key={option.value}
-										className={`relative flex flex-col items-center p-3 border rounded-lg cursor-pointer transition-colors ${
-											formData.role === option.value
+										className={`relative flex flex-col items-center p-3 border rounded-lg cursor-pointer transition-colors ${formData.role === option.value
 												? "border-primary bg-primary/5"
 												: "border-gray-300 hover:border-gray-400"
-										}`}
+											}`}
 									>
 										<input
 											type="radio"
@@ -116,20 +139,18 @@ const Login = () => {
 											className="sr-only"
 										/>
 										<div
-											className={`mb-2 ${
-												formData.role === option.value
+											className={`mb-2 ${formData.role === option.value
 													? "text-primary"
 													: "text-gray-400"
-											}`}
+												}`}
 										>
 											{option.icon}
 										</div>
 										<span
-											className={`text-sm font-medium ${
-												formData.role === option.value
+											className={`text-sm font-medium ${formData.role === option.value
 													? "text-primary"
 													: "text-gray-700"
-											}`}
+												}`}
 										>
 											{option.label}
 										</span>
@@ -216,8 +237,18 @@ const Login = () => {
 								<button
 									type="button"
 									className="font-medium text-primary hover:text-blue-700 underline bg-transparent border-none cursor-pointer"
-									onClick={() => {
-										/* TODO: Implement forgot password */
+									onClick={async () => {
+										if (!formData.email) {
+											toast.error("Please enter your email address first");
+											return;
+										}
+
+										try {
+											await resetPassword(formData.email);
+											toast.success("Password reset email sent! Check your inbox.");
+										} catch (error) {
+											toast.error(error.message || "Failed to send reset email");
+										}
 									}}
 								>
 									Forgot your password?
@@ -237,23 +268,6 @@ const Login = () => {
 						</div>
 					</form>
 
-					{/* Demo credentials */}
-					<div className="mt-6 p-4 bg-gray-50 rounded-lg">
-						<h3 className="text-sm font-medium text-gray-900 mb-2">
-							Demo Credentials:
-						</h3>
-						<div className="text-xs text-gray-600 space-y-1">
-							<div>
-								<strong>Candidate:</strong> candidate@demo.com / password123
-							</div>
-							<div>
-								<strong>Company:</strong> company@demo.com / password123
-							</div>
-							<div>
-								<strong>Admin:</strong> admin@demo.com / password123
-							</div>
-						</div>
-					</div>
 				</div>
 			</div>
 		</div>
