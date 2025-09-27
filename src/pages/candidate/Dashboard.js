@@ -8,13 +8,25 @@ import {
 	TrendingUp,
 	BookOpen,
 	AlertCircle,
+	Brain,
+	Mic,
+	Code,
+	BarChart3,
+	Star,
+	Award,
+	User,
+	Calendar,
+	Bell,
 } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const CandidateDashboard = () => {
+	const { user } = useAuth();
 	const [profileCompletion] = useState(75);
 	const [recommendations, setRecommendations] = useState([]);
 	const [applications, setApplications] = useState([]);
 	const [notifications, setNotifications] = useState([]);
+	const [aiInsights, setAiInsights] = useState(null);
 
 	useEffect(() => {
 		// Mock data - in real app, this would come from API
@@ -133,11 +145,36 @@ const CandidateDashboard = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				{/* Header */}
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-					<p className="text-gray-600 mt-2">
-						Welcome back! Here's what's happening with your internship
-						applications.
-					</p>
+					<div className="flex items-center justify-between">
+						<div>
+							<h1 className="text-3xl font-bold text-gray-900">
+								Welcome back, {user?.firstName || "Candidate"}!
+							</h1>
+							<p className="text-gray-600 mt-2">
+								Here's your personalized dashboard with AI-powered insights and
+								internship updates.
+							</p>
+						</div>
+						<div className="flex items-center space-x-4">
+							<Link
+								to="/profile"
+								className="flex items-center space-x-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+							>
+								<User className="w-4 h-4 text-gray-600" />
+								<span className="text-gray-700">Profile</span>
+							</Link>
+							<div className="relative">
+								<button className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+									<Bell className="w-5 h-5 text-gray-600" />
+								</button>
+								{notifications.length > 0 && (
+									<span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+										{notifications.length}
+									</span>
+								)}
+							</div>
+						</div>
+					</div>
 				</div>
 
 				<div className="grid lg:grid-cols-3 gap-8">
@@ -166,6 +203,127 @@ const CandidateDashboard = () => {
 									className="text-primary hover:text-blue-700 font-medium"
 								>
 									Update Profile
+								</Link>
+							</div>
+						</div>
+
+						{/* AI-Powered Features */}
+						<div className="card">
+							<div className="flex items-center justify-between mb-6">
+								<h2 className="text-xl font-semibold text-gray-900 flex items-center">
+									<Brain className="w-6 h-6 text-purple-600 mr-2" />
+									AI-Powered Features
+								</h2>
+								<span className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+									New
+								</span>
+							</div>
+							<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+								<Link
+									to="/candidate/ai-resume-analyzer"
+									className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors group"
+								>
+									<div className="text-center">
+										<div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-purple-200 transition-colors">
+											<FileText className="w-6 h-6 text-purple-600" />
+										</div>
+										<h3 className="font-semibold text-gray-900 mb-1">
+											AI Resume Analyzer
+										</h3>
+										<p className="text-xs text-gray-600">
+											Smart resume analysis with AI insights
+										</p>
+									</div>
+								</Link>
+
+								<Link
+									to="/candidate/ai-job-recommendations"
+									className="p-4 border-2 border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors group"
+								>
+									<div className="text-center">
+										<div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-green-200 transition-colors">
+											<Target className="w-6 h-6 text-green-600" />
+										</div>
+										<h3 className="font-semibold text-gray-900 mb-1">
+											Job Matching
+										</h3>
+										<p className="text-xs text-gray-600">
+											AI-powered job recommendations
+										</p>
+									</div>
+								</Link>
+
+								<Link
+									to="/candidate/voice-assessment"
+									className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors group"
+								>
+									<div className="text-center">
+										<div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-200 transition-colors">
+											<Mic className="w-6 h-6 text-blue-600" />
+										</div>
+										<h3 className="font-semibold text-gray-900 mb-1">
+											Voice Assessment
+										</h3>
+										<p className="text-xs text-gray-600">
+											AI voice interview practice
+										</p>
+									</div>
+								</Link>
+
+								<Link
+									to="/candidate/coding-profile"
+									className="p-4 border-2 border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-colors group"
+								>
+									<div className="text-center">
+										<div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-orange-200 transition-colors">
+											<Code className="w-6 h-6 text-orange-600" />
+										</div>
+										<h3 className="font-semibold text-gray-900 mb-1">
+											Coding Profile
+										</h3>
+										<p className="text-xs text-gray-600">
+											GitHub & LeetCode integration
+										</p>
+									</div>
+								</Link>
+							</div>
+							<div className="mt-4 grid md:grid-cols-2 gap-4">
+								<Link
+									to="/candidate/skill-prediction"
+									className="p-4 border-2 border-gray-200 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition-colors group"
+								>
+									<div className="flex items-center space-x-3">
+										<div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+											<TrendingUp className="w-5 h-5 text-indigo-600" />
+										</div>
+										<div>
+											<h3 className="font-semibold text-gray-900">
+												Skill Prediction
+											</h3>
+											<p className="text-xs text-gray-600">
+												AI career growth insights
+											</p>
+										</div>
+									</div>
+								</Link>
+
+								<Link
+									to="/candidate/analytics"
+									className="p-4 border-2 border-gray-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-colors group"
+								>
+									<div className="flex items-center space-x-3">
+										<div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+											<BarChart3 className="w-5 h-5 text-red-600" />
+										</div>
+										<div>
+											<h3 className="font-semibold text-gray-900">
+												Analytics Dashboard
+											</h3>
+											<p className="text-xs text-gray-600">
+												Performance analytics & insights
+											</p>
+										</div>
+									</div>
 								</Link>
 							</div>
 						</div>
