@@ -1,29 +1,27 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["dom", "dom.iterable", "es2020"],
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es6"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "types": ["jest", "@testing-library/jest-dom", "node"]
+    "noEmit": true,
+    "jsx": "react-jsx"
   },
   "include": [
-    "next-env.d.ts",
-    "pages/**/*",
-    "src/**/*",
-    "components/**/*",
-    "lib/**/*",
-    "__tests__/**/*"
-  ],
-  "exclude": ["node_modules"]
+    "src"
+  ]
 }
 
