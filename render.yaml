@@ -1,17 +1,24 @@
-# Render Configuration for React App
-# This file helps Render understand how to deploy your application
+# Render Configuration for React Static Site
+# This file configures deployment as a Static Site
 
-# Build Configuration
+# Static Site Configuration
 buildCommand: npm run build
 publishDirectory: build
-buildDirectory: .
 
 # Environment Configuration
-environment: node
-nodeVersion: 18
+environment: static
 
-# Health Check
-healthCheckPath: /
+# Headers for SPA routing
+headers:
+  - source: "/*"
+    headers:
+      - key: "X-Frame-Options"
+        value: "DENY"
+      - key: "X-Content-Type-Options"
+        value: "nosniff"
 
-# Static Files
-staticPublishPath: build
+# Redirects for SPA
+redirects:
+  - source: "/*"
+    destination: "/index.html"
+    type: rewrite

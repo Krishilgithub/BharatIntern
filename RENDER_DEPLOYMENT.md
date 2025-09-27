@@ -7,6 +7,7 @@ This React application is now configured for deployment on Render.com. Follow th
 ## 📋 Pre-Deployment Checklist
 
 ✅ **Project Structure Updated**
+
 - ✅ Package.json configured for React app
 - ✅ Build and start scripts created
 - ✅ Environment variables configured
@@ -17,21 +18,27 @@ This React application is now configured for deployment on Render.com. Follow th
 Based on your Render dashboard screenshot, fill in these fields:
 
 ### **Repository & Branch**
+
 - **Repository**: `https://github.com/Krishilgithub/BharatIntern.git`
 - **Branch**: `master`
 
 ### **Basic Settings**
+
 - **Name**: `bharatintern-app` (or your preferred name)
 - **Region**: `Oregon (US West)` (as shown in your screenshot)
 - **Instance Type**: `Free` (for hobby projects)
 
 ### **Build & Deploy Settings**
-- **Language**: `Node.js`
-- **Build Command**: `npm install && npm run build`
-- **Start Command**: `serve -s build -l $PORT`
+
+⚠️ **IMPORTANT**: Deploy as **Static Site**, NOT Web Service!
+
+- **Build Command**: `npm run build`
+- **Publish Directory**: `build`
 - **Root Directory**: `.` (leave empty or use root)
+- **Auto-Deploy**: `Yes`
 
 ### **Environment Variables**
+
 Add these environment variables in Render dashboard:
 
 ```
@@ -48,22 +55,28 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 
 ## 📝 Step-by-Step Deployment Instructions
 
+⚠️ **CRITICAL: Deploy as Static Site, NOT Web Service!**
+
 1. **Connect Repository**
-   - In Render dashboard, click "New Web Service"
+
+   - In Render dashboard, click "New **Static Site**"
    - Connect your GitHub account
    - Select `Krishilgithub/BharatIntern` repository
 
 2. **Configure Basic Settings**
+
    - **Name**: `bharatintern-app`
    - **Region**: `Oregon (US West)`
    - **Branch**: `master`
    - **Root Directory**: Leave empty
 
 3. **Configure Build Settings**
-   - **Build Command**: `npm install && npm run build`
-   - **Start Command**: `serve -s build -l $PORT`
+
+   - **Build Command**: `npm run build`
+   - **Publish Directory**: `build`
 
 4. **Add Environment Variables**
+
    - Go to Environment tab
    - Add all the environment variables listed above
    - **Important**: Replace `your-app-name` with your actual Render app name
@@ -75,6 +88,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 ## 🔍 Important Notes
 
 ### **URL Updates Required After Deployment**
+
 Once your app is deployed, you'll get a URL like `https://bharatintern-app.onrender.com`. You need to:
 
 1. Update environment variables in Render dashboard
@@ -82,6 +96,7 @@ Once your app is deployed, you'll get a URL like `https://bharatintern-app.onren
 3. Update Supabase redirect URLs to include your new domain
 
 ### **Features Included**
+
 - ✅ Enhanced Landing Page with dynamic features
 - ✅ Multi-step Registration System with AICTE integration
 - ✅ Multi-factor Authentication System
@@ -90,6 +105,7 @@ Once your app is deployed, you'll get a URL like `https://bharatintern-app.onren
 - ✅ Production optimizations
 
 ### **Build Optimizations**
+
 - Source maps disabled for faster builds
 - ESLint warnings won't fail the build
 - Optimized for production performance
@@ -97,12 +113,14 @@ Once your app is deployed, you'll get a URL like `https://bharatintern-app.onren
 ## 🐛 Troubleshooting
 
 ### **Common Issues**
+
 1. **Build fails**: Check if all dependencies are in package.json
 2. **App doesn't start**: Ensure start command uses correct port `$PORT`
 3. **404 errors**: Make sure `serve -s build` is serving static files correctly
 4. **Environment variables**: Verify all required env vars are set in Render dashboard
 
 ### **Logs & Debugging**
+
 - Check Render logs in the dashboard
 - Monitor build and deployment processes
 - Use console.log statements for debugging (they'll appear in Render logs)
@@ -110,6 +128,7 @@ Once your app is deployed, you'll get a URL like `https://bharatintern-app.onren
 ## 📞 Support
 
 If you encounter issues:
+
 1. Check Render build logs
 2. Verify environment variables
 3. Ensure GitHub repository is accessible
