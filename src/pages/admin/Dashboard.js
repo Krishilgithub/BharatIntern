@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import {
 	BarChart3,
 	Users,
@@ -160,7 +162,7 @@ const AdminDashboard = () => {
 						</div>
 						<div className="flex items-center space-x-4">
 							<Link
-								to="/profile"
+								href="/profile"
 								className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
 							>
 								<User className="h-5 w-5 text-gray-600" />
@@ -184,7 +186,7 @@ const AdminDashboard = () => {
 					</h2>
 					<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
 						<Link
-							to="/admin/quota-configurator"
+							href="/admin/quota-configurator"
 							className="group p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:shadow-md transition-all duration-300"
 						>
 							<div className="flex items-center justify-center mb-4">
@@ -199,7 +201,7 @@ const AdminDashboard = () => {
 						</Link>
 
 						<Link
-							to="/admin/batch-matching"
+							href="/admin/batch-matching"
 							className="group p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 hover:shadow-md transition-all duration-300"
 						>
 							<div className="flex items-center justify-center mb-4">
@@ -214,7 +216,7 @@ const AdminDashboard = () => {
 						</Link>
 
 						<Link
-							to="/admin/whatif-simulator"
+							href="/admin/whatif-simulator"
 							className="group p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:shadow-md transition-all duration-300"
 						>
 							<div className="flex items-center justify-center mb-4">
@@ -229,7 +231,7 @@ const AdminDashboard = () => {
 						</Link>
 
 						<Link
-							to="/admin/allocation-review"
+							href="/admin/allocation-review"
 							className="group p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200 hover:shadow-md transition-all duration-300"
 						>
 							<div className="flex items-center justify-center mb-4">
@@ -327,7 +329,7 @@ const AdminDashboard = () => {
 							</h2>
 							<div className="grid md:grid-cols-2 gap-4">
 								<Link
-									to="/admin/quota-config"
+									href="/admin/quota-config"
 									className="card hover:shadow-lg transition-shadow duration-300 group"
 								>
 									<div className="flex items-center space-x-4">
@@ -346,7 +348,7 @@ const AdminDashboard = () => {
 								</Link>
 
 								<Link
-									to="/admin/simulator"
+									href="/admin/simulator"
 									className="card hover:shadow-lg transition-shadow duration-300 group"
 								>
 									<div className="flex items-center space-x-4">
@@ -365,7 +367,7 @@ const AdminDashboard = () => {
 								</Link>
 
 								<Link
-									to="/admin/batch-matching"
+									href="/admin/batch-matching"
 									className="card hover:shadow-lg transition-shadow duration-300 group"
 								>
 									<div className="flex items-center space-x-4">
@@ -384,7 +386,7 @@ const AdminDashboard = () => {
 								</Link>
 
 								<Link
-									to="/admin/allocation-review"
+									href="/admin/allocation-review"
 									className="card hover:shadow-lg transition-shadow duration-300 group"
 								>
 									<div className="flex items-center space-x-4">

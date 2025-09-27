@@ -246,7 +246,7 @@ const Login = () => {
 				<p className="mt-2 text-center text-sm text-gray-600">
 					Or{" "}
 					<Link
-						to="/signup"
+						href="/signup"
 						className="font-medium text-primary hover:text-blue-700"
 					>
 						create a new account

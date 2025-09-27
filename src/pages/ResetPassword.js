@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../lib/supabase";
 import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
@@ -10,19 +13,19 @@ const ResetPassword = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const [searchParams] = useSearchParams();
-	const navigate = useNavigate();
+	const router = useRouter();
+	const searchParams = useSearchParams();
 
 	useEffect(() => {
 		// Check if we have the necessary tokens in the URL
-		const accessToken = searchParams.get('access_token');
-		const refreshToken = searchParams.get('refresh_token');
-		
+		const accessToken = searchParams.get("access_token");
+		const refreshToken = searchParams.get("refresh_token");
+
 		if (!accessToken || !refreshToken) {
 			toast.error("Invalid reset password link");
-			navigate("/login");
+			router.push("/login");
 		}
-	}, [searchParams, navigate]);
+	}, [router, searchParams]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -41,7 +44,7 @@ const ResetPassword = () => {
 
 		try {
 			const { error } = await supabase.auth.updateUser({
-				password: password
+				password: password,
 			});
 
 			if (error) {
@@ -49,7 +52,7 @@ const ResetPassword = () => {
 			}
 
 			toast.success("Password updated successfully!");
-			navigate("/login");
+			router.push("/login");
 		} catch (error) {
 			console.error("Password reset error:", error);
 			toast.error(error.message || "Failed to update password");

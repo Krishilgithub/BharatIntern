@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import {
 	Eye,
@@ -47,7 +50,7 @@ const Login = () => {
 	const [recoveryStep, setRecoveryStep] = useState("email"); // email, security-questions, reset
 
 	const { login, resetPassword, signInWithGoogle } = useAuth();
-	const navigate = useNavigate();
+	const router = useRouter();
 
 	// Timer for OTP
 	useEffect(() => {
@@ -163,7 +166,7 @@ const Login = () => {
 				: formData.role === "company"
 				? "/company/dashboard"
 				: "/admin/dashboard";
-		navigate(dashboardPath);
+		router.push(dashboardPath);
 	};
 
 	// Social Login
@@ -584,7 +587,7 @@ const Login = () => {
 							<>
 								Don't have an account?{" "}
 								<Link
-									to="/signup"
+									href="/signup"
 									className="font-medium text-primary hover:text-blue-700"
 								>
 									Sign up here

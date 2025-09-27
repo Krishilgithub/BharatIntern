@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Webcam from "react-webcam";
 import { useDropzone } from "react-dropzone";
@@ -116,7 +119,7 @@ const Signup = () => {
 	const fileInputRef = useRef(null);
 
 	const { signup } = useAuth();
-	const navigate = useNavigate();
+	const router = useRouter();
 
 	// Enhanced form handlers
 	const handleChange = (e) => {
@@ -463,7 +466,7 @@ const Signup = () => {
 				admin: "/admin/dashboard",
 			};
 
-			navigate(dashboardRoutes[formData.role] || "/login");
+			router.push(dashboardRoutes[formData.role] || "/login");
 		} catch (error) {
 			console.error("Signup error:", error);
 			toast.error(error.message || "Signup failed. Please try again.");
@@ -1759,7 +1762,7 @@ const Signup = () => {
 						Create your account to access India's largest internship platform.
 						Already have an account?{" "}
 						<Link
-							to="/login"
+							href="/login"
 							className="font-medium text-primary hover:underline"
 						>
 							Sign in here

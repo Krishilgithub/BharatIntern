@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import QRCode from "react-qr-code";
 import {
@@ -335,7 +337,7 @@ const LandingPage = () => {
 							className="flex flex-col sm:flex-row gap-4 justify-center"
 						>
 							<Link
-								to="/signup"
+								href="/signup"
 								className="btn-accent text-lg px-8 py-4 inline-flex items-center justify-center transform hover:scale-105 transition-transform"
 							>
 								Get Started
@@ -490,7 +492,7 @@ const LandingPage = () => {
 								)}
 
 								<Link
-									to={userType.link}
+									href={userType.link}
 									className={`w-full bg-${userType.color}-600 hover:bg-${userType.color}-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center`}
 								>
 									Get Started
@@ -830,7 +832,7 @@ const LandingPage = () => {
 								whileHover={{ scale: 1.05 }}
 								whileTap={{ scale: 0.95 }}
 							>
-								<Link to="/signup" className="btn-secondary">
+								<Link href="/signup" className="btn-secondary">
 									<Sparkles className="w-5 h-5 mr-2" />
 									Get Started Now
 								</Link>
@@ -840,7 +842,7 @@ const LandingPage = () => {
 								whileTap={{ scale: 0.95 }}
 							>
 								<Link
-									to="/about"
+									href="/about"
 									className="btn-outline text-white border-white hover:bg-white hover:text-primary"
 								>
 									<Info className="w-5 h-5 mr-2" />

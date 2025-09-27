@@ -5,7 +5,7 @@
 The deployment was failing because your project had Next.js files mixed with Create React App. I've cleaned this up by:
 
 - ❌ Removed `middleware.ts` (Next.js specific)
-- ❌ Removed `next.config.mjs` (Next.js specific)  
+- ❌ Removed `next.config.mjs` (Next.js specific)
 - ❌ Removed `next-env.d.ts` (Next.js specific)
 - ❌ Removed `pages/` directory (Next.js specific)
 - ❌ Removed `.next/` build directory (Next.js specific)
@@ -19,16 +19,17 @@ Your project is now properly configured as a **Create React App** with these set
 
 ```json
 {
-  "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "build",
-  "framework": "create-react-app"
+	"version": 2,
+	"buildCommand": "npm run build",
+	"outputDirectory": "build",
+	"framework": "create-react-app"
 }
 ```
 
 ## 🚀 Deployment Steps
 
 1. **Commit and Push Changes**
+
    ```bash
    git add .
    git commit -m "Fix: Remove Next.js files, configure for Create React App deployment"
