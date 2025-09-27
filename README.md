@@ -32,7 +32,7 @@ Build an AI-driven Internship Recommendation & Allocation Engine for the PM Inte
 
 ### Frontend
 - **React 18** - Modern UI library
-- **Tailwind CSS** - Utility-first CSS framework
+- **Tai  lwind CSS** - Utility-first CSS framework
 - **React Router** - Client-side routing
 - **Lucide React** - Beautiful icons
 - **React Hot Toast** - Notifications
