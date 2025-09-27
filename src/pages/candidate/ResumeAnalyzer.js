@@ -264,7 +264,7 @@ const ResumeAnalyzer = () => {
 											</p>
 										</div>
 										<div className="text-4xl font-bold">
-											{analysis.overallScore}/100
+											{analysis.overallScore || 0}/100
 										</div>
 									</div>
 								</div>
@@ -275,7 +275,7 @@ const ResumeAnalyzer = () => {
 										Extracted Skills
 									</h3>
 									<div className="space-y-2">
-										{analysis.extractedSkills.map((skill, index) => (
+										{(analysis.extractedSkills || []).map((skill, index) => (
 											<div
 												key={index}
 												className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -283,14 +283,14 @@ const ResumeAnalyzer = () => {
 												<div className="flex items-center space-x-3">
 													<CheckCircle className="w-5 h-5 text-green-500" />
 													<span className="font-medium text-gray-900">
-														{skill.name}
+														{skill?.name || "Skill"}
 													</span>
 													<span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs rounded-full">
-														{skill.category}
+														{skill?.category || "General"}
 													</span>
 												</div>
 												<span className="text-sm font-medium text-gray-600">
-													{skill.confidence}% confidence
+													{skill?.confidence || 0}% confidence
 												</span>
 											</div>
 										))}
@@ -303,7 +303,7 @@ const ResumeAnalyzer = () => {
 										Recommended Skills
 									</h3>
 									<div className="space-y-2">
-										{analysis.missingSkills.map((skill, index) => (
+										{(analysis.missingSkills || []).map((skill, index) => (
 											<div
 												key={index}
 												className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
@@ -312,15 +312,15 @@ const ResumeAnalyzer = () => {
 													<AlertCircle className="w-5 h-5 text-yellow-500" />
 													<div>
 														<span className="font-medium text-gray-900">
-															{skill.name}
+															{skill?.name || "Skill"}
 														</span>
 														<p className="text-sm text-gray-600">
-															{skill.reason}
+															{skill?.reason || "Recommended for your field"}
 														</p>
 													</div>
 												</div>
 												<span className="text-sm font-bold text-yellow-600">
-													{skill.impact}
+													{skill?.impact || "High"}
 												</span>
 											</div>
 										))}
@@ -335,13 +335,13 @@ const ResumeAnalyzer = () => {
 									<div className="grid grid-cols-2 gap-4">
 										<div className="bg-gray-50 rounded-lg p-4 text-center">
 											<div className="text-2xl font-bold text-primary">
-												{analysis.experience.totalYears}
+												{analysis.experience?.totalYears || 0}
 											</div>
 											<div className="text-sm text-gray-600">Total Years</div>
 										</div>
 										<div className="bg-gray-50 rounded-lg p-4 text-center">
 											<div className="text-2xl font-bold text-accent">
-												{analysis.experience.projects}
+												{analysis.experience?.projects || 0}
 											</div>
 											<div className="text-sm text-gray-600">Projects</div>
 										</div>
@@ -354,7 +354,7 @@ const ResumeAnalyzer = () => {
 										Recommendations
 									</h3>
 									<ul className="space-y-2">
-										{analysis.recommendations.map((rec, index) => (
+										{(analysis.recommendations || []).map((rec, index) => (
 											<li key={index} className="flex items-start space-x-2">
 												<div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
 												<span className="text-gray-700">{rec}</span>

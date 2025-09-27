@@ -8,14 +8,31 @@ import {
 	CheckCircle,
 	PieChart,
 	Activity,
+	Building,
+	Briefcase,
+	Settings,
+	Shield,
+	TrendingUp,
+	UserCheck,
+	Database,
+	Globe,
+	Zap,
+	Monitor,
+	Bell,
+	User,
+	Filter,
+	Search,
 } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const AdminDashboard = () => {
+	const { user } = useAuth();
 	const [stats, setStats] = useState({});
 	const [quotaData, setQuotaData] = useState({});
 	const [recentActivity, setRecentActivity] = useState([]);
 	const [topCompanies, setTopCompanies] = useState([]);
 	const [topSkills, setTopSkills] = useState([]);
+	const [activeTab, setActiveTab] = useState("overview");
 
 	useEffect(() => {
 		// Mock data - in real app, this would come from API
@@ -132,11 +149,144 @@ const AdminDashboard = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				{/* Header */}
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-					<p className="text-gray-600 mt-2">
-						Monitor system performance, manage quotas, and oversee the
-						allocation process.
-					</p>
+					<div className="flex justify-between items-center">
+						<div>
+							<h1 className="text-3xl font-bold text-gray-900">
+								Administrator Dashboard
+							</h1>
+							<p className="text-gray-600 mt-2">
+								System management and oversight for BharatIntern platform
+							</p>
+						</div>
+						<div className="flex items-center space-x-4">
+							<Link
+								to="/profile"
+								className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+							>
+								<User className="h-5 w-5 text-gray-600" />
+							</Link>
+							<div className="relative">
+								<button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+									<Bell className="h-5 w-5 text-gray-600" />
+								</button>
+								<span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
+									5
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{/* Admin Tools Section */}
+				<div className="mb-8">
+					<h2 className="text-xl font-semibold text-gray-900 mb-4">
+						System Management Tools
+					</h2>
+					<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+						<Link
+							to="/admin/quota-configurator"
+							className="group p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:shadow-md transition-all duration-300"
+						>
+							<div className="flex items-center justify-center mb-4">
+								<PieChart className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								Quota Management
+							</h3>
+							<p className="text-sm text-gray-600">
+								Configure allocation quotas
+							</p>
+						</Link>
+
+						<Link
+							to="/admin/batch-matching"
+							className="group p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 hover:shadow-md transition-all duration-300"
+						>
+							<div className="flex items-center justify-center mb-4">
+								<Target className="h-8 w-8 text-green-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								Batch Matching
+							</h3>
+							<p className="text-sm text-gray-600">
+								AI-powered allocation system
+							</p>
+						</Link>
+
+						<Link
+							to="/admin/whatif-simulator"
+							className="group p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:shadow-md transition-all duration-300"
+						>
+							<div className="flex items-center justify-center mb-4">
+								<BarChart3 className="h-8 w-8 text-purple-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								What-If Simulator
+							</h3>
+							<p className="text-sm text-gray-600">
+								Scenario planning and analysis
+							</p>
+						</Link>
+
+						<Link
+							to="/admin/allocation-review"
+							className="group p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200 hover:shadow-md transition-all duration-300"
+						>
+							<div className="flex items-center justify-center mb-4">
+								<CheckCircle className="h-8 w-8 text-orange-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								Allocation Review
+							</h3>
+							<p className="text-sm text-gray-600">
+								Review and approve allocations
+							</p>
+						</Link>
+
+						<div className="group p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200 hover:shadow-md transition-all duration-300 cursor-pointer">
+							<div className="flex items-center justify-center mb-4">
+								<Shield className="h-8 w-8 text-red-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								Security Center
+							</h3>
+							<p className="text-sm text-gray-600">
+								System security and audits
+							</p>
+						</div>
+
+						<div className="group p-6 bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl border border-teal-200 hover:shadow-md transition-all duration-300 cursor-pointer">
+							<div className="flex items-center justify-center mb-4">
+								<Database className="h-8 w-8 text-teal-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								Data Management
+							</h3>
+							<p className="text-sm text-gray-600">Database and backup tools</p>
+						</div>
+
+						<div className="group p-6 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl border border-indigo-200 hover:shadow-md transition-all duration-300 cursor-pointer">
+							<div className="flex items-center justify-center mb-4">
+								<Monitor className="h-8 w-8 text-indigo-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								System Monitor
+							</h3>
+							<p className="text-sm text-gray-600">
+								Performance and health metrics
+							</p>
+						</div>
+
+						<div className="group p-6 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl border border-pink-200 hover:shadow-md transition-all duration-300 cursor-pointer">
+							<div className="flex items-center justify-center mb-4">
+								<Settings className="h-8 w-8 text-pink-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								System Settings
+							</h3>
+							<p className="text-sm text-gray-600">Platform configuration</p>
+						</div>
+					</div>
 				</div>
 
 				{/* Key Metrics */}
