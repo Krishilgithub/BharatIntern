@@ -284,13 +284,13 @@ const Signup = () => {
 	// Step Navigation
 	const nextStep = (e) => {
 		if (e) e.preventDefault();
-		console.log('nextStep called, current step:', currentStep);
+		console.log("nextStep called, current step:", currentStep);
 		if (validateCurrentStep()) {
-			console.log('Validation passed, moving to next step');
+			console.log("Validation passed, moving to next step");
 			setCompletedSteps((prev) => [...prev, currentStep]);
 			setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
 		} else {
-			console.log('Validation failed');
+			console.log("Validation failed");
 		}
 	};
 

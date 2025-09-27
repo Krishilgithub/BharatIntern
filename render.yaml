@@ -1,0 +1,17 @@
+# Render Configuration for React App
+# This file helps Render understand how to deploy your application
+
+# Build Configuration
+buildCommand: npm run build
+publishDirectory: build
+buildDirectory: .
+
+# Environment Configuration
+environment: node
+nodeVersion: 18
+
+# Health Check
+healthCheckPath: /
+
+# Static Files
+staticPublishPath: build

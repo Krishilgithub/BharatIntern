@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { 
-	Eye, EyeOff, User, Building2, Settings, 
-	Shield, Smartphone, Mail, Key, 
-	Fingerprint, QrCode, ArrowLeft,
-	CheckCircle, AlertTriangle, Clock
+import {
+	Eye,
+	EyeOff,
+	User,
+	Building2,
+	Settings,
+	Shield,
+	Smartphone,
+	Mail,
+	Key,
+	Fingerprint,
+	QrCode,
+	ArrowLeft,
+	CheckCircle,
+	AlertTriangle,
+	Clock,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Login = () => {
 	// Authentication States
-	const [currentStep, setCurrentStep] = useState('login'); // login, mfa, security-questions
+	const [currentStep, setCurrentStep] = useState("login"); // login, mfa, security-questions
 	const [formData, setFormData] = useState({
 		email: "",
 		password: "",
@@ -23,17 +34,17 @@ const Login = () => {
 
 	// MFA States
 	const [mfaData, setMfaData] = useState({
-		otpMethod: 'sms', // sms, email, app
-		otp: '',
+		otpMethod: "sms", // sms, email, app
+		otp: "",
 		biometricEnabled: false,
-		securityQuestions: []
+		securityQuestions: [],
 	});
 	const [otpTimer, setOtpTimer] = useState(0);
 	const [canResendOtp, setCanResendOtp] = useState(false);
 
 	// Password Recovery States
 	const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
-	const [recoveryStep, setRecoveryStep] = useState('email'); // email, security-questions, reset
+	const [recoveryStep, setRecoveryStep] = useState("email"); // email, security-questions, reset
 
 	const { login, resetPassword, signInWithGoogle } = useAuth();
 	const navigate = useNavigate();
@@ -43,7 +54,7 @@ const Login = () => {
 		let interval;
 		if (otpTimer > 0) {
 			interval = setInterval(() => {
-				setOtpTimer(prev => {
+				setOtpTimer((prev) => {
 					if (prev <= 1) {
 						setCanResendOtp(true);
 						return 0;
@@ -69,11 +80,15 @@ const Login = () => {
 
 		try {
 			// First authentication step
-			const authResult = await login(formData.email, formData.password, formData.role);
-			
+			const authResult = await login(
+				formData.email,
+				formData.password,
+				formData.role
+			);
+
 			// Check if MFA is required
 			if (authResult?.requiresMFA) {
-				setCurrentStep('mfa');
+				setCurrentStep("mfa");
 				await sendMFACode();
 				toast.success("Login successful! Please complete verification.");
 			} else {
@@ -94,8 +109,8 @@ const Login = () => {
 		try {
 			setLoading(true);
 			// Simulate MFA code sending
-			await new Promise(resolve => setTimeout(resolve, 1000));
-			
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
 			setOtpTimer(60);
 			setCanResendOtp(false);
 			toast.success(`Verification code sent via ${mfaData.otpMethod}`);
@@ -115,8 +130,8 @@ const Login = () => {
 		try {
 			setLoading(true);
 			// Simulate MFA verification
-			await new Promise(resolve => setTimeout(resolve, 1000));
-			
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
 			toast.success("Verification successful!");
 			navigateToDashboard();
 		} catch (error) {
@@ -130,8 +145,8 @@ const Login = () => {
 		try {
 			setLoading(true);
 			// Simulate biometric authentication
-			await new Promise(resolve => setTimeout(resolve, 2000));
-			
+			await new Promise((resolve) => setTimeout(resolve, 2000));
+
 			toast.success("Biometric authentication successful!");
 			navigateToDashboard();
 		} catch (error) {
@@ -146,8 +161,8 @@ const Login = () => {
 			formData.role === "candidate"
 				? "/candidate/dashboard"
 				: formData.role === "company"
-					? "/company/dashboard"
-					: "/admin/dashboard";
+				? "/company/dashboard"
+				: "/admin/dashboard";
 		navigate(dashboardPath);
 	};
 
@@ -176,7 +191,7 @@ const Login = () => {
 			setLoading(true);
 			await resetPassword(formData.email);
 			setForgotPasswordMode(true);
-			setRecoveryStep('security-questions');
+			setRecoveryStep("security-questions");
 			toast.success("Password reset instructions sent to your email");
 		} catch (error) {
 			toast.error("Failed to send password reset email");
@@ -208,20 +223,20 @@ const Login = () => {
 			value: "sms",
 			label: "SMS",
 			icon: <Smartphone className="w-5 h-5" />,
-			description: "Send code to your mobile number"
+			description: "Send code to your mobile number",
 		},
 		{
 			value: "email",
 			label: "Email",
 			icon: <Mail className="w-5 h-5" />,
-			description: "Send code to your email address"
+			description: "Send code to your email address",
 		},
 		{
 			value: "app",
 			label: "Authenticator App",
 			icon: <QrCode className="w-5 h-5" />,
-			description: "Use your authenticator app"
-		}
+			description: "Use your authenticator app",
+		},
 	];
 
 	const securityQuestions = [
@@ -229,7 +244,7 @@ const Login = () => {
 		"In which city were you born?",
 		"What is your mother's maiden name?",
 		"What was your first school's name?",
-		"What is your favorite book?"
+		"What is your favorite book?",
 	];
 
 	// Render different steps based on authentication flow
@@ -261,7 +276,9 @@ const Login = () => {
 					<div className="w-full border-t border-gray-300"></div>
 				</div>
 				<div className="relative flex justify-center text-sm">
-					<span className="px-2 bg-white text-gray-500">Or continue with email</span>
+					<span className="px-2 bg-white text-gray-500">
+						Or continue with email
+					</span>
 				</div>
 			</div>
 
@@ -300,7 +317,10 @@ const Login = () => {
 
 				{/* Email */}
 				<div>
-					<label htmlFor="email" className="block text-sm font-medium text-gray-700">
+					<label
+						htmlFor="email"
+						className="block text-sm font-medium text-gray-700"
+					>
 						Email address
 					</label>
 					<div className="mt-1">
@@ -320,7 +340,10 @@ const Login = () => {
 
 				{/* Password */}
 				<div>
-					<label htmlFor="password" className="block text-sm font-medium text-gray-700">
+					<label
+						htmlFor="password"
+						className="block text-sm font-medium text-gray-700"
+					>
 						Password
 					</label>
 					<div className="mt-1 relative">
@@ -358,7 +381,10 @@ const Login = () => {
 							type="checkbox"
 							className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
 						/>
-						<label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+						<label
+							htmlFor="remember-me"
+							className="ml-2 block text-sm text-gray-900"
+						>
 							Remember me
 						</label>
 					</div>
@@ -403,7 +429,7 @@ const Login = () => {
 		>
 			{/* Back Button */}
 			<button
-				onClick={() => setCurrentStep('login')}
+				onClick={() => setCurrentStep("login")}
 				className="flex items-center text-sm text-gray-600 hover:text-gray-900"
 			>
 				<ArrowLeft className="w-4 h-4 mr-1" />
@@ -436,12 +462,16 @@ const Login = () => {
 							name="otpMethod"
 							value={option.value}
 							checked={mfaData.otpMethod === option.value}
-							onChange={(e) => setMfaData({ ...mfaData, otpMethod: e.target.value })}
+							onChange={(e) =>
+								setMfaData({ ...mfaData, otpMethod: e.target.value })
+							}
 							className="sr-only"
 						/>
 						{option.icon}
 						<div className="ml-3">
-							<div className="text-sm font-medium text-gray-900">{option.label}</div>
+							<div className="text-sm font-medium text-gray-900">
+								{option.label}
+							</div>
 							<div className="text-xs text-gray-500">{option.description}</div>
 						</div>
 					</label>
@@ -457,8 +487,12 @@ const Login = () => {
 				>
 					<Fingerprint className="w-6 h-6 text-gray-500 mr-3" />
 					<div className="text-left">
-						<div className="text-sm font-medium text-gray-900">Biometric Authentication</div>
-						<div className="text-xs text-gray-500">Use fingerprint or face recognition</div>
+						<div className="text-sm font-medium text-gray-900">
+							Biometric Authentication
+						</div>
+						<div className="text-xs text-gray-500">
+							Use fingerprint or face recognition
+						</div>
 					</div>
 				</button>
 			</div>
@@ -477,7 +511,12 @@ const Login = () => {
 						<input
 							type="text"
 							value={mfaData.otp}
-							onChange={(e) => setMfaData({ ...mfaData, otp: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+							onChange={(e) =>
+								setMfaData({
+									...mfaData,
+									otp: e.target.value.replace(/\D/g, "").slice(0, 6),
+								})
+							}
 							placeholder="Enter 6-digit code"
 							className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
 							maxLength={6}
@@ -487,7 +526,8 @@ const Login = () => {
 					<div className="flex items-center justify-between text-sm">
 						<div className="flex items-center text-gray-600">
 							<Clock className="w-4 h-4 mr-1" />
-							{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}
+							{Math.floor(otpTimer / 60)}:
+							{(otpTimer % 60).toString().padStart(2, "0")}
 						</div>
 						{canResendOtp && (
 							<button
@@ -516,7 +556,9 @@ const Login = () => {
 					disabled={loading}
 					className="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 				>
-					{loading ? "Sending..." : `Send code via ${mfaData.otpMethod.toUpperCase()}`}
+					{loading
+						? "Sending..."
+						: `Send code via ${mfaData.otpMethod.toUpperCase()}`}
 				</button>
 			)}
 		</motion.div>
@@ -530,13 +572,15 @@ const Login = () => {
 						<span className="text-white font-bold text-xl">BI</span>
 					</div>
 				</div>
-				
+
 				<div className="mt-6 text-center">
 					<h2 className="text-3xl font-bold text-gray-900">
-						{currentStep === 'login' ? 'Welcome back!' : 'Secure Authentication'}
+						{currentStep === "login"
+							? "Welcome back!"
+							: "Secure Authentication"}
 					</h2>
 					<p className="mt-2 text-sm text-gray-600">
-						{currentStep === 'login' ? (
+						{currentStep === "login" ? (
 							<>
 								Don't have an account?{" "}
 								<Link
@@ -547,7 +591,7 @@ const Login = () => {
 								</Link>
 							</>
 						) : (
-							'Complete verification to access your account'
+							"Complete verification to access your account"
 						)}
 					</p>
 				</div>
@@ -556,15 +600,11 @@ const Login = () => {
 			<div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
 				<div className="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-200">
 					<AnimatePresence mode="wait">
-						{currentStep === 'login' && (
-							<motion.div key="login">
-								{renderLoginStep()}
-							</motion.div>
+						{currentStep === "login" && (
+							<motion.div key="login">{renderLoginStep()}</motion.div>
 						)}
-						{currentStep === 'mfa' && (
-							<motion.div key="mfa">
-								{renderMFAStep()}
-							</motion.div>
+						{currentStep === "mfa" && (
+							<motion.div key="mfa">{renderMFAStep()}</motion.div>
 						)}
 					</AnimatePresence>
 				</div>

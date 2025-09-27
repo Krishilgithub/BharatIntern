@@ -821,7 +821,8 @@ const LandingPage = () => {
 							Ready to Begin Your Journey?
 						</h2>
 						<p className="text-xl text-white mb-8 opacity-90">
-							Join {dynamicStats.placedCandidates?.toLocaleString() || "10,000+"}{" "}
+							Join{" "}
+							{dynamicStats.placedCandidates?.toLocaleString() || "10,000+"}{" "}
 							students and companies already using our platform
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -859,9 +860,7 @@ const LandingPage = () => {
 								</div>
 							</div>
 							<div className="text-center">
-								<div className="text-2xl font-bold text-white">
-									25K
-								</div>
+								<div className="text-2xl font-bold text-white">25K</div>
 								<div className="text-white opacity-80 text-sm">
 									Avg. Stipend
 								</div>
