@@ -58,22 +58,14 @@ const Signup = () => {
 				location: formData.location,
 			};
 
-			await signup(userData);
-			toast.success("Account created successfully!");
+			const result = await signup(userData);
+			toast.success(result.message || "Account created successfully! Please check your email to confirm your account.");
 
-			// Navigate to appropriate dashboard
-			const dashboardPath =
-				formData.role === "candidate"
-					? "/candidate/dashboard"
-					: formData.role === "company"
-					? "/company/dashboard"
-					: "/admin/dashboard";
-			navigate(dashboardPath);
+			// Navigate to login page for email confirmation
+			navigate("/login");
 		} catch (error) {
 			console.error("Signup error:", error);
-			toast.error(
-				error.response?.data?.detail || "Signup failed. Please try again."
-			);
+			toast.error(error.message || "Signup failed. Please try again.");
 		} finally {
 			setLoading(false);
 		}
