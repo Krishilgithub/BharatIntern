@@ -62,11 +62,10 @@ import {
 	Map,
 	Navigation,
 	Compass,
-	Route,
 	MapPin,
 	Milestone,
 	LineChart,
-	TrendingDown
+	TrendingDown,
 } from "lucide-react";
 
 const EnhancedLearningRoadmap = () => {
@@ -100,7 +99,8 @@ const EnhancedLearningRoadmap = () => {
 				currentLevel: 3,
 				targetLevel: 5,
 				maxLevel: 5,
-				description: "Master JavaScript fundamentals and advanced concepts for modern web development",
+				description:
+					"Master JavaScript fundamentals and advanced concepts for modern web development",
 				impact: "+35%",
 				priority: "High",
 				estimatedTime: "4-6 weeks",
@@ -109,7 +109,8 @@ const EnhancedLearningRoadmap = () => {
 				nextSkills: ["React", "Node.js"],
 				marketDemand: 95,
 				salaryImpact: "+₹15,000",
-				aiPersonalization: "Tailored based on your frontend development goals and current React knowledge",
+				aiPersonalization:
+					"Tailored based on your frontend development goals and current React knowledge",
 				resources: [
 					{
 						id: 1,
@@ -127,7 +128,7 @@ const EnhancedLearningRoadmap = () => {
 						certificate: true,
 						hands_on_projects: 5,
 						completion_date: "2024-01-15",
-						time_spent: "24 hours"
+						time_spent: "24 hours",
 					},
 					{
 						id: 2,
@@ -145,7 +146,7 @@ const EnhancedLearningRoadmap = () => {
 						certificate: false,
 						hands_on_projects: 3,
 						completion_date: "2024-01-22",
-						time_spent: "16 hours"
+						time_spent: "16 hours",
 					},
 					{
 						id: 3,
@@ -162,7 +163,7 @@ const EnhancedLearningRoadmap = () => {
 						format: "Video + Exercises",
 						certificate: true,
 						hands_on_projects: 8,
-						estimated_completion: "2024-03-01"
+						estimated_completion: "2024-03-01",
 					},
 					{
 						id: 4,
@@ -178,8 +179,8 @@ const EnhancedLearningRoadmap = () => {
 						url: "#",
 						format: "Live + Recording",
 						certificate: true,
-						hands_on_projects: 4
-					}
+						hands_on_projects: 4,
+					},
 				],
 				milestones: [
 					{
@@ -189,7 +190,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: true,
 						date: "2024-01-15",
 						points: 100,
-						badge: "Foundation Master"
+						badge: "Foundation Master",
 					},
 					{
 						id: 2,
@@ -198,7 +199,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: true,
 						date: "2024-01-22",
 						points: 150,
-						badge: "Modern JS Developer"
+						badge: "Modern JS Developer",
 					},
 					{
 						id: 3,
@@ -209,7 +210,7 @@ const EnhancedLearningRoadmap = () => {
 						points: 200,
 						badge: "JavaScript Builder",
 						current_progress: 1,
-						total_required: 3
+						total_required: 3,
 					},
 					{
 						id: 4,
@@ -218,8 +219,8 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-03-01",
 						points: 250,
-						badge: "JavaScript Expert"
-					}
+						badge: "JavaScript Expert",
+					},
 				],
 				projects: [
 					{
@@ -230,7 +231,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: true,
 						technologies: ["Vanilla JS", "Local Storage", "CSS3"],
 						demo_url: "#",
-						github_url: "#"
+						github_url: "#",
 					},
 					{
 						id: 2,
@@ -239,8 +240,12 @@ const EnhancedLearningRoadmap = () => {
 						estimated_time: "12 hours",
 						completed: false,
 						technologies: ["Fetch API", "JSON", "Chart.js"],
-						requirements: ["API Integration", "Data Visualization", "Responsive Design"]
-					}
+						requirements: [
+							"API Integration",
+							"Data Visualization",
+							"Responsive Design",
+						],
+					},
 				],
 				assessments: [
 					{
@@ -251,7 +256,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: true,
 						score: 88,
 						max_score: 100,
-						completed_date: "2024-01-16"
+						completed_date: "2024-01-16",
 					},
 					{
 						id: 2,
@@ -259,20 +264,20 @@ const EnhancedLearningRoadmap = () => {
 						questions: 50,
 						time_limit: "90 minutes",
 						completed: false,
-						unlock_condition: "Complete ES6+ Tutorial"
-					}
+						unlock_condition: "Complete ES6+ Tutorial",
+					},
 				],
 				studyPlan: {
 					weekly_hours: 8,
 					preferred_time: "Evening",
 					learning_style: "Visual + Hands-on",
-					next_session: "2024-02-01T18:00:00Z"
+					next_session: "2024-02-01T18:00:00Z",
 				},
 				communityStats: {
 					learners: 45230,
 					discussions: 1250,
-					success_rate: 78
-				}
+					success_rate: 78,
+				},
 			},
 			{
 				id: 2,
@@ -281,7 +286,8 @@ const EnhancedLearningRoadmap = () => {
 				currentLevel: 2,
 				targetLevel: 4,
 				maxLevel: 5,
-				description: "Build modern, scalable user interfaces with React and its ecosystem",
+				description:
+					"Build modern, scalable user interfaces with React and its ecosystem",
 				impact: "+40%",
 				priority: "High",
 				estimatedTime: "6-8 weeks",
@@ -290,7 +296,8 @@ const EnhancedLearningRoadmap = () => {
 				nextSkills: ["Next.js", "React Native"],
 				marketDemand: 92,
 				salaryImpact: "+₹20,000",
-				aiPersonalization: "Perfect match for your full-stack development goals and current JavaScript skills",
+				aiPersonalization:
+					"Perfect match for your full-stack development goals and current JavaScript skills",
 				resources: [
 					{
 						id: 1,
@@ -307,7 +314,7 @@ const EnhancedLearningRoadmap = () => {
 						format: "Interactive + Projects",
 						certificate: true,
 						hands_on_projects: 6,
-						completion_date: "2024-01-10"
+						completion_date: "2024-01-10",
 					},
 					{
 						id: 2,
@@ -323,7 +330,7 @@ const EnhancedLearningRoadmap = () => {
 						url: "#",
 						format: "Video Series",
 						certificate: false,
-						hands_on_projects: 4
+						hands_on_projects: 4,
 					},
 					{
 						id: 3,
@@ -339,8 +346,8 @@ const EnhancedLearningRoadmap = () => {
 						url: "#",
 						format: "Video + Code",
 						certificate: true,
-						hands_on_projects: 3
-					}
+						hands_on_projects: 3,
+					},
 				],
 				milestones: [
 					{
@@ -349,7 +356,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: true,
 						date: "2024-01-10",
 						points: 120,
-						badge: "React Beginner"
+						badge: "React Beginner",
 					},
 					{
 						id: 2,
@@ -359,7 +366,7 @@ const EnhancedLearningRoadmap = () => {
 						points: 180,
 						badge: "React Developer",
 						current_progress: 30,
-						total_required: 100
+						total_required: 100,
 					},
 					{
 						id: 3,
@@ -367,7 +374,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-02-20",
 						points: 220,
-						badge: "State Master"
+						badge: "State Master",
 					},
 					{
 						id: 4,
@@ -375,8 +382,8 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-03-10",
 						points: 300,
-						badge: "React Professional"
-					}
+						badge: "React Professional",
+					},
 				],
 				projects: [
 					{
@@ -386,9 +393,13 @@ const EnhancedLearningRoadmap = () => {
 						estimated_time: "20 hours",
 						completed: false,
 						technologies: ["React", "Context API", "CSS Modules"],
-						requirements: ["Component Architecture", "State Management", "API Integration"]
-					}
-				]
+						requirements: [
+							"Component Architecture",
+							"State Management",
+							"API Integration",
+						],
+					},
+				],
 			},
 			{
 				id: 3,
@@ -397,7 +408,8 @@ const EnhancedLearningRoadmap = () => {
 				currentLevel: 1,
 				targetLevel: 3,
 				maxLevel: 5,
-				description: "Build robust server-side applications and APIs with Node.js",
+				description:
+					"Build robust server-side applications and APIs with Node.js",
 				impact: "+30%",
 				priority: "Medium",
 				estimatedTime: "5-7 weeks",
@@ -406,7 +418,8 @@ const EnhancedLearningRoadmap = () => {
 				nextSkills: ["Express.js", "MongoDB"],
 				marketDemand: 88,
 				salaryImpact: "+₹18,000",
-				aiPersonalization: "Complements your frontend skills for full-stack development capability",
+				aiPersonalization:
+					"Complements your frontend skills for full-stack development capability",
 				resources: [
 					{
 						id: 1,
@@ -422,7 +435,7 @@ const EnhancedLearningRoadmap = () => {
 						url: "#",
 						format: "Video + Labs",
 						certificate: true,
-						hands_on_projects: 8
+						hands_on_projects: 8,
 					},
 					{
 						id: 2,
@@ -438,8 +451,8 @@ const EnhancedLearningRoadmap = () => {
 						url: "#",
 						format: "Live Coding",
 						certificate: true,
-						hands_on_projects: 5
-					}
+						hands_on_projects: 5,
+					},
 				],
 				milestones: [
 					{
@@ -448,7 +461,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-02-15",
 						points: 100,
-						badge: "Node Beginner"
+						badge: "Node Beginner",
 					},
 					{
 						id: 2,
@@ -456,7 +469,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-03-01",
 						points: 200,
-						badge: "API Developer"
+						badge: "API Developer",
 					},
 					{
 						id: 3,
@@ -464,9 +477,9 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-03-15",
 						points: 250,
-						badge: "Backend Developer"
-					}
-				]
+						badge: "Backend Developer",
+					},
+				],
 			},
 			{
 				id: 4,
@@ -475,7 +488,8 @@ const EnhancedLearningRoadmap = () => {
 				currentLevel: 0,
 				targetLevel: 3,
 				maxLevel: 5,
-				description: "Understand core ML concepts and implement basic algorithms",
+				description:
+					"Understand core ML concepts and implement basic algorithms",
 				impact: "+50%",
 				priority: "High",
 				estimatedTime: "8-10 weeks",
@@ -484,7 +498,8 @@ const EnhancedLearningRoadmap = () => {
 				nextSkills: ["Deep Learning", "MLOps"],
 				marketDemand: 96,
 				salaryImpact: "+₹25,000",
-				aiPersonalization: "High-growth skill that aligns with industry trends and your technical background",
+				aiPersonalization:
+					"High-growth skill that aligns with industry trends and your technical background",
 				resources: [
 					{
 						id: 1,
@@ -500,7 +515,7 @@ const EnhancedLearningRoadmap = () => {
 						url: "#",
 						format: "Theory + Practice",
 						certificate: true,
-						hands_on_projects: 12
+						hands_on_projects: 12,
 					},
 					{
 						id: 2,
@@ -516,8 +531,8 @@ const EnhancedLearningRoadmap = () => {
 						url: "#",
 						format: "Interactive",
 						certificate: true,
-						hands_on_projects: 15
-					}
+						hands_on_projects: 15,
+					},
 				],
 				milestones: [
 					{
@@ -526,7 +541,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-03-01",
 						points: 150,
-						badge: "ML Beginner"
+						badge: "ML Beginner",
 					},
 					{
 						id: 2,
@@ -534,7 +549,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-03-20",
 						points: 200,
-						badge: "Algorithm Implementer"
+						badge: "Algorithm Implementer",
 					},
 					{
 						id: 3,
@@ -542,9 +557,9 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-04-15",
 						points: 300,
-						badge: "ML Practitioner"
-					}
-				]
+						badge: "ML Practitioner",
+					},
+				],
 			},
 			{
 				id: 5,
@@ -553,7 +568,8 @@ const EnhancedLearningRoadmap = () => {
 				currentLevel: 0,
 				targetLevel: 2,
 				maxLevel: 5,
-				description: "Learn cloud infrastructure and deployment on AWS platform",
+				description:
+					"Learn cloud infrastructure and deployment on AWS platform",
 				impact: "+35%",
 				priority: "Medium",
 				estimatedTime: "4-6 weeks",
@@ -562,7 +578,8 @@ const EnhancedLearningRoadmap = () => {
 				nextSkills: ["Kubernetes", "Docker"],
 				marketDemand: 89,
 				salaryImpact: "+₹22,000",
-				aiPersonalization: "Essential for modern application deployment and scalability",
+				aiPersonalization:
+					"Essential for modern application deployment and scalability",
 				resources: [
 					{
 						id: 1,
@@ -578,8 +595,8 @@ const EnhancedLearningRoadmap = () => {
 						url: "#",
 						format: "Online + Exam",
 						certificate: true,
-						hands_on_projects: 10
-					}
+						hands_on_projects: 10,
+					},
 				],
 				milestones: [
 					{
@@ -588,7 +605,7 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-03-15",
 						points: 120,
-						badge: "Cloud Beginner"
+						badge: "Cloud Beginner",
 					},
 					{
 						id: 2,
@@ -596,10 +613,10 @@ const EnhancedLearningRoadmap = () => {
 						completed: false,
 						target_date: "2024-04-01",
 						points: 200,
-						badge: "Cloud Deployer"
-					}
-				]
-			}
+						badge: "Cloud Deployer",
+					},
+				],
+			},
 		];
 
 		setRoadmap(mockRoadmap);
@@ -607,24 +624,40 @@ const EnhancedLearningRoadmap = () => {
 		// Calculate comprehensive progress
 		const progressData = {};
 		mockRoadmap.forEach((skill) => {
-			const completedResources = skill.resources.filter(r => r.completed).length;
+			const completedResources = skill.resources.filter(
+				(r) => r.completed
+			).length;
 			const totalResources = skill.resources.length;
-			const completedMilestones = skill.milestones.filter(m => m.completed).length;
+			const completedMilestones = skill.milestones.filter(
+				(m) => m.completed
+			).length;
 			const totalMilestones = skill.milestones.length;
-			const completedProjects = skill.projects ? skill.projects.filter(p => p.completed).length : 0;
+			const completedProjects = skill.projects
+				? skill.projects.filter((p) => p.completed).length
+				: 0;
 			const totalProjects = skill.projects ? skill.projects.length : 0;
 
 			progressData[skill.id] = {
 				resources: Math.round((completedResources / totalResources) * 100),
 				milestones: Math.round((completedMilestones / totalMilestones) * 100),
-				projects: totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0,
+				projects:
+					totalProjects > 0
+						? Math.round((completedProjects / totalProjects) * 100)
+						: 0,
 				overall: Math.round(
-					((completedResources + completedMilestones + completedProjects) / 
-					(totalResources + totalMilestones + totalProjects)) * 100
+					((completedResources + completedMilestones + completedProjects) /
+						(totalResources + totalMilestones + totalProjects)) *
+						100
 				),
 				skillLevel: Math.round((skill.currentLevel / skill.maxLevel) * 100),
-				timeSpent: skill.resources.reduce((acc, r) => acc + (r.time_spent ? parseInt(r.time_spent) : 0), 0),
-				points: skill.milestones.reduce((acc, m) => acc + (m.completed ? m.points : 0), 0)
+				timeSpent: skill.resources.reduce(
+					(acc, r) => acc + (r.time_spent ? parseInt(r.time_spent) : 0),
+					0
+				),
+				points: skill.milestones.reduce(
+					(acc, m) => acc + (m.completed ? m.points : 0),
+					0
+				),
 			};
 		});
 
@@ -634,24 +667,33 @@ const EnhancedLearningRoadmap = () => {
 		setTimeout(() => {
 			setAiRecommendations({
 				nextBestSkill: "React Development",
-				reasoning: "Based on your JavaScript progress and career goals in full-stack development",
+				reasoning:
+					"Based on your JavaScript progress and career goals in full-stack development",
 				weeklyRecommendation: "Focus 8 hours on React Hooks this week",
 				skillGaps: [
-					{ skill: "Testing", impact: "High", reason: "Essential for professional development" },
-					{ skill: "TypeScript", impact: "Medium", reason: "Improves code quality and marketability" }
+					{
+						skill: "Testing",
+						impact: "High",
+						reason: "Essential for professional development",
+					},
+					{
+						skill: "TypeScript",
+						impact: "Medium",
+						reason: "Improves code quality and marketability",
+					},
 				],
 				careerPath: {
 					current: "Frontend Developer",
 					next: "Full-Stack Developer",
 					timeline: "3-4 months",
-					requiredSkills: ["React", "Node.js", "Databases"]
+					requiredSkills: ["React", "Node.js", "Databases"],
 				},
 				marketInsights: {
 					demandTrend: "Increasing",
 					salaryGrowth: "+15%",
 					jobOpenings: 2340,
-					topCompaniesHiring: ["TCS", "Infosys", "Wipro", "Accenture"]
-				}
+					topCompaniesHiring: ["TCS", "Infosys", "Wipro", "Accenture"],
+				},
 			});
 		}, 2000);
 
@@ -663,7 +705,7 @@ const EnhancedLearningRoadmap = () => {
 				target_date: "2024-03-31",
 				progress: 35,
 				skills: ["React", "Redux", "Testing"],
-				priority: "High"
+				priority: "High",
 			},
 			{
 				id: 2,
@@ -671,8 +713,8 @@ const EnhancedLearningRoadmap = () => {
 				target_date: "2024-06-30",
 				progress: 20,
 				skills: ["Node.js", "Databases", "API Design"],
-				priority: "High"
-			}
+				priority: "High",
+			},
 		]);
 
 		// Certificates and Achievements
@@ -683,8 +725,8 @@ const EnhancedLearningRoadmap = () => {
 				provider: "CodeAcademy",
 				issued_date: "2024-01-15",
 				credential_id: "JS-FUND-2024-001",
-				verification_url: "#"
-			}
+				verification_url: "#",
+			},
 		]);
 
 		// Study Groups
@@ -695,8 +737,8 @@ const EnhancedLearningRoadmap = () => {
 				members: 1250,
 				activity: "Very Active",
 				next_session: "2024-02-03T15:00:00Z",
-				topic: "Advanced React Patterns"
-			}
+				topic: "Advanced React Patterns",
+			},
 		]);
 
 		// Mentorship
@@ -708,8 +750,8 @@ const EnhancedLearningRoadmap = () => {
 				experience: "8 years",
 				rating: 4.9,
 				availability: "Weekends",
-				price: "₹2,000/hour"
-			}
+				price: "₹2,000/hour",
+			},
 		]);
 
 		// Interactive Content
@@ -720,83 +762,109 @@ const EnhancedLearningRoadmap = () => {
 				type: "Coding Practice",
 				difficulty: "Mixed",
 				problems: 50,
-				completed: 23
+				completed: 23,
 			},
 			{
 				id: 2,
 				title: "React Component Playground",
 				type: "Interactive Tutorial",
 				lessons: 15,
-				completed: 8
-			}
+				completed: 8,
+			},
 		]);
-
 	}, []);
 
-	const filteredRoadmap = roadmap.filter(skill => {
-		const matchesSearch = skill.skill.toLowerCase().includes(searchTerm.toLowerCase()) ||
-						    skill.category.toLowerCase().includes(searchTerm.toLowerCase());
-		
-		const matchesFilter = filter === "all" || 
-						     (filter === "in-progress" && skill.currentLevel > 0 && skill.currentLevel < skill.targetLevel) ||
-						     (filter === "completed" && skill.currentLevel >= skill.targetLevel) ||
-						     (filter === "not-started" && skill.currentLevel === 0) ||
-						     (filter === "high-priority" && skill.priority === "High");
-		
-		return matchesSearch && matchesFilter;
-	}).sort((a, b) => {
-		switch (sortBy) {
-			case "priority":
-				const priorityOrder = { "High": 3, "Medium": 2, "Low": 1 };
-				return priorityOrder[b.priority] - priorityOrder[a.priority];
-			case "progress":
-				return (progress[b.id]?.overall || 0) - (progress[a.id]?.overall || 0);
-			case "marketDemand":
-				return b.marketDemand - a.marketDemand;
-			case "impact":
-				return parseInt(b.impact.replace('%', '').replace('+', '')) - parseInt(a.impact.replace('%', '').replace('+', ''));
-			default:
-				return 0;
-		}
-	});
+	const filteredRoadmap = roadmap
+		.filter((skill) => {
+			const matchesSearch =
+				skill.skill.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				skill.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+			const matchesFilter =
+				filter === "all" ||
+				(filter === "in-progress" &&
+					skill.currentLevel > 0 &&
+					skill.currentLevel < skill.targetLevel) ||
+				(filter === "completed" && skill.currentLevel >= skill.targetLevel) ||
+				(filter === "not-started" && skill.currentLevel === 0) ||
+				(filter === "high-priority" && skill.priority === "High");
+
+			return matchesSearch && matchesFilter;
+		})
+		.sort((a, b) => {
+			switch (sortBy) {
+				case "priority":
+					const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+					return priorityOrder[b.priority] - priorityOrder[a.priority];
+				case "progress":
+					return (
+						(progress[b.id]?.overall || 0) - (progress[a.id]?.overall || 0)
+					);
+				case "marketDemand":
+					return b.marketDemand - a.marketDemand;
+				case "impact":
+					return (
+						parseInt(b.impact.replace("%", "").replace("+", "")) -
+						parseInt(a.impact.replace("%", "").replace("+", ""))
+					);
+				default:
+					return 0;
+			}
+		});
 
 	const startLearningSession = useCallback((skill) => {
 		setCurrentLearningSession({
 			skill: skill,
 			startTime: new Date(),
-			currentResource: skill.resources.find(r => !r.completed) || skill.resources[0],
+			currentResource:
+				skill.resources.find((r) => !r.completed) || skill.resources[0],
 			sessionGoal: "Complete one resource or milestone",
-			estimatedDuration: "45 minutes"
+			estimatedDuration: "45 minutes",
 		});
 	}, []);
 
 	const getPriorityColor = (priority) => {
 		switch (priority) {
-			case "High": return "text-red-600 bg-red-100 border-red-200";
-			case "Medium": return "text-yellow-600 bg-yellow-100 border-yellow-200";
-			case "Low": return "text-green-600 bg-green-100 border-green-200";
-			default: return "text-gray-600 bg-gray-100 border-gray-200";
+			case "High":
+				return "text-red-600 bg-red-100 border-red-200";
+			case "Medium":
+				return "text-yellow-600 bg-yellow-100 border-yellow-200";
+			case "Low":
+				return "text-green-600 bg-green-100 border-green-200";
+			default:
+				return "text-gray-600 bg-gray-100 border-gray-200";
 		}
 	};
 
 	const getDifficultyColor = (difficulty) => {
 		switch (difficulty) {
-			case "Beginner": return "text-green-600 bg-green-100";
-			case "Intermediate": return "text-yellow-600 bg-yellow-100";
-			case "Advanced": return "text-red-600 bg-red-100";
-			default: return "text-gray-600 bg-gray-100";
+			case "Beginner":
+				return "text-green-600 bg-green-100";
+			case "Intermediate":
+				return "text-yellow-600 bg-yellow-100";
+			case "Advanced":
+				return "text-red-600 bg-red-100";
+			default:
+				return "text-gray-600 bg-gray-100";
 		}
 	};
 
 	const getResourceIcon = (type) => {
 		switch (type) {
-			case "Course": return <BookOpen className="w-4 h-4" />;
-			case "Tutorial": return <Play className="w-4 h-4" />;
-			case "Article": return <ExternalLink className="w-4 h-4" />;
-			case "Workshop": return <Users className="w-4 h-4" />;
-			case "Certification": return <Award className="w-4 h-4" />;
-			case "Bootcamp": return <Zap className="w-4 h-4" />;
-			default: return <BookOpen className="w-4 h-4" />;
+			case "Course":
+				return <BookOpen className="w-4 h-4" />;
+			case "Tutorial":
+				return <Play className="w-4 h-4" />;
+			case "Article":
+				return <ExternalLink className="w-4 h-4" />;
+			case "Workshop":
+				return <Users className="w-4 h-4" />;
+			case "Certification":
+				return <Award className="w-4 h-4" />;
+			case "Bootcamp":
+				return <Zap className="w-4 h-4" />;
+			default:
+				return <BookOpen className="w-4 h-4" />;
 		}
 	};
 
@@ -804,7 +872,7 @@ const EnhancedLearningRoadmap = () => {
 		<div className="min-h-screen bg-gray-50 py-8">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				{/* Enhanced Header with AI Insights */}
-				<motion.div 
+				<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					className="mb-8"
@@ -816,7 +884,8 @@ const EnhancedLearningRoadmap = () => {
 								AI-Powered Learning Roadmap
 							</h1>
 							<p className="text-gray-600 mt-2">
-								Personalized skill development path tailored to your career goals and learning style
+								Personalized skill development path tailored to your career
+								goals and learning style
 							</p>
 						</div>
 						<div className="flex items-center space-x-4">
@@ -836,7 +905,7 @@ const EnhancedLearningRoadmap = () => {
 
 					{/* Progress Overview Dashboard */}
 					<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-						<motion.div 
+						<motion.div
 							initial={{ opacity: 0, scale: 0.9 }}
 							animate={{ opacity: 1, scale: 1 }}
 							className="card text-center bg-gradient-to-r from-blue-50 to-indigo-50"
@@ -845,12 +914,15 @@ const EnhancedLearningRoadmap = () => {
 								<Trophy className="w-8 h-8 text-primary" />
 							</div>
 							<div className="text-2xl font-bold text-primary mb-1">
-								{roadmap.filter(skill => progress[skill.id]?.overall === 100).length}
+								{
+									roadmap.filter((skill) => progress[skill.id]?.overall === 100)
+										.length
+								}
 							</div>
 							<div className="text-sm text-gray-600">Skills Mastered</div>
 						</motion.div>
 
-						<motion.div 
+						<motion.div
 							initial={{ opacity: 0, scale: 0.9 }}
 							animate={{ opacity: 1, scale: 1 }}
 							transition={{ delay: 0.1 }}
@@ -865,7 +937,7 @@ const EnhancedLearningRoadmap = () => {
 							<div className="text-sm text-gray-600">Day Streak</div>
 						</motion.div>
 
-						<motion.div 
+						<motion.div
 							initial={{ opacity: 0, scale: 0.9 }}
 							animate={{ opacity: 1, scale: 1 }}
 							transition={{ delay: 0.2 }}
@@ -880,7 +952,7 @@ const EnhancedLearningRoadmap = () => {
 							<div className="text-sm text-gray-600">Weekly Goal</div>
 						</motion.div>
 
-						<motion.div 
+						<motion.div
 							initial={{ opacity: 0, scale: 0.9 }}
 							animate={{ opacity: 1, scale: 1 }}
 							transition={{ delay: 0.3 }}
@@ -890,7 +962,10 @@ const EnhancedLearningRoadmap = () => {
 								<Star className="w-8 h-8 text-orange-600" />
 							</div>
 							<div className="text-2xl font-bold text-orange-600 mb-1">
-								{Object.values(progress).reduce((acc, p) => acc + (p.points || 0), 0)}
+								{Object.values(progress).reduce(
+									(acc, p) => acc + (p.points || 0),
+									0
+								)}
 							</div>
 							<div className="text-sm text-gray-600">Total Points</div>
 						</motion.div>
@@ -898,7 +973,7 @@ const EnhancedLearningRoadmap = () => {
 
 					{/* AI Recommendations Panel */}
 					{aiRecommendations && (
-						<motion.div 
+						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ delay: 0.4 }}
@@ -914,23 +989,39 @@ const EnhancedLearningRoadmap = () => {
 									</h3>
 									<div className="grid md:grid-cols-2 gap-4 mb-4">
 										<div>
-											<h4 className="font-medium text-gray-900 mb-1">Next Best Skill</h4>
-											<p className="text-gray-600 text-sm">{aiRecommendations.nextBestSkill}</p>
-											<p className="text-gray-500 text-xs mt-1">{aiRecommendations.reasoning}</p>
+											<h4 className="font-medium text-gray-900 mb-1">
+												Next Best Skill
+											</h4>
+											<p className="text-gray-600 text-sm">
+												{aiRecommendations.nextBestSkill}
+											</p>
+											<p className="text-gray-500 text-xs mt-1">
+												{aiRecommendations.reasoning}
+											</p>
 										</div>
 										<div>
-											<h4 className="font-medium text-gray-900 mb-1">This Week's Focus</h4>
-											<p className="text-gray-600 text-sm">{aiRecommendations.weeklyRecommendation}</p>
+											<h4 className="font-medium text-gray-900 mb-1">
+												This Week's Focus
+											</h4>
+											<p className="text-gray-600 text-sm">
+												{aiRecommendations.weeklyRecommendation}
+											</p>
 										</div>
 									</div>
 									<div className="flex items-center space-x-6 text-sm">
 										<div className="flex items-center space-x-2">
 											<TrendingUp className="w-4 h-4 text-green-600" />
-											<span className="text-gray-600">Market Trend: {aiRecommendations.marketInsights.demandTrend}</span>
+											<span className="text-gray-600">
+												Market Trend:{" "}
+												{aiRecommendations.marketInsights.demandTrend}
+											</span>
 										</div>
 										<div className="flex items-center space-x-2">
 											<DollarSign className="w-4 h-4 text-green-600" />
-											<span className="text-gray-600">Salary Impact: {aiRecommendations.marketInsights.salaryGrowth}</span>
+											<span className="text-gray-600">
+												Salary Impact:{" "}
+												{aiRecommendations.marketInsights.salaryGrowth}
+											</span>
 										</div>
 									</div>
 								</div>
@@ -940,7 +1031,7 @@ const EnhancedLearningRoadmap = () => {
 				</motion.div>
 
 				{/* Search and Filter Controls */}
-				<motion.div 
+				<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.5 }}
@@ -989,8 +1080,8 @@ const EnhancedLearningRoadmap = () => {
 							<button
 								onClick={() => setViewMode("cards")}
 								className={`px-3 py-2 rounded-md text-sm ${
-									viewMode === "cards" 
-										? "bg-white text-primary shadow-sm" 
+									viewMode === "cards"
+										? "bg-white text-primary shadow-sm"
 										: "text-gray-600 hover:text-gray-900"
 								}`}
 							>
@@ -999,12 +1090,12 @@ const EnhancedLearningRoadmap = () => {
 							<button
 								onClick={() => setViewMode("timeline")}
 								className={`px-3 py-2 rounded-md text-sm ${
-									viewMode === "timeline" 
-										? "bg-white text-primary shadow-sm" 
+									viewMode === "timeline"
+										? "bg-white text-primary shadow-sm"
 										: "text-gray-600 hover:text-gray-900"
 								}`}
 							>
-								<Route className="w-4 h-4" />
+								<Navigation className="w-4 h-4" />
 							</button>
 						</div>
 					</div>
@@ -1028,7 +1119,11 @@ const EnhancedLearningRoadmap = () => {
 				</div>
 
 				{/* Skills Roadmap */}
-				<div className={viewMode === "cards" ? "grid lg:grid-cols-2 gap-6" : "space-y-6"}>
+				<div
+					className={
+						viewMode === "cards" ? "grid lg:grid-cols-2 gap-6" : "space-y-6"
+					}
+				>
 					<AnimatePresence>
 						{filteredRoadmap.map((skill, index) => (
 							<motion.div
@@ -1053,13 +1148,21 @@ const EnhancedLearningRoadmap = () => {
 												{skill.description}
 											</p>
 											<div className="flex items-center space-x-2 mb-2">
-												<span className={`px-2 py-1 text-xs rounded-full border ${getPriorityColor(skill.priority)}`}>
+												<span
+													className={`px-2 py-1 text-xs rounded-full border ${getPriorityColor(
+														skill.priority
+													)}`}
+												>
 													{skill.priority} Priority
 												</span>
 												<span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
 													{skill.category}
 												</span>
-												<span className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(skill.difficulty)}`}>
+												<span
+													className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(
+														skill.difficulty
+													)}`}
+												>
 													{skill.difficulty}
 												</span>
 											</div>
@@ -1079,8 +1182,12 @@ const EnhancedLearningRoadmap = () => {
 										<div className="flex items-start space-x-2">
 											<Sparkles className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
 											<div>
-												<div className="text-xs font-medium text-blue-800 mb-1">AI Insight</div>
-												<div className="text-sm text-blue-700">{skill.aiPersonalization}</div>
+												<div className="text-xs font-medium text-blue-800 mb-1">
+													AI Insight
+												</div>
+												<div className="text-sm text-blue-700">
+													{skill.aiPersonalization}
+												</div>
 											</div>
 										</div>
 									</div>
@@ -1089,9 +1196,12 @@ const EnhancedLearningRoadmap = () => {
 								{/* Skill Level Progress */}
 								<div className="mb-4">
 									<div className="flex items-center justify-between mb-2">
-										<span className="text-sm font-medium text-gray-700">Skill Level</span>
+										<span className="text-sm font-medium text-gray-700">
+											Skill Level
+										</span>
 										<span className="text-sm text-gray-600">
-											{skill.currentLevel}/{skill.maxLevel} → {skill.targetLevel}
+											{skill.currentLevel}/{skill.maxLevel} →{" "}
+											{skill.targetLevel}
 										</span>
 									</div>
 									<div className="w-full bg-gray-200 rounded-full h-3">
@@ -1102,7 +1212,9 @@ const EnhancedLearningRoadmap = () => {
 													: "bg-primary"
 											}`}
 											style={{
-												width: `${(skill.currentLevel / skill.maxLevel) * 100}%`,
+												width: `${
+													(skill.currentLevel / skill.maxLevel) * 100
+												}%`,
 											}}
 										></div>
 									</div>
@@ -1150,7 +1262,9 @@ const EnhancedLearningRoadmap = () => {
 
 								{/* Resources Preview */}
 								<div className="mb-4">
-									<h4 className="text-sm font-medium text-gray-900 mb-2">Learning Resources:</h4>
+									<h4 className="text-sm font-medium text-gray-900 mb-2">
+										Learning Resources:
+									</h4>
 									<div className="space-y-2">
 										{skill.resources.slice(0, 2).map((resource) => (
 											<div
@@ -1159,8 +1273,14 @@ const EnhancedLearningRoadmap = () => {
 											>
 												<div className="flex items-center space-x-2">
 													{getResourceIcon(resource.type)}
-													<span className="text-sm text-gray-900">{resource.title}</span>
-													<span className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(resource.difficulty)}`}>
+													<span className="text-sm text-gray-900">
+														{resource.title}
+													</span>
+													<span
+														className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(
+															resource.difficulty
+														)}`}
+													>
 														{resource.difficulty}
 													</span>
 													{resource.certificate && (
@@ -1173,7 +1293,9 @@ const EnhancedLearningRoadmap = () => {
 													) : (
 														<Clock className="w-4 h-4 text-gray-400" />
 													)}
-													<span className="text-xs text-gray-500">{resource.duration}</span>
+													<span className="text-xs text-gray-500">
+														{resource.duration}
+													</span>
 												</div>
 											</div>
 										))}
@@ -1187,20 +1309,33 @@ const EnhancedLearningRoadmap = () => {
 
 								{/* Milestones */}
 								<div className="mb-4">
-									<h4 className="text-sm font-medium text-gray-900 mb-2">Next Milestones:</h4>
+									<h4 className="text-sm font-medium text-gray-900 mb-2">
+										Next Milestones:
+									</h4>
 									<div className="space-y-1">
 										{skill.milestones.slice(0, 3).map((milestone) => (
-											<div key={milestone.id} className="flex items-center space-x-2">
+											<div
+												key={milestone.id}
+												className="flex items-center space-x-2"
+											>
 												{milestone.completed ? (
 													<CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
 												) : (
 													<div className="w-4 h-4 border-2 border-gray-300 rounded-full flex-shrink-0"></div>
 												)}
-												<span className={`text-sm ${milestone.completed ? "text-gray-900" : "text-gray-600"}`}>
+												<span
+													className={`text-sm ${
+														milestone.completed
+															? "text-gray-900"
+															: "text-gray-600"
+													}`}
+												>
 													{milestone.title}
 												</span>
 												{milestone.points && (
-													<span className="text-xs text-yellow-600">+{milestone.points} pts</span>
+													<span className="text-xs text-yellow-600">
+														+{milestone.points} pts
+													</span>
 												)}
 											</div>
 										))}
@@ -1243,7 +1378,7 @@ const EnhancedLearningRoadmap = () => {
 
 				{/* No Results */}
 				{filteredRoadmap.length === 0 && (
-					<motion.div 
+					<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						className="text-center py-12"
@@ -1330,7 +1465,11 @@ const EnhancedLearningRoadmap = () => {
 															<span>{resource.provider}</span>
 															<span>•</span>
 															<span>{resource.duration}</span>
-															<span className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(resource.difficulty)}`}>
+															<span
+																className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(
+																	resource.difficulty
+																)}`}
+															>
 																{resource.difficulty}
 															</span>
 														</div>
@@ -1338,10 +1477,16 @@ const EnhancedLearningRoadmap = () => {
 															<div className="flex items-center space-x-2 mb-2">
 																<div className="flex items-center">
 																	<Star className="w-4 h-4 text-yellow-400 fill-current" />
-																	<span className="text-sm ml-1">{resource.rating}</span>
+																	<span className="text-sm ml-1">
+																		{resource.rating}
+																	</span>
 																</div>
-																<span className="text-xs text-gray-500">({resource.reviews} reviews)</span>
-																<span className="text-sm font-medium text-green-600">{resource.price}</span>
+																<span className="text-xs text-gray-500">
+																	({resource.reviews} reviews)
+																</span>
+																<span className="text-sm font-medium text-green-600">
+																	{resource.price}
+																</span>
 															</div>
 														)}
 														{resource.hands_on_projects && (
@@ -1371,7 +1516,13 @@ const EnhancedLearningRoadmap = () => {
 															<div className="w-5 h-5 border-2 border-gray-300 rounded-full flex-shrink-0 mt-0.5"></div>
 														)}
 														<div className="flex-1">
-															<div className={`font-medium ${milestone.completed ? "text-gray-900" : "text-gray-600"}`}>
+															<div
+																className={`font-medium ${
+																	milestone.completed
+																		? "text-gray-900"
+																		: "text-gray-600"
+																}`}
+															>
 																{milestone.title}
 															</div>
 															<div className="text-sm text-gray-500 mb-1">
@@ -1387,13 +1538,20 @@ const EnhancedLearningRoadmap = () => {
 																<div className="mt-2">
 																	<div className="flex justify-between text-xs text-gray-600 mb-1">
 																		<span>Progress</span>
-																		<span>{milestone.current_progress}/{milestone.total_required}</span>
+																		<span>
+																			{milestone.current_progress}/
+																			{milestone.total_required}
+																		</span>
 																	</div>
 																	<div className="w-full bg-gray-200 rounded-full h-2">
 																		<div
 																			className="bg-primary h-2 rounded-full"
 																			style={{
-																				width: `${(milestone.current_progress / milestone.total_required) * 100}%`
+																				width: `${
+																					(milestone.current_progress /
+																						milestone.total_required) *
+																					100
+																				}%`,
 																			}}
 																		></div>
 																	</div>
@@ -1405,50 +1563,67 @@ const EnhancedLearningRoadmap = () => {
 											</div>
 
 											{/* Projects */}
-											{selectedSkill.projects && selectedSkill.projects.length > 0 && (
-												<div className="mt-6">
-													<h4 className="font-medium text-gray-900 mb-3">Practice Projects</h4>
-													<div className="space-y-3">
-														{selectedSkill.projects.map((project) => (
-															<div key={project.id} className="border border-gray-200 rounded-lg p-3">
-																<div className="flex items-center justify-between mb-2">
-																	<h5 className="font-medium text-gray-900">{project.title}</h5>
-																	{project.completed ? (
-																		<CheckCircle className="w-5 h-5 text-green-500" />
-																	) : (
-																		<Clock className="w-5 h-5 text-gray-400" />
+											{selectedSkill.projects &&
+												selectedSkill.projects.length > 0 && (
+													<div className="mt-6">
+														<h4 className="font-medium text-gray-900 mb-3">
+															Practice Projects
+														</h4>
+														<div className="space-y-3">
+															{selectedSkill.projects.map((project) => (
+																<div
+																	key={project.id}
+																	className="border border-gray-200 rounded-lg p-3"
+																>
+																	<div className="flex items-center justify-between mb-2">
+																		<h5 className="font-medium text-gray-900">
+																			{project.title}
+																		</h5>
+																		{project.completed ? (
+																			<CheckCircle className="w-5 h-5 text-green-500" />
+																		) : (
+																			<Clock className="w-5 h-5 text-gray-400" />
+																		)}
+																	</div>
+																	<div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+																		<span
+																			className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(
+																				project.difficulty
+																			)}`}
+																		>
+																			{project.difficulty}
+																		</span>
+																		<span>{project.estimated_time}</span>
+																	</div>
+																	{project.technologies && (
+																		<div className="flex flex-wrap gap-1 mb-2">
+																			{project.technologies.map(
+																				(tech, index) => (
+																					<span
+																						key={index}
+																						className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded"
+																					>
+																						{tech}
+																					</span>
+																				)
+																			)}
+																		</div>
+																	)}
+																	{project.demo_url && (
+																		<div className="flex items-center space-x-2">
+																			<button className="text-primary text-sm hover:underline">
+																				View Demo
+																			</button>
+																			<button className="text-gray-600 text-sm hover:underline">
+																				View Code
+																			</button>
+																		</div>
 																	)}
 																</div>
-																<div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
-																	<span className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(project.difficulty)}`}>
-																		{project.difficulty}
-																	</span>
-																	<span>{project.estimated_time}</span>
-																</div>
-																{project.technologies && (
-																	<div className="flex flex-wrap gap-1 mb-2">
-																		{project.technologies.map((tech, index) => (
-																			<span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
-																				{tech}
-																			</span>
-																		))}
-																	</div>
-																)}
-																{project.demo_url && (
-																	<div className="flex items-center space-x-2">
-																		<button className="text-primary text-sm hover:underline">
-																			View Demo
-																		</button>
-																		<button className="text-gray-600 text-sm hover:underline">
-																			View Code
-																		</button>
-																	</div>
-																)}
-															</div>
-														))}
+															))}
+														</div>
 													</div>
-												</div>
-											)}
+												)}
 										</div>
 									</div>
 								</div>
@@ -1524,7 +1699,8 @@ const EnhancedLearningRoadmap = () => {
 									</div>
 									{/* Analytics content would go here */}
 									<div className="text-gray-600">
-										Comprehensive learning analytics and progress insights would be displayed here.
+										Comprehensive learning analytics and progress insights would
+										be displayed here.
 									</div>
 								</div>
 							</motion.div>

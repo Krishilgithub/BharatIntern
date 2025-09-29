@@ -12,6 +12,7 @@ import Signup from "./pages/Signup";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import UserProfile from "./pages/UserProfile";
+import APIStatusDemo from "./components/APIStatusDemo";
 
 // Candidate Pages
 import CandidateDashboard from "./pages/candidate/Dashboard";
@@ -48,6 +49,7 @@ function App() {
 							<Route path="/signup" element={<Signup />} />
 							<Route path="/about" element={<About />} />
 							<Route path="/contact" element={<Contact />} />
+							<Route path="/api-status" element={<APIStatusDemo />} />
 
 							{/* Profile Route (Available to all authenticated users) */}
 							<Route

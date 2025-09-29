@@ -7,9 +7,57 @@ from datetime import datetime, date
 import random
 import json
 import asyncio
-from ai_services import ai_services
+from ai_modules.ai_orchestrator import (
+    ai_orchestrator,
+    initialize_ai_services,
+    analyze_resume,
+    match_candidates_to_jobs,
+    assess_interview,
+    get_system_health,
+    get_analytics_report
+)
+from ai_modules.advanced_nlp_processor import AdvancedNLPProcessor
+from ai_modules.advanced_resume_analyzer import AdvancedResumeAnalyzer
+from ai_modules.coding_profile_scraper import CodingProfileScraper
+from ai_modules.langchain_gemini_analyzer import LangChainGeminiAnalyzer
 
 app = FastAPI(title="PM Internship Portal API", version="1.0.0")
+
+# Initialize advanced analyzers
+nlp_processor = None
+advanced_resume_analyzer = None
+coding_scraper = None
+langchain_analyzer = None
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize AI services on startup"""
+    global nlp_processor, advanced_resume_analyzer, coding_scraper, langchain_analyzer
+    
+    print("🚀 Initializing AI Services...")
+    initialization_results = await initialize_ai_services()
+    print(f"📊 AI Services Status: {initialization_results}")
+    
+    # Initialize advanced analyzers
+    try:
+        print("🔧 Initializing Advanced NLP Processor...")
+        nlp_processor = AdvancedNLPProcessor()
+        await nlp_processor.initialize()
+        
+        print("📄 Initializing Advanced Resume Analyzer...")
+        advanced_resume_analyzer = AdvancedResumeAnalyzer()
+        
+        print("💻 Initializing Coding Profile Scraper...")
+        coding_scraper = CodingProfileScraper()
+        
+        print("🤖 Initializing LangChain Gemini Analyzer...")
+        langchain_analyzer = LangChainGeminiAnalyzer()
+        
+        print("✅ All advanced analyzers initialized successfully!")
+        
+    except Exception as e:
+        print(f"⚠️ Warning: Could not initialize advanced analyzers: {e}")
+        print("📝 Falling back to basic analyzers")
 
 # CORS middleware
 app.add_middleware(
@@ -405,8 +453,13 @@ async def analyze_resume_ai(file: UploadFile = File(...)):
         content = await file.read()
         text = content.decode('utf-8')
         
-        # Analyze with AI services
-        analysis = await ai_services.analyze_resume(text)
+        # Analyze with AI services - create proper file_data structure
+        file_data = {
+            "text": text,
+            "filename": file.filename,
+            "content_type": file.content_type
+        }
+        analysis = await analyze_resume(file_data)
         
         return {
             "success": True,
@@ -416,11 +469,71 @@ async def analyze_resume_ai(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/ai/analyze-resume-advanced")
+async def analyze_resume_advanced(file: UploadFile = File(...)):
+    """Enhanced resume analysis using advanced ML/NLP pipeline"""
+    try:
+        # Read file content
+        content = await file.read()
+        text = content.decode('utf-8')
+        
+        results = {}
+        
+        # Use advanced NLP processor if available
+        if nlp_processor:
+            try:
+                nlp_results = nlp_processor.analyze_resume_complete(text)
+                results["nlp_analysis"] = nlp_results
+            except Exception as e:
+                print(f"NLP Analysis error: {e}")
+                results["nlp_analysis"] = {"error": str(e)}
+        
+        # Use advanced resume analyzer if available
+        if advanced_resume_analyzer:
+            try:
+                resume_analysis = advanced_resume_analyzer.analyze_resume_comprehensive(text)
+                results["resume_analysis"] = resume_analysis
+            except Exception as e:
+                print(f"Resume Analysis error: {e}")
+                results["resume_analysis"] = {"error": str(e)}
+        
+        # Use LangChain analyzer if available
+        if langchain_analyzer:
+            try:
+                langchain_results = await langchain_analyzer.analyze_resume_with_llm(text)
+                results["langchain_analysis"] = langchain_results
+            except Exception as e:
+                print(f"LangChain Analysis error: {e}")
+                results["langchain_analysis"] = {"error": str(e)}
+        
+        # Fallback to basic analysis if no advanced analyzers available
+        if not any([nlp_processor, advanced_resume_analyzer, langchain_analyzer]):
+            file_data = {
+                "text": text,
+                "filename": file.filename,
+                "content_type": file.content_type
+            }
+            basic_analysis = await analyze_resume(file_data)
+            results["basic_analysis"] = basic_analysis
+        
+        return {
+            "success": True,
+            "analysis": results,
+            "filename": file.filename,
+            "analyzers_used": {
+                "nlp_processor": nlp_processor is not None,
+                "advanced_resume_analyzer": advanced_resume_analyzer is not None,
+                "langchain_analyzer": langchain_analyzer is not None
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Advanced analysis failed: {str(e)}")
+
 @app.post("/ai/match-jobs")
 async def match_jobs_ai(request: JobMatchRequest):
     """Match candidates to jobs using AI"""
     try:
-        matches = await ai_services.match_candidates_to_jobs(
+        matches = await match_candidates_to_jobs(
             request.candidate_profiles,
             request.job_descriptions
         )
@@ -442,7 +555,7 @@ async def voice_assessment(
             buffer.write(content)
         
         questions_list = json.loads(questions)
-        assessment = await ai_services.assess_voice_interview(audio_path, questions_list)
+        assessment = await assess_interview("Sample transcription", questions_list)
         
         return {"success": True, "assessment": assessment}
     except Exception as e:
@@ -452,19 +565,79 @@ async def voice_assessment(
 async def integrate_coding_profile(request: CodingProfileRequest):
     """Integrate coding profiles from GitHub, LeetCode"""
     try:
-        profile_data = await ai_services.integrate_coding_profiles(
-            request.github_username,
-            request.leetcode_username
+        # Handle optional parameters
+        github_username = request.github_username or ""
+        leetcode_username = request.leetcode_username or ""
+        
+        profile_data = await ai_orchestrator.integrate_coding_profiles_complete(
+            github_username,
+            leetcode_username
         )
         return {"success": True, "profile": profile_data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/ai/coding-profile-advanced")
+async def analyze_coding_profile_advanced(request: CodingProfileRequest):
+    """Advanced coding profile analysis using ML scraping"""
+    try:
+        results = {}
+        
+        # Use advanced coding scraper if available
+        if coding_scraper:
+            try:
+                # Analyze GitHub profile
+                if request.github_username:
+                    github_analysis = await coding_scraper.scrape_github_profile(request.github_username)
+                    results["github_analysis"] = github_analysis
+                
+                # Analyze LeetCode profile
+                if request.leetcode_username:
+                    leetcode_analysis = await coding_scraper.scrape_leetcode_profile(request.leetcode_username)
+                    results["leetcode_analysis"] = leetcode_analysis
+                
+                # Generate comprehensive coding summary
+                if request.github_username or request.leetcode_username:
+                    coding_summary = coding_scraper._calculate_coding_summary(results)
+                    results["coding_summary"] = coding_summary
+                    
+                    # Generate insights
+                    insights = coding_scraper.generate_coding_insights(results)
+                    results["insights"] = insights
+                    
+            except Exception as e:
+                print(f"Advanced coding analysis error: {e}")
+                results["advanced_analysis"] = {"error": str(e)}
+        
+        # Fallback to basic analysis if no advanced scraper
+        if not coding_scraper:
+            github_username = request.github_username or ""
+            leetcode_username = request.leetcode_username or ""
+            
+            fallback_data = await ai_orchestrator.integrate_coding_profiles_complete(
+                github_username,
+                leetcode_username
+            )
+            results["fallback_analysis"] = fallback_data
+        
+        return {
+            "success": True,
+            "analysis": results,
+            "profiles_analyzed": {
+                "github": bool(request.github_username),
+                "leetcode": bool(request.leetcode_username)
+            },
+            "advanced_scraper_used": coding_scraper is not None
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Advanced coding profile analysis failed: {str(e)}")
+
 @app.post("/ai/fraud-detection")
 async def detect_fraud_bias(request: FraudDetectionRequest):
     """Detect fraud and bias in candidate data"""
     try:
-        analysis = ai_services.detect_fraud_and_bias(request.candidate_data)
+        analysis = await ai_orchestrator.detect_fraud_and_bias_complete(request.candidate_data)
         return {"success": True, "analysis": analysis}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -473,7 +646,7 @@ async def detect_fraud_bias(request: FraudDetectionRequest):
 async def get_ai_analytics(timeframe: str = "30d"):
     """Get AI/ML analytics and reporting data"""
     try:
-        analytics = await ai_services.generate_analytics_report(timeframe)
+        analytics = await get_analytics_report(timeframe)
         return {"success": True, "analytics": analytics}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
