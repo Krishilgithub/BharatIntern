@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import UserProfile from "./pages/UserProfile";
 
 // Candidate Pages
 import CandidateDashboard from "./pages/candidate/Dashboard";
@@ -47,6 +48,16 @@ function App() {
 							<Route path="/signup" element={<Signup />} />
 							<Route path="/about" element={<About />} />
 							<Route path="/contact" element={<Contact />} />
+
+							{/* Profile Route (Available to all authenticated users) */}
+							<Route
+								path="/profile"
+								element={
+									<ProtectedRoute>
+										<UserProfile />
+									</ProtectedRoute>
+								}
+							/>
 
 							{/* Candidate Routes */}
 							<Route
@@ -116,7 +127,7 @@ function App() {
 								}
 							/>
 							<Route
-								path="/company/shortlist"
+								path="/company/shortlist-review"
 								element={
 									<ProtectedRoute role="company">
 										<ShortlistReview />
@@ -124,7 +135,7 @@ function App() {
 								}
 							/>
 							<Route
-								path="/company/confirm"
+								path="/company/confirm-selections"
 								element={
 									<ProtectedRoute role="company">
 										<ConfirmSelections />
@@ -142,7 +153,7 @@ function App() {
 								}
 							/>
 							<Route
-								path="/admin/quota-config"
+								path="/admin/quota-configurator"
 								element={
 									<ProtectedRoute role="admin">
 										<QuotaConfigurator />
@@ -150,7 +161,7 @@ function App() {
 								}
 							/>
 							<Route
-								path="/admin/simulator"
+								path="/admin/whatif-simulator"
 								element={
 									<ProtectedRoute role="admin">
 										<WhatIfSimulator />

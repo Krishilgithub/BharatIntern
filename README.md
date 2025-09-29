@@ -32,7 +32,7 @@ Build an AI-driven Internship Recommendation & Allocation Engine for the PM Inte
 
 ### Frontend
 - **React 18** - Modern UI library
-- **Tailwind CSS** - Utility-first CSS framework
+- **Tai  lwind CSS** - Utility-first CSS framework
 - **React Router** - Client-side routing
 - **Lucide React** - Beautiful icons
 - **React Hot Toast** - Notifications
@@ -43,16 +43,42 @@ Build an AI-driven Internship Recommendation & Allocation Engine for the PM Inte
 - **Uvicorn** - ASGI server
 - **CORS** - Cross-origin resource sharing
 
-### Database
-- **PostgreSQL** - Production database (configured)
-- **SQLAlchemy** - ORM (ready for implementation)
+### Database & Authentication
+- **Supabase** - Backend-as-a-Service with PostgreSQL
+- **Supabase Auth** - Authentication and user management
+- **Row Level Security (RLS)** - Database-level access control
+- **Role-Based Access Control** - Candidate, Company, Admin roles
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 16+ and npm
 - Python 3.8+
-- PostgreSQL (optional for development)
+- Supabase account (for authentication and database)
+
+### Supabase Setup
+
+1. **Create Supabase project**:
+   - Go to [supabase.com](https://supabase.com) and create a new project
+   - Copy your project URL and anon key
+
+2. **Set up environment variables**:
+   Create a `.env.local` file in the project root:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+   NEXT_PUBLIC_APP_NAME=BharatIntern
+   ```
+
+3. **Set up database schema**:
+   - Go to Supabase SQL Editor
+   - Copy and run the SQL from `supabase-schema.sql`
+   - This creates the profiles table and authentication triggers
+
+4. **Configure authentication**:
+   - Go to Authentication → Settings
+   - Set Site URL to `http://localhost:3000`
+   - Add redirect URLs: `http://localhost:3000/**`
 
 ### Frontend Setup
 
@@ -61,9 +87,14 @@ Build an AI-driven Internship Recommendation & Allocation Engine for the PM Inte
 npm install
 ```
 
-2. **Start development server**:
+2. **Test authentication setup**:
 ```bash
-npm start
+node test-auth.js
+```
+
+3. **Start development server**:
+```bash
+npm run dev
 ```
 
 The frontend will be available at `http://localhost:3000`
@@ -97,19 +128,29 @@ The backend API will be available at `http://localhost:8000`
 - Interactive docs: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
-## 📱 Demo Credentials
+## 🔐 Authentication System
 
-### Candidate
-- **Email**: candidate@demo.com
-- **Password**: password123
+The application uses Supabase for authentication with role-based access control:
 
-### Company
-- **Email**: company@demo.com
-- **Password**: password123
+### User Roles
+- **Candidate**: Job seekers looking for internships
+- **Company**: Organizations posting internship opportunities  
+- **Admin**: System administrators with full access
 
-### Admin
-- **Email**: admin@demo.com
-- **Password**: password123
+### Authentication Features
+- Email verification required
+- Password reset functionality
+- Role-based route protection
+- Secure session management
+- Row Level Security (RLS) policies
+
+### Getting Started
+1. Set up Supabase project (see setup instructions above)
+2. Create accounts with different roles at `/signup`
+3. Verify email addresses
+4. Login and access role-specific dashboards
+
+For detailed setup instructions, see [SUPABASE_AUTH_SETUP.md](./SUPABASE_AUTH_SETUP.md)
 
 ## 🎨 Design System
 

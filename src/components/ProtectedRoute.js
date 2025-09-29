@@ -1,27 +1,46 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+"use client";
+
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext";
 
 const ProtectedRoute = ({ children, role }) => {
-  const { user, loading } = useAuth();
+	const { user, loading } = useAuth();
+	const router = useRouter();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+	useEffect(() => {
+		if (!loading && !user) {
+			router.push("/login");
+		} else if (!loading && role && user && user.role !== role) {
+			router.push("/");
+		}
+	}, [user, loading, role, router]);
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+	if (loading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+			</div>
+		);
+	}
 
-  if (role && user.role !== role) {
-    return <Navigate to="/" replace />;
-  }
+	if (!user) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+			</div>
+		);
+	}
 
-  return children;
+	if (role && user.role !== role) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+			</div>
+		);
+	}
+
+	return children;
 };
 
 export default ProtectedRoute;

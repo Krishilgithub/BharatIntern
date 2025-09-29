@@ -1,10 +1,12 @@
+"use client";
+
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 const CreatePosting = () => {
-	const navigate = useNavigate();
+	const router = useRouter();
 	const [formData, setFormData] = useState({
 		title: "",
 		description: "",
@@ -95,7 +97,7 @@ const CreatePosting = () => {
 		// Simulate API call
 		setTimeout(() => {
 			toast.success("Internship posting created successfully!");
-			navigate("/company/dashboard");
+			router.push("/company/dashboard");
 			setLoading(false);
 		}, 1000);
 	};
@@ -520,7 +522,7 @@ const CreatePosting = () => {
 					<div className="flex items-center justify-end space-x-4">
 						<button
 							type="button"
-							onClick={() => navigate("/company/dashboard")}
+							onClick={() => router.push("/company/dashboard")}
 							className="btn-secondary"
 						>
 							Cancel

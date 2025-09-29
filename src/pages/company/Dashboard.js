@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import {
 	Plus,
 	Users,
@@ -10,7 +12,20 @@ import {
 	Trash2,
 	MapPin,
 	Calendar,
+	Building2,
+	Briefcase,
+	UserCheck,
+	AlertCircle,
+	TrendingUp,
+	Star,
+	Filter,
+	Search,
+	BarChart3,
+	Bell,
+	User,
+	Target,
 } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const CompanyDashboard = () => {
 	const [postings, setPostings] = useState([]);
@@ -149,39 +164,143 @@ const CompanyDashboard = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				{/* Header */}
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-gray-900">
-						Company Dashboard
-					</h1>
-					<p className="text-gray-600 mt-2">
-						Manage your internship postings and review applications.
-					</p>
+					<div className="flex justify-between items-center">
+						<div>
+							<h1 className="text-3xl font-bold text-gray-900">
+								Company Dashboard
+							</h1>
+							<p className="text-gray-600 mt-2">
+								Manage your internship postings and review applications.
+							</p>
+						</div>
+						<div className="flex items-center space-x-4">
+							<Link
+								href="/profile"
+								className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+							>
+								<User className="h-5 w-5 text-gray-600" />
+							</Link>
+							<div className="relative">
+								<button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+									<Bell className="h-5 w-5 text-gray-600" />
+								</button>
+								<span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
+									3
+								</span>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				{/* Stats Cards */}
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+				<div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
 					<div className="card text-center">
-						<div className="text-3xl font-bold text-primary mb-2">
+						<div className="flex items-center justify-center mb-3">
+							<Briefcase className="h-8 w-8 text-blue-600" />
+						</div>
+						<div className="text-2xl font-bold text-blue-600 mb-1">
 							{stats.totalPostings}
 						</div>
-						<div className="text-gray-600">Total Postings</div>
+						<div className="text-gray-600 text-sm">Total Postings</div>
 					</div>
 					<div className="card text-center">
-						<div className="text-3xl font-bold text-accent mb-2">
+						<div className="flex items-center justify-center mb-3">
+							<Target className="h-8 w-8 text-green-600" />
+						</div>
+						<div className="text-2xl font-bold text-green-600 mb-1">
 							{stats.activePostings}
 						</div>
-						<div className="text-gray-600">Active Postings</div>
+						<div className="text-gray-600 text-sm">Active Postings</div>
 					</div>
 					<div className="card text-center">
-						<div className="text-3xl font-bold text-yellow-600 mb-2">
+						<div className="flex items-center justify-center mb-3">
+							<Users className="h-8 w-8 text-yellow-600" />
+						</div>
+						<div className="text-2xl font-bold text-yellow-600 mb-1">
 							{stats.totalApplications}
 						</div>
-						<div className="text-gray-600">Total Applications</div>
+						<div className="text-gray-600 text-sm">Applications</div>
 					</div>
 					<div className="card text-center">
-						<div className="text-3xl font-bold text-green-600 mb-2">
+						<div className="flex items-center justify-center mb-3">
+							<UserCheck className="h-8 w-8 text-purple-600" />
+						</div>
+						<div className="text-2xl font-bold text-purple-600 mb-1">
 							{stats.shortlistedCandidates}
 						</div>
-						<div className="text-gray-600">Shortlisted</div>
+						<div className="text-gray-600 text-sm">Shortlisted</div>
+					</div>
+					<div className="card text-center">
+						<div className="flex items-center justify-center mb-3">
+							<TrendingUp className="h-8 w-8 text-indigo-600" />
+						</div>
+						<div className="text-2xl font-bold text-indigo-600 mb-1">
+							{stats.avgMatchScore}%
+						</div>
+						<div className="text-gray-600 text-sm">Avg Match</div>
+					</div>
+				</div>
+
+				{/* Company Tools Section */}
+				<div className="mb-8">
+					<h2 className="text-xl font-semibold text-gray-900 mb-4">
+						Hiring Management Tools
+					</h2>
+					<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+						<Link
+							href="/company/create-posting"
+							className="group p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 hover:shadow-md transition-all duration-300"
+						>
+							<div className="flex items-center justify-center mb-4">
+								<Plus className="h-8 w-8 text-blue-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								Create Job Posting
+							</h3>
+							<p className="text-sm text-gray-600">
+								Post new internship opportunities
+							</p>
+						</Link>
+
+						<Link
+							href="/company/shortlist-review"
+							className="group p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 hover:shadow-md transition-all duration-300"
+						>
+							<div className="flex items-center justify-center mb-4">
+								<UserCheck className="h-8 w-8 text-green-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								Review Applications
+							</h3>
+							<p className="text-sm text-gray-600">
+								AI-powered candidate screening
+							</p>
+						</Link>
+
+						<Link
+							href="/company/confirm-selections"
+							className="group p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 hover:shadow-md transition-all duration-300"
+						>
+							<div className="flex items-center justify-center mb-4">
+								<CheckCircle className="h-8 w-8 text-purple-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								Confirm Selections
+							</h3>
+							<p className="text-sm text-gray-600">Finalize hiring decisions</p>
+						</Link>
+
+						<div className="group p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200 hover:shadow-md transition-all duration-300 cursor-pointer">
+							<div className="flex items-center justify-center mb-4">
+								<BarChart3 className="h-8 w-8 text-orange-600 group-hover:scale-110 transition-transform" />
+							</div>
+							<h3 className="font-semibold text-gray-900 mb-2">
+								Analytics Dashboard
+							</h3>
+							<p className="text-sm text-gray-600">
+								Hiring metrics and insights
+							</p>
+						</div>
 					</div>
 				</div>
 
@@ -195,7 +314,7 @@ const CompanyDashboard = () => {
 							</h2>
 							<div className="grid md:grid-cols-2 gap-4">
 								<Link
-									to="/company/create-posting"
+									href="/company/create-posting"
 									className="card hover:shadow-lg transition-shadow duration-300 group"
 								>
 									<div className="flex items-center space-x-4">
@@ -214,7 +333,7 @@ const CompanyDashboard = () => {
 								</Link>
 
 								<Link
-									to="/company/shortlist"
+									href="/company/shortlist"
 									className="card hover:shadow-lg transition-shadow duration-300 group"
 								>
 									<div className="flex items-center space-x-4">
@@ -241,7 +360,7 @@ const CompanyDashboard = () => {
 									Recent Postings
 								</h2>
 								<Link
-									to="/company/create-posting"
+									href="/company/create-posting"
 									className="text-primary hover:text-blue-700 font-medium"
 								>
 									View All
@@ -334,7 +453,7 @@ const CompanyDashboard = () => {
 									Recent Applications
 								</h3>
 								<Link
-									to="/company/shortlist"
+									href="/company/shortlist"
 									className="text-primary hover:text-blue-700 text-sm"
 								>
 									View All

@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -51,6 +51,9 @@ async def analytics(user_id: str, period: str = 'week'):
     return data
 from datetime import datetime, date
 import random
+import json
+import asyncio
+from ai_services import ai_services
 
 app = FastAPI(title="PM Internship Portal API", version="1.0.0")
 
@@ -94,6 +97,39 @@ class ResumeAnalysis(BaseModel):
     strengths: List[str]
     improvements: List[str]
     overallScore: int
+
+# AI/ML Models
+class AIResumeAnalysis(BaseModel):
+    entities: List[tuple]
+    skills: List[str]
+    embeddings: List[float]
+    summary: str
+
+class JobMatchRequest(BaseModel):
+    candidate_profiles: List[Dict[str, Any]]
+    job_descriptions: List[Dict[str, Any]]
+
+class VoiceAssessmentRequest(BaseModel):
+    questions: List[str]
+
+class CodingProfileRequest(BaseModel):
+    github_username: str
+    leetcode_username: Optional[str] = None
+
+class FraudDetectionRequest(BaseModel):
+    candidate_data: List[Dict[str, Any]]
+
+class SkillPredictionRequest(BaseModel):
+    candidate_id: int
+    current_skills: List[str]
+    experience: int
+    projects: List[Dict[str, Any]]
+
+class AIRecommendationRequest(BaseModel):
+    candidate_id: int
+    preferences: Dict[str, Any]
+    skills: List[str]
+    experience: int
     recommendations: List[str]
 
 class InternshipPosting(BaseModel):
@@ -404,6 +440,160 @@ async def get_allocations():
         }
     ]
     return allocations
+
+# AI/ML Endpoints
+
+@app.post("/ai/analyze-resume")
+async def analyze_resume_ai(file: UploadFile = File(...)):
+    """Analyze resume using AI/ML pipeline"""
+    try:
+        # Read file content
+        content = await file.read()
+        text = content.decode('utf-8')
+        
+        # Analyze with AI services
+        analysis = await ai_services.analyze_resume(text)
+        
+        return {
+            "success": True,
+            "analysis": analysis,
+            "filename": file.filename
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/match-jobs")
+async def match_jobs_ai(request: JobMatchRequest):
+    """Match candidates to jobs using AI"""
+    try:
+        matches = await ai_services.match_candidates_to_jobs(
+            request.candidate_profiles,
+            request.job_descriptions
+        )
+        return {"success": True, "matches": matches}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/voice-assessment")
+async def voice_assessment(
+    questions: str = Form(...),
+    audio_file: UploadFile = File(...)
+):
+    """Assess voice interview using AI"""
+    try:
+        # Save audio file temporarily
+        audio_path = f"/tmp/{audio_file.filename}"
+        with open(audio_path, "wb") as buffer:
+            content = await audio_file.read()
+            buffer.write(content)
+        
+        questions_list = json.loads(questions)
+        assessment = await ai_services.assess_voice_interview(audio_path, questions_list)
+        
+        return {"success": True, "assessment": assessment}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/coding-profile")
+async def integrate_coding_profile(request: CodingProfileRequest):
+    """Integrate coding profiles from GitHub, LeetCode"""
+    try:
+        profile_data = await ai_services.integrate_coding_profiles(
+            request.github_username,
+            request.leetcode_username
+        )
+        return {"success": True, "profile": profile_data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/fraud-detection")
+async def detect_fraud_bias(request: FraudDetectionRequest):
+    """Detect fraud and bias in candidate data"""
+    try:
+        analysis = ai_services.detect_fraud_and_bias(request.candidate_data)
+        return {"success": True, "analysis": analysis}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/ai/analytics")
+async def get_ai_analytics(timeframe: str = "30d"):
+    """Get AI/ML analytics and reporting data"""
+    try:
+        analytics = await ai_services.generate_analytics_report(timeframe)
+        return {"success": True, "analytics": analytics}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/skill-prediction")
+async def predict_skills(request: SkillPredictionRequest):
+    """Predict skill development for candidate"""
+    try:
+        # Mock skill prediction
+        predictions = {
+            "candidate_id": request.candidate_id,
+            "current_skills": request.current_skills,
+            "predicted_skills": [
+                {"skill": "Advanced React", "probability": 0.87, "timeline": "3 months"},
+                {"skill": "Node.js", "probability": 0.72, "timeline": "4 months"},
+                {"skill": "Docker", "probability": 0.65, "timeline": "6 months"}
+            ],
+            "skill_gaps": [
+                {"skill": "System Design", "importance": "high", "learning_path": "Online courses + practice"},
+                {"skill": "Database Design", "importance": "medium", "learning_path": "Hands-on projects"}
+            ],
+            "career_progression": {
+                "current_level": "Junior Developer",
+                "next_level": "Mid-level Developer",
+                "timeline": "8-12 months",
+                "key_skills_needed": ["System Design", "Advanced React", "Team Collaboration"]
+            }
+        }
+        return {"success": True, "predictions": predictions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/recommendations")
+async def get_ai_recommendations(request: AIRecommendationRequest):
+    """Get AI-powered job recommendations"""
+    try:
+        # Mock recommendations
+        recommendations = {
+            "candidate_id": request.candidate_id,
+            "personalized_jobs": [
+                {
+                    "job_id": 1,
+                    "title": "React Developer",
+                    "company": "TechStart Inc",
+                    "match_score": 0.92,
+                    "reasons": ["Strong React skills", "Good portfolio projects", "Location match"],
+                    "growth_potential": "high"
+                },
+                {
+                    "job_id": 2,
+                    "title": "Full Stack Intern",
+                    "company": "InnovateNow",
+                    "match_score": 0.86,
+                    "reasons": ["Full stack experience", "Recent projects", "Learning attitude"],
+                    "growth_potential": "medium"
+                }
+            ],
+            "skill_development_suggestions": [
+                {
+                    "skill": "TypeScript",
+                    "priority": "high",
+                    "reason": "High demand in matching job market",
+                    "resources": ["Official TypeScript docs", "Frontend Masters course"]
+                }
+            ],
+            "learning_roadmap": {
+                "short_term": ["Complete TypeScript basics", "Build a TypeScript project"],
+                "medium_term": ["Learn advanced React patterns", "System design fundamentals"],
+                "long_term": ["Microservices architecture", "Team leadership skills"]
+            }
+        }
+        return {"success": True, "recommendations": recommendations}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Health check
 @app.get("/health")

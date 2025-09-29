@@ -92,6 +92,34 @@ export const apiService = {
 	// Resume
 	analyzeResume: (fileData) => api.post("/resume/analyze", fileData),
 
+	// AI Resume Analysis
+	analyzeResumeAI: (fileData) => api.post("/ai/analyze-resume", fileData),
+
+	// AI Job Recommendations
+	getAIJobRecommendations: (userId) =>
+		api.get(`/ai/job-recommendations?user_id=${userId}`),
+
+	// Coding Profile Integration
+	getCodingProfile: (githubUsername, leetcodeUsername = "") =>
+		api.get(
+			`/ai/coding-profile?github=${githubUsername}&leetcode=${leetcodeUsername}`
+		),
+
+	// Voice Assessment
+	analyzeVoice: (formData) =>
+		api.post("/ai/voice-assessment", formData, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+		}),
+
+	// Skill Predictions
+	getSkillPredictions: (timeFrame = "6_months") =>
+		api.get(`/ai/skill-prediction?timeframe=${timeFrame}`),
+
+	// Analytics Dashboard
+	getAnalytics: () => api.get("/ai/analytics"),
+
 	// Recommendations
 	getRecommendations: (userId, limit = 10) =>
 		api.get(`/recommendations?user_id=${userId}&limit=${limit}`),

@@ -1,17 +1,20 @@
+"use client";
+
 import React, { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../contexts/AuthContext";
 import { Menu, X, User, LogOut, Briefcase, Settings } from "lucide-react";
 
 const Navbar = () => {
 	const { user, logout } = useAuth();
-	const navigate = useNavigate();
-	const location = useLocation();
+	const router = useRouter();
+	const pathname = usePathname();
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	const handleLogout = () => {
 		logout();
-		navigate("/");
+		router.push("/");
 	};
 
 	const getRoleIcon = (role) => {
@@ -40,14 +43,14 @@ const Navbar = () => {
 		}
 	};
 
-	const isActive = (path) => location.pathname === path;
+	const isActive = (path) => pathname === path;
 
 	return (
 		<nav className="bg-white shadow-sm border-b border-gray-200">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex justify-between items-center h-16">
 					{/* Logo */}
-					<Link to="/" className="flex items-center space-x-2">
+					<Link href="/" className="flex items-center space-x-2">
 						<div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
 							<span className="text-white font-bold text-lg">BI</span>
 						</div>
@@ -61,7 +64,7 @@ const Navbar = () => {
 						{user ? (
 							<>
 								<Link
-									to={getRoleDashboard(user.role)}
+									href={getRoleDashboard(user.role)}
 									className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
 										isActive(getRoleDashboard(user.role))
 											? "bg-primary text-white"
@@ -75,7 +78,7 @@ const Navbar = () => {
 								{user.role === "candidate" && (
 									<>
 										<Link
-											to="/candidate/recommendations"
+											href="/candidate/recommendations"
 											className={`px-3 py-2 rounded-lg transition-colors ${
 												isActive("/candidate/recommendations")
 													? "bg-primary text-white"
@@ -85,7 +88,7 @@ const Navbar = () => {
 											Recommendations
 										</Link>
 										<Link
-											to="/candidate/applications"
+											href="/candidate/applications"
 											className={`px-3 py-2 rounded-lg transition-colors ${
 												isActive("/candidate/applications")
 													? "bg-primary text-white"
@@ -100,7 +103,7 @@ const Navbar = () => {
 								{user.role === "company" && (
 									<>
 										<Link
-											to="/company/create-posting"
+											href="/company/create-posting"
 											className={`px-3 py-2 rounded-lg transition-colors ${
 												isActive("/company/create-posting")
 													? "bg-primary text-white"
@@ -110,7 +113,7 @@ const Navbar = () => {
 											Create Posting
 										</Link>
 										<Link
-											to="/company/shortlist"
+											href="/company/shortlist"
 											className={`px-3 py-2 rounded-lg transition-colors ${
 												isActive("/company/shortlist")
 													? "bg-primary text-white"
@@ -125,7 +128,7 @@ const Navbar = () => {
 								{user.role === "admin" && (
 									<>
 										<Link
-											to="/admin/quota-config"
+											href="/admin/quota-config"
 											className={`px-3 py-2 rounded-lg transition-colors ${
 												isActive("/admin/quota-config")
 													? "bg-primary text-white"
@@ -135,7 +138,7 @@ const Navbar = () => {
 											Quota Config
 										</Link>
 										<Link
-											to="/admin/simulator"
+											href="/admin/simulator"
 											className={`px-3 py-2 rounded-lg transition-colors ${
 												isActive("/admin/simulator")
 													? "bg-primary text-white"
@@ -164,21 +167,21 @@ const Navbar = () => {
 						) : (
 							<div className="flex items-center space-x-4">
 								<Link
-									to="/about"
+									href="/about"
 									className="text-gray-700 hover:text-primary transition-colors"
 								>
 									About
 								</Link>
 								<Link
-									to="/contact"
+									href="/contact"
 									className="text-gray-700 hover:text-primary transition-colors"
 								>
 									Contact
 								</Link>
-								<Link to="/login" className="btn-secondary">
+								<Link href="/login" className="btn-secondary">
 									Login
 								</Link>
-								<Link to="/signup" className="btn-primary">
+								<Link href="/signup" className="btn-primary">
 									Sign Up
 								</Link>
 							</div>
@@ -207,7 +210,7 @@ const Navbar = () => {
 							{user ? (
 								<>
 									<Link
-										to={getRoleDashboard(user.role)}
+										href={getRoleDashboard(user.role)}
 										className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100"
 										onClick={() => setIsMenuOpen(false)}
 									>
@@ -228,28 +231,28 @@ const Navbar = () => {
 							) : (
 								<>
 									<Link
-										to="/about"
+										href="/about"
 										className="px-3 py-2 rounded-lg hover:bg-gray-100"
 										onClick={() => setIsMenuOpen(false)}
 									>
 										About
 									</Link>
 									<Link
-										to="/contact"
+										href="/contact"
 										className="px-3 py-2 rounded-lg hover:bg-gray-100"
 										onClick={() => setIsMenuOpen(false)}
 									>
 										Contact
 									</Link>
 									<Link
-										to="/login"
+										href="/login"
 										className="px-3 py-2 rounded-lg hover:bg-gray-100"
 										onClick={() => setIsMenuOpen(false)}
 									>
 										Login
 									</Link>
 									<Link
-										to="/signup"
+										href="/signup"
 										className="px-3 py-2 rounded-lg hover:bg-gray-100"
 										onClick={() => setIsMenuOpen(false)}
 									>
