@@ -42,10 +42,14 @@ import {
 	ThumbsDown,
 	AlertCircle
 } from "lucide-react";
+import api from '../../services/api';
 
 const EnhancedRecommendations = () => {
 	const [recommendations, setRecommendations] = useState([]);
 	const [filteredRecommendations, setFilteredRecommendations] = useState([]);
+	const [resumeFile, setResumeFile] = useState(null);
+	const [manualSkills, setManualSkills] = useState('');
+	const [analyzeStatus, setAnalyzeStatus] = useState('');
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filters, setFilters] = useState({
 		location: "",
@@ -74,369 +78,61 @@ const EnhancedRecommendations = () => {
 	const [savedSearches, setSavedSearches] = useState([]);
 	const [alerts, setAlerts] = useState([]);
 	const [recentlyViewed, setRecentlyViewed] = useState([]);
+	const candidateId = window.localStorage.getItem('candidateId') || 'demo-candidate'; // Replace with real auth/session
+
+	const handleResumeChange = (e) => {
+		setResumeFile(e.target.files[0]);
+	};
+
+	const handleManualSkillsChange = (e) => {
+		setManualSkills(e.target.value);
+	};
+
+	const handleAnalyzeResume = async () => {
+		setAnalyzeStatus('Analyzing...');
+		let formData = new FormData();
+		if (resumeFile) formData.append('resume_url', resumeFile.name); // In prod, upload file and use URL
+		if (manualSkills) formData.append('manual_skills', manualSkills.split(',').map(s => s.trim()));
+		formData.append('candidate_id', candidateId);
+		try {
+			const res = await api.analyzeResume({
+				resume_url: resumeFile ? resumeFile.name : undefined,
+				manual_skills: manualSkills ? manualSkills.split(',').map(s => s.trim()) : undefined,
+				candidate_id: candidateId
+			});
+			setAnalyzeStatus(res.data.summary || 'Analysis complete');
+			// Optionally, refetch recommendations after analysis
+			fetchRecommendations();
+		} catch (err) {
+			setAnalyzeStatus('Analysis failed');
+		}
+	};
 
 	useEffect(() => {
-		// Enhanced mock data with AI-powered recommendations
-		const mockRecommendations = [
-			{
-				id: 1,
-				title: "AI Software Development Intern",
-				company: "TechCorp India",
-				companyLogo: "/api/placeholder/40/40",
-				location: "Bangalore",
-				remote: "Hybrid",
-				duration: "6 months",
-				matchScore: 95,
-				aiMatchReason: "Perfect match for your React and ML skills, aligned with your full-stack career goals",
-				skills: ["React", "Node.js", "JavaScript", "MongoDB", "Express", "Machine Learning", "Python"],
-				deadline: "2024-02-15",
-				salary: "₹30,000 - ₹40,000",
-				companySize: "1000+",
-				industry: "Technology",
-				experience: "0-1 years",
-				description: "Join our dynamic team to work on cutting-edge AI-powered web applications using modern technologies. You'll work on real projects that impact millions of users.",
-				requirements: [
-					"Bachelor's in CS/IT or equivalent",
-					"Strong JavaScript and React skills",
-					"Basic understanding of Machine Learning",
-					"Problem-solving mindset"
-				],
-				responsibilities: [
-					"Develop AI-powered web features",
-					"Collaborate with senior developers",
-					"Participate in code reviews",
-					"Learn advanced ML techniques"
-				],
-				benefits: ["Mentorship from industry experts", "₹35K stipend", "Certificate", "PPO opportunity", "Health insurance", "Flexible hours"],
-				culture: ["Innovation-driven", "Learning-focused", "Collaborative", "Remote-friendly"],
-				applied: false,
-				bookmarked: false,
-				viewed: false,
-				trending: true,
-				featured: true,
-				urgency: "high",
-				applicants: 142,
-				views: 1250,
-				postedDate: "2024-01-10",
-				companyRating: 4.5,
-				interviewProcess: ["Application Review", "Technical Test", "HR Interview", "Technical Interview", "Final Round"],
-				successRate: 78,
-				averageResponseTime: "3 days",
-				similarRoles: 12,
-				growthOpportunity: 95,
-				learningPotential: 90,
-				workLifeBalance: 85,
-				mentorshipQuality: 92,
-				tags: ["Hot", "Fast-hiring", "Trending"],
-				aiRecommendationScore: {
-					skillMatch: 95,
-					careerAlignment: 90,
-					cultureMatch: 88,
-					growthPotential: 92,
-					locationPreference: 85
+		async function fetchRecommendations() {
+			try {
+				const res = await api.getRecommendations(candidateId);
+				if (res && res.data && Array.isArray(res.data.recommendations)) {
+					setRecommendations(res.data.recommendations);
+					setFilteredRecommendations(res.data.recommendations);
+				} else {
+					setRecommendations([]);
+					setFilteredRecommendations([]);
 				}
-			},
-			{
-				id: 2,
-				title: "Data Science & AI Intern",
-				company: "DataViz Solutions",
-				companyLogo: "/api/placeholder/40/40",
-				location: "Mumbai",
-				remote: "Remote",
-				duration: "4 months",
-				matchScore: 88,
-				aiMatchReason: "Strong alignment with your Python skills and data analysis interests",
-				skills: ["Python", "Machine Learning", "SQL", "Pandas", "Scikit-learn", "TensorFlow", "Power BI"],
-				deadline: "2024-02-20",
-				salary: "₹25,000 - ₹35,000",
-				companySize: "100-500",
-				industry: "Technology",
-				experience: "0-1 years",
-				description: "Work on real-world data science projects and build machine learning models that drive business decisions. Perfect for aspiring data scientists.",
-				requirements: [
-					"Python proficiency with pandas/numpy",
-					"Statistics and probability knowledge",
-					"SQL experience",
-					"Machine learning fundamentals"
-				],
-				responsibilities: [
-					"Build ML models for business problems",
-					"Analyze large datasets",
-					"Create data visualizations",
-					"Present insights to stakeholders"
-				],
-				benefits: ["Industry mentorship", "₹30K stipend", "Certificate", "Real project experience", "Flexible timings"],
-				culture: ["Data-driven", "Analytical", "Innovative", "Growth-oriented"],
-				applied: false,
-				bookmarked: true,
-				viewed: true,
-				trending: false,
-				featured: false,
-				urgency: "medium",
-				applicants: 89,
-				views: 756,
-				postedDate: "2024-01-12",
-				companyRating: 4.2,
-				interviewProcess: ["Application Review", "Data Challenge", "Technical Interview", "Final Interview"],
-				successRate: 65,
-				averageResponseTime: "5 days",
-				similarRoles: 8,
-				growthOpportunity: 88,
-				learningPotential: 95,
-				workLifeBalance: 90,
-				mentorshipQuality: 85,
-				tags: ["Remote", "Data-focused"],
-				aiRecommendationScore: {
-					skillMatch: 85,
-					careerAlignment: 88,
-					cultureMatch: 82,
-					growthPotential: 90,
-					locationPreference: 95
-				}
-			},
-			{
-				id: 3,
-				title: "Product Management Intern",
-				company: "StartupXYZ",
-				companyLogo: "/api/placeholder/40/40",
-				location: "Delhi",
-				remote: "Hybrid",
-				duration: "3 months",
-				matchScore: 82,
-				aiMatchReason: "Matches your product management career goals and analytical skills",
-				skills: ["Product Strategy", "Analytics", "User Research", "Figma", "SQL", "A/B Testing"],
-				deadline: "2024-02-25",
-				salary: "₹20,000 - ₹30,000",
-				companySize: "50-100",
-				industry: "Technology",
-				experience: "0-1 years",
-				description: "Learn product management fundamentals and work on real product features that impact thousands of users. Great opportunity to understand the full product lifecycle.",
-				requirements: [
-					"Analytical thinking and problem-solving",
-					"Strong communication skills",
-					"Basic design knowledge",
-					"Interest in user experience"
-				],
-				responsibilities: [
-					"Conduct user research and analysis",
-					"Assist in product roadmap planning",
-					"Analyze user behavior data",
-					"Collaborate with engineering teams"
-				],
-				benefits: ["PM mentorship", "₹25K stipend", "Certificate", "Product launch experience"],
-				culture: ["Fast-paced", "User-centric", "Collaborative", "Innovation-focused"],
-				applied: false,
-				bookmarked: false,
-				viewed: false,
-				trending: true,
-				featured: false,
-				urgency: "medium",
-				applicants: 67,
-				views: 432,
-				postedDate: "2024-01-15",
-				companyRating: 4.0,
-				interviewProcess: ["Application Review", "Case Study", "Product Interview", "Culture Fit"],
-				successRate: 45,
-				averageResponseTime: "7 days",
-				similarRoles: 5,
-				growthOpportunity: 85,
-				learningPotential: 88,
-				workLifeBalance: 75,
-				mentorshipQuality: 80,
-				tags: ["Startup", "Fast-growth"],
-				aiRecommendationScore: {
-					skillMatch: 75,
-					careerAlignment: 95,
-					cultureMatch: 85,
-					growthPotential: 88,
-					locationPreference: 70
-				}
-			},
-			{
-				id: 4,
-				title: "Full Stack Developer Intern",
-				company: "WebTech Ltd",
-				companyLogo: "/api/placeholder/40/40",
-				location: "Pune",
-				remote: "On-site",
-				duration: "5 months",
-				matchScore: 90,
-				aiMatchReason: "Excellent match for your full-stack development goals and tech stack preferences",
-				skills: ["React", "Node.js", "PostgreSQL", "Docker", "AWS", "TypeScript", "GraphQL"],
-				deadline: "2024-02-18",
-				salary: "₹32,000 - ₹42,000",
-				companySize: "500-1000",
-				industry: "Technology",
-				experience: "0-2 years",
-				description: "Build end-to-end web applications using modern technologies. Work with experienced developers on enterprise-grade applications.",
-				requirements: [
-					"Full-stack development knowledge",
-					"Database design experience",
-					"Cloud computing basics",
-					"Version control with Git"
-				],
-				responsibilities: [
-					"Develop full-stack web applications",
-					"Design and implement APIs",
-					"Work with cloud services",
-					"Participate in system architecture decisions"
-				],
-				benefits: ["Senior developer mentorship", "₹37K stipend", "Certificate", "PPO opportunity", "Tech conference access"],
-				culture: ["Tech-focused", "Learning-oriented", "Quality-driven", "Team-collaborative"],
-				applied: true,
-				bookmarked: true,
-				viewed: true,
-				trending: false,
-				featured: true,
-				urgency: "high",
-				applicants: 234,
-				views: 1890,
-				postedDate: "2024-01-08",
-				companyRating: 4.3,
-				interviewProcess: ["Application Review", "Coding Challenge", "Technical Interview", "System Design", "HR Round"],
-				successRate: 72,
-				averageResponseTime: "4 days",
-				similarRoles: 15,
-				growthOpportunity: 92,
-				learningPotential: 95,
-				workLifeBalance: 80,
-				mentorshipQuality: 90,
-				tags: ["Hot", "High-salary", "Growth"],
-				aiRecommendationScore: {
-					skillMatch: 92,
-					careerAlignment: 95,
-					cultureMatch: 88,
-					growthPotential: 90,
-					locationPreference: 75
-				}
-			},
-			{
-				id: 5,
-				title: "UI/UX Design Intern",
-				company: "DesignStudio",
-				companyLogo: "/api/placeholder/40/40",
-				location: "Hyderabad",
-				remote: "Hybrid",
-				duration: "4 months",
-				matchScore: 75,
-				aiMatchReason: "Good match based on your design interests and user-focused mindset",
-				skills: ["Figma", "Adobe XD", "User Research", "Prototyping", "Wireframing", "Design Systems"],
-				deadline: "2024-03-01",
-				salary: "₹22,000 - ₹32,000",
-				companySize: "50-100",
-				industry: "Design",
-				experience: "0-1 years",
-				description: "Create beautiful and functional user interfaces for web and mobile applications. Work on real client projects with experienced designers.",
-				requirements: [
-					"Strong design portfolio",
-					"Figma proficiency",
-					"User-centered design thinking",
-					"Understanding of design principles"
-				],
-				responsibilities: [
-					"Create user interface designs",
-					"Conduct user research",
-					"Build design systems",
-					"Prototype user interactions"
-				],
-				benefits: ["Design tools access", "₹27K stipend", "Certificate", "Portfolio development"],
-				culture: ["Creative", "User-focused", "Collaborative", "Design-thinking"],
-				applied: false,
-				bookmarked: false,
-				viewed: false,
-				trending: false,
-				featured: false,
-				urgency: "low",
-				applicants: 45,
-				views: 289,
-				postedDate: "2024-01-18",
-				companyRating: 3.9,
-				interviewProcess: ["Portfolio Review", "Design Challenge", "Design Interview", "Culture Fit"],
-				successRate: 55,
-				averageResponseTime: "6 days",
-				similarRoles: 7,
-				growthOpportunity: 80,
-				learningPotential: 85,
-				workLifeBalance: 88,
-				mentorshipQuality: 82,
-				tags: ["Creative", "Portfolio-focused"],
-				aiRecommendationScore: {
-					skillMatch: 70,
-					careerAlignment: 75,
-					cultureMatch: 90,
-					growthPotential: 80,
-					locationPreference: 80
-				}
-			},
-			{
-				id: 6,
-				title: "DevOps & Cloud Intern",
-				company: "CloudOps Inc",
-				companyLogo: "/api/placeholder/40/40",
-				location: "Chennai",
-				remote: "Remote",
-				duration: "6 months",
-				matchScore: 85,
-				aiMatchReason: "Strong alignment with your interest in cloud technologies and automation",
-				skills: ["Docker", "Kubernetes", "AWS", "CI/CD", "Linux", "Terraform", "Jenkins"],
-				deadline: "2024-02-22",
-				salary: "₹28,000 - ₹38,000",
-				companySize: "200-500",
-				industry: "Technology",
-				experience: "0-1 years",
-				description: "Learn modern DevOps practices and cloud infrastructure management. Work with cutting-edge cloud technologies and automation tools.",
-				requirements: [
-					"Linux command line knowledge",
-					"Basic scripting skills",
-					"Interest in cloud computing",
-					"Understanding of software development lifecycle"
-				],
-				responsibilities: [
-					"Manage cloud infrastructure",
-					"Build CI/CD pipelines",
-					"Monitor system performance",
-					"Automate deployment processes"
-				],
-				benefits: ["Cloud certifications", "₹33K stipend", "Certificate", "Industry exposure"],
-				culture: ["Tech-forward", "Automation-focused", "Problem-solving", "Continuous learning"],
-				applied: false,
-				bookmarked: false,
-				viewed: true,
-				trending: true,
-				featured: false,
-				urgency: "medium",
-				applicants: 78,
-				views: 567,
-				postedDate: "2024-01-14",
-				companyRating: 4.1,
-				interviewProcess: ["Application Review", "Technical Test", "DevOps Interview", "Final Round"],
-				successRate: 68,
-				averageResponseTime: "5 days",
-				similarRoles: 9,
-				growthOpportunity: 88,
-				learningPotential: 92,
-				workLifeBalance: 82,
-				mentorshipQuality: 85,
-				tags: ["Remote", "Cloud-focused", "Growing"],
-				aiRecommendationScore: {
-					skillMatch: 82,
-					careerAlignment: 85,
-					cultureMatch: 85,
-					growthPotential: 90,
-					locationPreference: 95
-				}
+			} catch (err) {
+				console.error('Failed to fetch recommendations', err);
+				setRecommendations([]);
+				setFilteredRecommendations([]);
 			}
-		];
-
-		setRecommendations(mockRecommendations);
-		setFilteredRecommendations(mockRecommendations);
+		}
+		fetchRecommendations();
 
 		// Simulate AI insights generation
 		setTimeout(() => {
 			setAiInsights({
-				totalMatches: mockRecommendations.length,
-				perfectMatches: mockRecommendations.filter(r => r.matchScore >= 90).length,
-				averageMatchScore: Math.round(mockRecommendations.reduce((acc, r) => acc + r.matchScore, 0) / mockRecommendations.length),
+				totalMatches: recommendations.length,
+				perfectMatches: recommendations.filter(r => r.matchScore >= 90).length,
+				averageMatchScore: Math.round(recommendations.reduce((acc, r) => acc + r.matchScore, 0) / recommendations.length),
 				topSkillDemand: "React",
 				recommendedActions: [
 					"Complete React certification to improve match scores",
@@ -463,7 +159,7 @@ const EnhancedRecommendations = () => {
 			{ id: 2, type: "deadline", message: "Application deadline approaching for 2 positions", time: "1 day ago" }
 		]);
 
-	}, []);
+	}, [candidateId]);
 
 	useEffect(() => {
 		filterAndSortRecommendations();
@@ -1313,6 +1009,51 @@ const EnhancedRecommendations = () => {
 						</motion.div>
 					)}
 				</AnimatePresence>
+
+				{/* Resume Analysis Section */}
+				<div className="mb-8">
+					<h2 className="text-2xl font-bold text-gray-900 mb-4">
+						Resume Analysis
+					</h2>
+					<div className="bg-white p-6 rounded-lg shadow-md">
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Upload Resume
+							</label>
+							<input
+								type="file"
+								onChange={handleResumeChange}
+								className="input-field"
+							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Or Enter Skills Manually
+							</label>
+							<input
+								type="text"
+								placeholder="Enter skills (comma separated)"
+								value={manualSkills}
+								onChange={handleManualSkillsChange}
+								className="input-field"
+							/>
+						</div>
+						<div className="flex items-center gap-2">
+							<button
+								onClick={handleAnalyzeResume}
+								className="btn-primary flex items-center space-x-2"
+							>
+								<Brain className="w-5 h-5" />
+								<span>Analyze Resume</span>
+							</button>
+							{analyzeStatus && (
+								<span className="text-sm text-gray-500">
+									{analyzeStatus}
+								</span>
+							)}
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

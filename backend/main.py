@@ -7,6 +7,8 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import random
+from supabase_client import supabase
+from placement_ai.ai_engine import analyze_resume, match_candidate_to_internships
 
 app = FastAPI()
 
@@ -594,6 +596,45 @@ async def get_ai_recommendations(request: AIRecommendationRequest):
         return {"success": True, "recommendations": recommendations}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# --- Resume Analysis Endpoint ---
+from fastapi import Body
+
+class ResumeAnalyzeRequest(BaseModel):
+    resume_url: Optional[str] = None
+    manual_skills: Optional[List[str]] = None
+    candidate_id: Optional[str] = None
+
+@app.post("/resume/analyze")
+def resume_analyze(req: ResumeAnalyzeRequest):
+    candidate = None
+    if req.candidate_id:
+        resp = supabase.table("candidates").select("*").eq("id", req.candidate_id).single().execute()
+        candidate = resp.data if resp.data else None
+    result = analyze_resume(req.resume_url, req.manual_skills, candidate)
+    return result
+
+# --- Recommendations Endpoint ---
+class RecommendationRequest(BaseModel):
+    candidate_id: str
+
+@app.get("/recommendations")
+def get_recommendations(candidate_id: str):
+    # Fetch candidate
+    c_resp = supabase.table("candidates").select("*").eq("id", candidate_id).single().execute()
+    candidate = c_resp.data
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    # Fetch internships, quotas, applications
+    i_resp = supabase.table("internships").select("*").execute()
+    internships = i_resp.data or []
+    q_resp = supabase.table("quotas").select("*").execute()
+    quotas = {q['category']: q['remaining'] for q in (q_resp.data or [])}
+    a_resp = supabase.table("applications").select("*").eq("candidate_id", candidate_id).execute()
+    applications = a_resp.data or []
+    # Run matching
+    recs = match_candidate_to_internships(candidate, internships, quotas, applications)
+    return {"recommendations": [r.dict() for r in recs]}
 
 # Health check
 @app.get("/health")
