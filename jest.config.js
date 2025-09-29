@@ -4,6 +4,9 @@ module.exports = {
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/$1',
     },
-    setupFilesAfterEnv: ['<rootDir>/jest.setup.js']
+    setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+    transform: {
+        '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
+    },
 };
 
