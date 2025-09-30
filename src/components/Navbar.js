@@ -50,14 +50,14 @@ const Navbar = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex justify-between items-center h-16">
 					{/* Logo */}
-					<Link href="/" className="flex items-center space-x-2">
+					<div className="flex items-center space-x-2">
 						<div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
 							<span className="text-white font-bold text-lg">BI</span>
 						</div>
 						<span className="text-xl font-bold text-gray-900">
 							BharatIntern
 						</span>
-					</Link>
+					</div>
 
 					{/* Desktop Navigation */}
 					<div className="hidden md:flex items-center space-x-8">
@@ -65,11 +65,10 @@ const Navbar = () => {
 							<>
 								<Link
 									href={getRoleDashboard(user.role)}
-									className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-										isActive(getRoleDashboard(user.role))
-											? "bg-primary text-white"
-											: "text-gray-700 hover:bg-gray-100"
-									}`}
+									className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${isActive(getRoleDashboard(user.role))
+										? "bg-primary text-white"
+										: "text-gray-700 hover:bg-gray-100"
+										}`}
 								>
 									{getRoleIcon(user.role)}
 									<span>Dashboard</span>
@@ -79,21 +78,19 @@ const Navbar = () => {
 									<>
 										<Link
 											href="/candidate/recommendations"
-											className={`px-3 py-2 rounded-lg transition-colors ${
-												isActive("/candidate/recommendations")
-													? "bg-primary text-white"
-													: "text-gray-700 hover:bg-gray-100"
-											}`}
+											className={`px-3 py-2 rounded-lg transition-colors ${isActive("/candidate/recommendations")
+												? "bg-primary text-white"
+												: "text-gray-700 hover:bg-gray-100"
+												}`}
 										>
 											Recommendations
 										</Link>
 										<Link
 											href="/candidate/applications"
-											className={`px-3 py-2 rounded-lg transition-colors ${
-												isActive("/candidate/applications")
-													? "bg-primary text-white"
-													: "text-gray-700 hover:bg-gray-100"
-											}`}
+											className={`px-3 py-2 rounded-lg transition-colors ${isActive("/candidate/applications")
+												? "bg-primary text-white"
+												: "text-gray-700 hover:bg-gray-100"
+												}`}
 										>
 											Applications
 										</Link>
@@ -104,21 +101,19 @@ const Navbar = () => {
 									<>
 										<Link
 											href="/company/create-posting"
-											className={`px-3 py-2 rounded-lg transition-colors ${
-												isActive("/company/create-posting")
-													? "bg-primary text-white"
-													: "text-gray-700 hover:bg-gray-100"
-											}`}
+											className={`px-3 py-2 rounded-lg transition-colors ${isActive("/company/create-posting")
+												? "bg-primary text-white"
+												: "text-gray-700 hover:bg-gray-100"
+												}`}
 										>
 											Create Posting
 										</Link>
 										<Link
 											href="/company/shortlist"
-											className={`px-3 py-2 rounded-lg transition-colors ${
-												isActive("/company/shortlist")
-													? "bg-primary text-white"
-													: "text-gray-700 hover:bg-gray-100"
-											}`}
+											className={`px-3 py-2 rounded-lg transition-colors ${isActive("/company/shortlist")
+												? "bg-primary text-white"
+												: "text-gray-700 hover:bg-gray-100"
+												}`}
 										>
 											Shortlist
 										</Link>
@@ -129,21 +124,19 @@ const Navbar = () => {
 									<>
 										<Link
 											href="/admin/quota-config"
-											className={`px-3 py-2 rounded-lg transition-colors ${
-												isActive("/admin/quota-config")
-													? "bg-primary text-white"
-													: "text-gray-700 hover:bg-gray-100"
-											}`}
+											className={`px-3 py-2 rounded-lg transition-colors ${isActive("/admin/quota-config")
+												? "bg-primary text-white"
+												: "text-gray-700 hover:bg-gray-100"
+												}`}
 										>
 											Quota Config
 										</Link>
 										<Link
 											href="/admin/simulator"
-											className={`px-3 py-2 rounded-lg transition-colors ${
-												isActive("/admin/simulator")
-													? "bg-primary text-white"
-													: "text-gray-700 hover:bg-gray-100"
-											}`}
+											className={`px-3 py-2 rounded-lg transition-colors ${isActive("/admin/simulator")
+												? "bg-primary text-white"
+												: "text-gray-700 hover:bg-gray-100"
+												}`}
 										>
 											Simulator
 										</Link>
@@ -166,18 +159,26 @@ const Navbar = () => {
 							</>
 						) : (
 							<div className="flex items-center space-x-4">
-								<Link
-									href="/about"
+								<button
+									onClick={() => {
+										document.getElementById('about-section')?.scrollIntoView({
+											behavior: 'smooth'
+										});
+									}}
 									className="text-gray-700 hover:text-primary transition-colors"
 								>
 									About
-								</Link>
-								<Link
-									href="/contact"
+								</button>
+								<button
+									onClick={() => {
+										document.getElementById('contact-section')?.scrollIntoView({
+											behavior: 'smooth'
+										});
+									}}
 									className="text-gray-700 hover:text-primary transition-colors"
 								>
 									Contact
-								</Link>
+								</button>
 								<Link href="/login" className="btn-secondary">
 									Login
 								</Link>
@@ -230,20 +231,28 @@ const Navbar = () => {
 								</>
 							) : (
 								<>
-									<Link
-										href="/about"
-										className="px-3 py-2 rounded-lg hover:bg-gray-100"
-										onClick={() => setIsMenuOpen(false)}
+									<button
+										onClick={() => {
+											document.getElementById('about-section')?.scrollIntoView({
+												behavior: 'smooth'
+											});
+											setIsMenuOpen(false);
+										}}
+										className="px-3 py-2 rounded-lg hover:bg-gray-100 text-left w-full"
 									>
 										About
-									</Link>
-									<Link
-										href="/contact"
-										className="px-3 py-2 rounded-lg hover:bg-gray-100"
-										onClick={() => setIsMenuOpen(false)}
+									</button>
+									<button
+										onClick={() => {
+											document.getElementById('contact-section')?.scrollIntoView({
+												behavior: 'smooth'
+											});
+											setIsMenuOpen(false);
+										}}
+										className="px-3 py-2 rounded-lg hover:bg-gray-100 text-left w-full"
 									>
 										Contact
-									</Link>
+									</button>
 									<Link
 										href="/login"
 										className="px-3 py-2 rounded-lg hover:bg-gray-100"

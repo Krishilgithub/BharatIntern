@@ -428,6 +428,13 @@ const CandidateDashboard = () => {
 			link: "/candidate/learning",
 			color: "bg-orange-500",
 		},
+		{
+			title: "Internship Assessment",
+			description: "Complete comprehensive internship evaluation",
+			icon: Award,
+			link: "/candidate/internship-assessment",
+			color: "bg-indigo-500",
+		},
 	];
 
 	if (loading) {

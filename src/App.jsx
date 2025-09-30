@@ -21,6 +21,7 @@ import Recommendations from "./pages/candidate/Recommendations";
 import Applications from "./pages/candidate/Applications";
 import MicroAssessments from "./pages/candidate/MicroAssessments";
 import LearningRoadmap from "./pages/candidate/LearningRoadmap";
+import InternshipAssessment from "./pages/candidate/InternshipAssessment";
 
 // Company Pages
 import CompanyDashboard from "./pages/company/Dashboard";
@@ -107,6 +108,14 @@ function App() {
 								element={
 									<ProtectedRoute role="candidate">
 										<LearningRoadmap />
+									</ProtectedRoute>
+								}
+							/>
+							<Route
+								path="/candidate/internship-assessment"
+								element={
+									<ProtectedRoute role="candidate">
+										<InternshipAssessment />
 									</ProtectedRoute>
 								}
 							/>
