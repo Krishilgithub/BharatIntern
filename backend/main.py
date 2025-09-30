@@ -4,6 +4,54 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import uvicorn
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+import random
+from supabase_client import supabase
+from placement_ai.ai_engine import analyze_resume, match_candidate_to_internships
+
+app = FastAPI()
+
+# Example schemas for AI endpoints
+class AIScoreRequest(BaseModel):
+    user_id: str
+    submission: dict
+
+class CodingProfileRequest(BaseModel):
+    user_id: str
+
+class AnalyticsRequest(BaseModel):
+    user_id: str
+    period: str
+
+# AI Scoring Endpoint
+@app.post('/api/ai/score')
+async def ai_score(req: AIScoreRequest):
+    # Validate and sanitize input
+    if not req.user_id or not isinstance(req.submission, dict):
+        raise HTTPException(status_code=400, detail='Invalid input')
+    # Simulate scoring
+    score = random.randint(0, 100)
+    return {"user_id": req.user_id, "score": score}
+
+# Coding Profile Endpoint
+@app.get('/api/ai/profile')
+async def coding_profile(user_id: str):
+    if not user_id:
+        raise HTTPException(status_code=400, detail='Missing user_id')
+    # Simulate profile
+    profile = {"user_id": user_id, "languages": ["Python", "JS"], "level": "Intermediate"}
+    return profile
+
+# Analytics Endpoint
+@app.get('/api/ai/analytics')
+async def analytics(user_id: str, period: str = 'week'):
+    if not user_id:
+        raise HTTPException(status_code=400, detail='Missing user_id')
+    # Simulate analytics
+    data = {"user_id": user_id, "period": period, "activity": [random.randint(0, 10) for _ in range(7)]}
+    return data
 from datetime import datetime, date
 import random
 import json
@@ -724,242 +772,44 @@ async def get_ai_recommendations(request: AIRecommendationRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Import internship models - try complex analyzer first, fallback to simple
-try:
-    from models.internship_resume_analyzer import analyze_internship_resume, process_resume_file
-    print("✅ Successfully imported complex internship models with LangChain")
-    INTERNSHIP_MODELS_AVAILABLE = True
-    USE_SIMPLE_ANALYZER = False
-except ImportError as e:
-    print(f"⚠️ Failed to import complex internship models: {e}")
-    print("🔄 Falling back to simple internship analyzer...")
-    try:
-        from models.simple_internship_analyzer import analyze_internship_resume, process_resume_file
-        print("✅ Successfully imported simple internship analyzer")
-        INTERNSHIP_MODELS_AVAILABLE = True
-        USE_SIMPLE_ANALYZER = True
-    except ImportError as e2:
-        print(f"❌ Failed to import simple internship analyzer: {e2}")
-        INTERNSHIP_MODELS_AVAILABLE = False
-        USE_SIMPLE_ANALYZER = False
+# --- Resume Analysis Endpoint ---
+from fastapi import Body
 
-# Try to import other internship modules
-try:
-    from models.internship_technical_assessment import generate_internship_technical_assessment, evaluate_technical_assessment
-    from models.internship_skill_assessor import assess_internship_skills, create_learning_roadmap
-    from models.internship_matcher import InternshipMatcher, create_sample_internships
-    # Initialize internship matcher
-    internship_matcher = InternshipMatcher()
-except ImportError as e:
-    print(f"⚠️ Some internship modules unavailable: {e}")
-    internship_matcher = None
+class ResumeAnalyzeRequest(BaseModel):
+    resume_url: Optional[str] = None
+    manual_skills: Optional[List[str]] = None
+    candidate_id: Optional[str] = None
 
-# Internship-specific endpoints
-@app.post("/internship/analyze-resume")
-async def analyze_internship_resume_endpoint(file: UploadFile = File(...)):
-    """Analyze resume specifically for internship opportunities"""
-    try:
-        if not INTERNSHIP_MODELS_AVAILABLE:
-            raise HTTPException(status_code=503, detail="Internship analysis service unavailable")
-        
-        # Validate file type
-        if not file.filename.lower().endswith(('.pdf', '.docx', '.doc', '.txt')):
-            raise HTTPException(status_code=400, detail="Only PDF, DOCX, DOC, and TXT files are supported")
-        
-        # Save uploaded file temporarily
-        import tempfile
-        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
-            content = await file.read()
-            temp_file.write(content)
-            temp_file_path = temp_file.name
-        
-        try:
-            # Process the resume for internships
-            result = process_resume_file(temp_file_path)
-            
-            return JSONResponse(content={
-                "success": True,
-                "filename": file.filename,
-                "analysis_type": "internship",
-                "result": result
-            })
-            
-        finally:
-            # Clean up temporary file
-            import os
-            if os.path.exists(temp_file_path):
-                os.unlink(temp_file_path)
-                
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internship resume analysis failed: {str(e)}")
+@app.post("/resume/analyze")
+def resume_analyze(req: ResumeAnalyzeRequest):
+    candidate = None
+    if req.candidate_id:
+        resp = supabase.table("candidates").select("*").eq("id", req.candidate_id).single().execute()
+        candidate = resp.data if resp.data else None
+    result = analyze_resume(req.resume_url, req.manual_skills, candidate)
+    return result
 
-@app.post("/internship/technical-assessment")
-async def create_internship_technical_assessment(
-    internship_role: str = Form("Software Development"),
-    num_questions: int = Form(10),
-    difficulty: str = Form("moderate")
-):
-    """Generate technical assessment questions for internship roles"""
-    try:
-        if not INTERNSHIP_MODELS_AVAILABLE:
-            raise HTTPException(status_code=503, detail="Technical assessment service unavailable")
-        
-        # Validate inputs
-        if num_questions < 1 or num_questions > 20:
-            raise HTTPException(status_code=400, detail="Number of questions must be between 1 and 20")
-        
-        if difficulty not in ["easy", "moderate", "hard"]:
-            raise HTTPException(status_code=400, detail="Difficulty must be 'easy', 'moderate', or 'hard'")
-        
-        # Generate assessment
-        result = generate_internship_technical_assessment(
-            internship_role=internship_role,
-            num_questions=num_questions,
-            difficulty=difficulty
-        )
-        
-        return JSONResponse(content=result)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Technical assessment generation failed: {str(e)}")
+# --- Recommendations Endpoint ---
+class RecommendationRequest(BaseModel):
+    candidate_id: str
 
-@app.post("/internship/evaluate-assessment")
-async def evaluate_internship_assessment(request: Request):
-    """Evaluate user's technical assessment answers"""
-    try:
-        if not INTERNSHIP_MODELS_AVAILABLE:
-            raise HTTPException(status_code=503, detail="Assessment evaluation service unavailable")
-        
-        data = await request.json()
-        user_answers = data.get("user_answers", {})
-        correct_answers = data.get("correct_answers", [])
-        
-        # Evaluate answers
-        result = evaluate_technical_assessment(user_answers, correct_answers)
-        
-        return JSONResponse(content={
-            "success": True,
-            "evaluation": result
-        })
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Assessment evaluation failed: {str(e)}")
-
-@app.post("/internship/skill-assessment")
-async def create_internship_skill_assessment(
-    candidate_info: str = Form(...),
-    internship_domain: str = Form("Software Development")
-):
-    """Assess candidate's skills for internship readiness"""
-    try:
-        if not INTERNSHIP_MODELS_AVAILABLE:
-            raise HTTPException(status_code=503, detail="Skill assessment service unavailable")
-        
-        # Perform skill assessment
-        result = assess_internship_skills(candidate_info, internship_domain)
-        
-        return JSONResponse(content=result)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Skill assessment failed: {str(e)}")
-
-@app.post("/internship/match")
-async def match_candidate_to_internships(request: Request):
-    """Match candidate with suitable internship opportunities"""
-    try:
-        if not INTERNSHIP_MODELS_AVAILABLE or not internship_matcher:
-            raise HTTPException(status_code=503, detail="Internship matching service unavailable")
-        
-        data = await request.json()
-        candidate_profile = data.get("candidate_profile", "")
-        internship_listings = data.get("internship_listings")
-        
-        if not candidate_profile:
-            raise HTTPException(status_code=400, detail="Candidate profile is required")
-        
-        # Use provided listings or sample data
-        if not internship_listings:
-            internship_listings = create_sample_internships()
-        
-        # Perform matching
-        result = internship_matcher.match_internships(candidate_profile, internship_listings)
-        
-        return JSONResponse(content=result)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internship matching failed: {str(e)}")
-
-@app.post("/internship/learning-roadmap")
-async def generate_internship_learning_roadmap(request: Request):
-    """Generate personalized learning roadmap based on skill assessment"""
-    try:
-        if not INTERNSHIP_MODELS_AVAILABLE:
-            raise HTTPException(status_code=503, detail="Learning roadmap service unavailable")
-        
-        data = await request.json()
-        assessment_data = data.get("assessment_data", {})
-        domain = data.get("domain", "Software Development")
-        
-        # Generate roadmap
-        roadmap = create_learning_roadmap(assessment_data, domain)
-        
-        return JSONResponse(content={
-            "success": True,
-            "roadmap": roadmap
-        })
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Learning roadmap generation failed: {str(e)}")
-
-@app.get("/internship/domains")
-async def get_internship_domains():
-    """Get available internship domains"""
-    domains = [
-        "Software Development",
-        "Data Science", 
-        "Web Development",
-        "Mobile Development",
-        "UI/UX Design",
-        "Digital Marketing",
-        "Content Writing",
-        "Business Development",
-        "Human Resources",
-        "Finance"
-    ]
-    
-    return JSONResponse(content={
-        "success": True,
-        "domains": domains
-    })
-
-@app.get("/internship/sample-data")
-async def get_sample_internship_data():
-    """Get sample internship data for testing"""
-    try:
-        if not INTERNSHIP_MODELS_AVAILABLE:
-            return JSONResponse(content={"success": False, "error": "Service unavailable"})
-        
-        sample_internships = create_sample_internships()
-        
-        return JSONResponse(content={
-            "success": True,
-            "internships": sample_internships
-        })
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@app.get("/recommendations")
+def get_recommendations(candidate_id: str):
+    # Fetch candidate
+    c_resp = supabase.table("candidates").select("*").eq("id", candidate_id).single().execute()
+    candidate = c_resp.data
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    # Fetch internships, quotas, applications
+    i_resp = supabase.table("internships").select("*").execute()
+    internships = i_resp.data or []
+    q_resp = supabase.table("quotas").select("*").execute()
+    quotas = {q['category']: q['remaining'] for q in (q_resp.data or [])}
+    a_resp = supabase.table("applications").select("*").eq("candidate_id", candidate_id).execute()
+    applications = a_resp.data or []
+    # Run matching
+    recs = match_candidate_to_internships(candidate, internships, quotas, applications)
+    return {"recommendations": [r.dict() for r in recs]}
 
 # Health check
 @app.get("/health")
