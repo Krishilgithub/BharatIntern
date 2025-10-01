@@ -32,6 +32,8 @@ import {
 	Star,
 	Sparkles,
 	Info,
+	Mail,
+	Phone,
 } from "lucide-react";
 
 const LandingPage = () => {
@@ -49,14 +51,31 @@ const LandingPage = () => {
 	useEffect(() => {
 		const fetchStats = async () => {
 			try {
-				// Simulate API call for real-time stats
+				// Fetch real-time stats from API
 				const response = await fetch("/api/stats");
 				if (response.ok) {
 					const stats = await response.json();
 					setDynamicStats(stats);
+				} else {
+					// Fallback to mock data if API fails
+					const mockStats = {
+						activeInternships: 1234,
+						registeredCompanies: 567,
+						successRate: 89,
+						placedCandidates: 8901,
+					};
+					setDynamicStats(mockStats);
 				}
 			} catch (error) {
-				console.log("Using mock stats:", error);
+				console.log("Using fallback stats:", error);
+				// Fallback to mock data
+				const mockStats = {
+					activeInternships: 1234,
+					registeredCompanies: 567,
+					successRate: 89,
+					placedCandidates: 8901,
+				};
+				setDynamicStats(mockStats);
 			}
 		};
 
@@ -109,6 +128,94 @@ const LandingPage = () => {
 		{ code: "gu", name: "ગુજરાતી", flag: "🇮🇳" },
 		{ code: "kn", name: "ಕನ್ನಡ", flag: "🇮🇳" },
 	];
+
+	// Translation object
+	const translations = {
+		en: {
+			heroTitle: "AI-Driven Internship",
+			heroSubtitle: "Recommendation Engine",
+			heroDescription: "Empowering the PM Internship Scheme with intelligent matching, quota management, and seamless allocation processes.",
+			aboutTitle: "About BharatIntern",
+			aboutDescription: "Revolutionizing internship allocation through AI-driven matching, intelligent quota management, and seamless user experiences for the PM Internship Scheme.",
+			contactTitle: "Contact Us",
+			contactDescription: "Have questions? We're here to help. Get in touch with our support team.",
+			mission: "Our Mission",
+			missionText: "To democratize access to quality internship opportunities by leveraging artificial intelligence and data-driven insights, ensuring fair and efficient allocation while maintaining the highest standards of transparency and accountability.",
+			features: {
+				aiMatching: "AI-Powered Matching",
+				aiMatchingDesc: "Advanced algorithms analyze skills and preferences for optimal matches",
+				quotaEnforcement: "Quota Enforcement",
+				quotaEnforcementDesc: "Automated compliance with affirmative action and diversity requirements",
+				securePlatform: "Secure Platform",
+				securePlatformDesc: "Enterprise-grade security with comprehensive audit trails and data protection"
+			},
+			contact: {
+				emailUs: "Email Us",
+				emailDesc: "Send us an email and we'll respond within 24 hours",
+				callUs: "Call Us",
+				callDesc: "Monday to Friday, 9:00 AM to 6:00 PM IST",
+				visitUs: "Visit Us",
+				visitDesc: "Ministry of Education, Government of India",
+				sendMessage: "Send us a message",
+				yourName: "Your Name",
+				yourEmail: "Your Email",
+				subject: "Subject",
+				yourMessage: "Your Message",
+				sendMsg: "Send Message"
+			},
+			buttons: {
+				getStarted: "Get Started Now",
+				learnMore: "Learn More"
+			}
+		},
+		hi: {
+			heroTitle: "एआई-संचालित इंटर्नशिप",
+			heroSubtitle: "सिफारिश इंजन",
+			heroDescription: "बुद्धिमान मैचिंग, कोटा प्रबंधन और निर्बाध आवंटन प्रक्रियाओं के साथ पीएम इंटर्नशिप योजना को सशक्त बनाना।",
+			aboutTitle: "भारत इंटर्न के बारे में",
+			aboutDescription: "पीएम इंटर्नशिप योजना के लिए एआई-संचालित मैचिंग, बुद्धिमान कोटा प्रबंधन और निर्बाध उपयोगकर्ता अनुभवों के माध्यम से इंटर्नशिप आवंटन में क्रांति।",
+			contactTitle: "हमसे संपर्क करें",
+			contactDescription: "कोई प्रश्न है? हम यहाँ मदद के लिए हैं। हमारी सहायता टीम से संपर्क करें।",
+			mission: "हमारा मिशन",
+			missionText: "कृत्रिम बुद्धिमत्ता और डेटा-संचालित अंतर्दृष्टि का लाभ उठाकर गुणवत्तापूर्ण इंटर्नशिप अवसरों तक पहुंच को लोकतांत्रिक बनाना।",
+			features: {
+				aiMatching: "एआई-संचालित मैचिंग",
+				aiMatchingDesc: "उन्नत एल्गोरिदम कौशल और प्राथमिकताओं का विश्लेषण करते हैं",
+				quotaEnforcement: "कोटा प्रवर्तन",
+				quotaEnforcementDesc: "सकारात्मक कार्रवाई और विविधता आवश्यकताओं के साथ स्वचालित अनुपालन",
+				securePlatform: "सुरक्षित प्लेटफॉर्म",
+				securePlatformDesc: "व्यापक ऑडिट ट्रेल्स और डेटा सुरक्षा के साथ एंटरप्राइज़-ग्रेड सुरक्षा"
+			},
+			contact: {
+				emailUs: "हमें ईमेल करें",
+				emailDesc: "हमें ईमेल भेजें और हम 24 घंटे के भीतर जवाब देंगे",
+				callUs: "हमें कॉल करें",
+				callDesc: "सोमवार से शुक्रवार, सुबह 9:00 बजे से शाम 6:00 बजे तक",
+				visitUs: "हमसे मिलें",
+				visitDesc: "शिक्षा मंत्रालय, भारत सरकार",
+				sendMessage: "हमें संदेश भेजें",
+				yourName: "आपका नाम",
+				yourEmail: "आपका ईमेल",
+				subject: "विषय",
+				yourMessage: "आपका संदेश",
+				sendMsg: "संदेश भेजें"
+			},
+			buttons: {
+				getStarted: "अभी शुरू करें",
+				learnMore: "और जानें"
+			}
+		}
+	};
+
+	// Translation function
+	const t = (key) => {
+		const keys = key.split('.');
+		let value = translations[currentLanguage];
+		for (const k of keys) {
+			value = value?.[k];
+		}
+		return value || translations.en[key] || key;
+	};
 
 	const userTypes = [
 		{
@@ -262,8 +369,8 @@ const LandingPage = () => {
 							transition={{ duration: 1, delay: 0.2 }}
 							className="text-4xl md:text-6xl font-bold mb-6"
 						>
-							AI-Driven Internship
-							<span className="block text-accent">Recommendation Engine</span>
+							{t('heroTitle')}
+							<span className="block text-accent">{t('heroSubtitle')}</span>
 						</motion.h1>
 						<motion.p
 							initial={{ opacity: 0 }}
@@ -271,8 +378,7 @@ const LandingPage = () => {
 							transition={{ delay: 0.5 }}
 							className="text-xl md:text-2xl mb-8 text-orange-100 max-w-3xl mx-auto"
 						>
-							Empowering the PM Internship Scheme with intelligent matching,
-							quota management, and seamless allocation processes.
+							{t('heroDescription')}
 						</motion.p>
 
 						{/* Dynamic Statistics */}
@@ -805,6 +911,218 @@ const LandingPage = () => {
 				</div>
 			</section>
 
+			{/* About Section */}
+			<section id="about-section" className="py-20 bg-gray-50">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<motion.div
+						initial={{ opacity: 0, y: 50 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						className="text-center mb-16"
+					>
+						<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+							{t('aboutTitle')}
+						</h2>
+						<p className="text-xl text-gray-600 max-w-4xl mx-auto">
+							{t('aboutDescription')}
+						</p>
+					</motion.div>
+
+					<div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+						<motion.div
+							initial={{ opacity: 0, x: -50 }}
+							whileInView={{ opacity: 1, x: 0 }}
+							viewport={{ once: true }}
+						>
+							<h3 className="text-2xl font-bold text-gray-900 mb-6">
+								{t('mission')}
+							</h3>
+							<p className="text-gray-600 mb-6">
+								{t('missionText')}
+							</p>
+							<div className="space-y-4">
+								<div className="flex items-start space-x-3">
+									<CheckCircle className="w-6 h-6 text-accent flex-shrink-0 mt-1" />
+									<div>
+										<h4 className="font-semibold text-gray-900">
+											{t('features.aiMatching')}
+										</h4>
+										<p className="text-gray-600">
+											{t('features.aiMatchingDesc')}
+										</p>
+									</div>
+								</div>
+								<div className="flex items-start space-x-3">
+									<CheckCircle className="w-6 h-6 text-accent flex-shrink-0 mt-1" />
+									<div>
+										<h4 className="font-semibold text-gray-900">
+											{t('features.quotaEnforcement')}
+										</h4>
+										<p className="text-gray-600">
+											{t('features.quotaEnforcementDesc')}
+										</p>
+									</div>
+								</div>
+								<div className="flex items-start space-x-3">
+									<CheckCircle className="w-6 h-6 text-accent flex-shrink-0 mt-1" />
+									<div>
+										<h4 className="font-semibold text-gray-900">
+											{t('features.securePlatform')}
+										</h4>
+										<p className="text-gray-600">
+											{t('features.securePlatformDesc')}
+										</p>
+									</div>
+								</div>
+							</div>
+						</motion.div>
+						<motion.div
+							initial={{ opacity: 0, x: 50 }}
+							whileInView={{ opacity: 1, x: 0 }}
+							viewport={{ once: true }}
+							className="bg-white rounded-xl shadow-lg p-8"
+						>
+							<h4 className="text-xl font-bold text-gray-900 mb-6">
+								Key Statistics
+							</h4>
+							<div className="grid grid-cols-2 gap-6">
+								<div className="text-center">
+									<div className="text-3xl font-bold text-primary mb-2">95%</div>
+									<div className="text-gray-600">Match Accuracy</div>
+								</div>
+								<div className="text-center">
+									<div className="text-3xl font-bold text-primary mb-2">10K+</div>
+									<div className="text-gray-600">Active Users</div>
+								</div>
+								<div className="text-center">
+									<div className="text-3xl font-bold text-primary mb-2">500+</div>
+									<div className="text-gray-600">Partner Companies</div>
+								</div>
+								<div className="text-center">
+									<div className="text-3xl font-bold text-primary mb-2">50+</div>
+									<div className="text-gray-600">Industries</div>
+								</div>
+							</div>
+						</motion.div>
+					</div>
+				</div>
+			</section>
+
+			{/* Contact Section */}
+			<section id="contact-section" className="py-20 bg-white">
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+					<motion.div
+						initial={{ opacity: 0, y: 50 }}
+						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true }}
+						className="text-center mb-16"
+					>
+						<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+							{t('contactTitle')}
+						</h2>
+						<p className="text-xl text-gray-600 max-w-3xl mx-auto">
+							{t('contactDescription')}
+						</p>
+					</motion.div>
+
+					<div className="grid lg:grid-cols-2 gap-12">
+						{/* Contact Information */}
+						<motion.div
+							initial={{ opacity: 0, x: -50 }}
+							whileInView={{ opacity: 1, x: 0 }}
+							viewport={{ once: true }}
+							className="space-y-8"
+						>
+							<div className="flex items-start space-x-4">
+								<div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+									<Mail className="w-6 h-6 text-white" />
+								</div>
+								<div>
+									<h3 className="text-lg font-semibold text-gray-900 mb-2">
+										{t('contact.emailUs')}
+									</h3>
+									<p className="text-gray-600 mb-1">support@pminternship.gov.in</p>
+									<p className="text-gray-500 text-sm">
+										{t('contact.emailDesc')}
+									</p>
+								</div>
+							</div>
+							<div className="flex items-start space-x-4">
+								<div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+									<Phone className="w-6 h-6 text-white" />
+								</div>
+								<div>
+									<h3 className="text-lg font-semibold text-gray-900 mb-2">
+										{t('contact.callUs')}
+									</h3>
+									<p className="text-gray-600 mb-1">+91 11 2345 6789</p>
+									<p className="text-gray-500 text-sm">
+										{t('contact.callDesc')}
+									</p>
+								</div>
+							</div>
+							<div className="flex items-start space-x-4">
+								<div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+									<MapPin className="w-6 h-6 text-white" />
+								</div>
+								<div>
+									<h3 className="text-lg font-semibold text-gray-900 mb-2">
+										{t('contact.visitUs')}
+									</h3>
+									<p className="text-gray-600 mb-1">New Delhi, India</p>
+									<p className="text-gray-500 text-sm">
+										{t('contact.visitDesc')}
+									</p>
+								</div>
+							</div>
+						</motion.div>
+
+						{/* Contact Form */}
+						<motion.div
+							initial={{ opacity: 0, x: 50 }}
+							whileInView={{ opacity: 1, x: 0 }}
+							viewport={{ once: true }}
+							className="bg-gray-50 rounded-xl p-8"
+						>
+							<h3 className="text-xl font-bold text-gray-900 mb-6">
+								{t('contact.sendMessage')}
+							</h3>
+							<form className="space-y-6">
+								<div className="grid md:grid-cols-2 gap-4">
+									<input
+										type="text"
+										placeholder={t('contact.yourName')}
+										className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+									/>
+									<input
+										type="email"
+										placeholder={t('contact.yourEmail')}
+										className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+									/>
+								</div>
+								<input
+									type="text"
+									placeholder={t('contact.subject')}
+									className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+								/>
+								<textarea
+									rows={5}
+									placeholder={t('contact.yourMessage')}
+									className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+								/>
+								<button
+									type="submit"
+									className="w-full bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center space-x-2"
+								>
+									<span>{t('contact.sendMsg')}</span>
+									<ArrowRight className="w-5 h-5" />
+								</button>
+							</form>
+						</motion.div>
+					</div>
+				</div>
+			</section>
+
 			{/* CTA Section */}
 			<section className="py-20 bg-gradient-to-r from-primary via-blue-600 to-accent relative overflow-hidden">
 				<div className="absolute inset-0 bg-black opacity-10"></div>
@@ -834,20 +1152,24 @@ const LandingPage = () => {
 							>
 								<Link href="/signup" className="btn-secondary">
 									<Sparkles className="w-5 h-5 mr-2" />
-									Get Started Now
+									{t('buttons.getStarted')}
 								</Link>
 							</motion.div>
 							<motion.div
 								whileHover={{ scale: 1.05 }}
 								whileTap={{ scale: 0.95 }}
 							>
-								<Link
-									href="/about"
+								<button
+									onClick={() => {
+										document.getElementById('about-section')?.scrollIntoView({
+											behavior: 'smooth'
+										});
+									}}
 									className="btn-outline text-white border-white hover:bg-white hover:text-primary"
 								>
 									<Info className="w-5 h-5 mr-2" />
-									Learn More
-								</Link>
+									{t('buttons.learnMore')}
+								</button>
 							</motion.div>
 						</div>
 
