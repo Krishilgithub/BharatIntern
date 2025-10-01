@@ -1,20 +1,16 @@
 services:
-  # Frontend Service (Next.js)
-  - type: web
+  # Frontend Service (Next.js Static)
+  - type: static
     name: bharatintern-frontend
-    env: node
-    region: oregon
-    plan: free
-    buildCommand: npm install && npm run build
-    startCommand: npm start
-    healthCheckPath: /
+    buildCommand: |
+      npm install
+      npm run build
+    publishDirectory: build
     envVars:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
         value: https://bharatintern-backend.onrender.com
-      - key: PORT
-        value: 10000
 
   # Backend Service (FastAPI Python)
   - type: web
@@ -22,8 +18,11 @@ services:
     env: python
     region: oregon
     plan: free
-    buildCommand: cd backend && pip install -r requirements.txt
-    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    buildCommand: |
+      cd backend
+      pip install --upgrade pip
+      pip install -r requirements-production.txt
+    startCommand: cd backend && python main-production.py
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
@@ -32,10 +31,8 @@ services:
         value: 10000
       - key: HOST
         value: 0.0.0.0
-      - key: UVICORN_HOST
-        value: 0.0.0.0
-      - key: UVICORN_PORT
-        value: 10000
+      - key: NODE_ENV
+        value: production
 
   # Database (if using PostgreSQL)
   - type: pserv
