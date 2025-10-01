@@ -104,3 +104,20 @@ jspm_packages/
 
 # Vercel
 .vercel
+
+# Render
+.render/
+
+# Local deployment files
+deploy-local.*
+local-deploy.*
+
+# Backup and old files
+*.backup.js
+*.backup.jsx
+*.old.js
+*.old.jsx
+*.bak
+*~
+backup/
+old/

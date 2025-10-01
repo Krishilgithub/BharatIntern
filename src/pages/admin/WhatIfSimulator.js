@@ -40,8 +40,8 @@ const WhatIfSimulator = () => {
 				[field]: newValue,
 				percentage:
 					field === "target"
-						? Math.round((prev[category].current / newValue) * 100)
-						: Math.round((newValue / prev[category].target) * 100),
+						? Math.round(((prev[category]?.current || 0) / newValue) * 100)
+						: Math.round((newValue / (prev[category]?.target || 1)) * 100),
 			},
 		}));
 	};
@@ -54,20 +54,20 @@ const WhatIfSimulator = () => {
 			const results = {
 				totalCandidates: 1250,
 				totalAllocated: Object.values(simulatedQuotas).reduce(
-					(sum, quota) => sum + quota.current,
+					(sum, quota) => sum + (quota?.current || 0),
 					0
 				),
 				totalTarget: Object.values(simulatedQuotas).reduce(
-					(sum, quota) => sum + quota.target,
+					(sum, quota) => sum + (quota?.target || 0),
 					0
 				),
 				overallProgress: Math.round(
 					(Object.values(simulatedQuotas).reduce(
-						(sum, quota) => sum + quota.current,
+						(sum, quota) => sum + (quota?.current || 0),
 						0
 					) /
 						Object.values(simulatedQuotas).reduce(
-							(sum, quota) => sum + quota.target,
+							(sum, quota) => sum + (quota?.target || 0),
 							0
 						)) *
 						100
@@ -199,7 +199,13 @@ const WhatIfSimulator = () => {
 								{quotaCategories.map((category) => {
 									const current = currentQuotas[category.key];
 									const simulated = simulatedQuotas[category.key];
-									const status = getQuotaStatus(simulated.percentage);
+									const status = simulated?.percentage
+										? getQuotaStatus(simulated.percentage)
+										: {
+												icon: AlertCircle,
+												color: "text-gray-400",
+												label: "No Data",
+										  };
 
 									return (
 										<div
@@ -221,7 +227,7 @@ const WhatIfSimulator = () => {
 															status.color.split(" ")[0]
 														}`}
 													>
-														{simulated.percentage}%
+														{simulated?.percentage || 0}%
 													</div>
 													<div className="text-xs text-gray-500">
 														Simulated Progress
@@ -240,7 +246,7 @@ const WhatIfSimulator = () => {
 															step="0.1"
 															min="0"
 															max="100"
-															value={simulated.target}
+															value={simulated?.target || 0}
 															onChange={(e) =>
 																handleQuotaChange(
 																	category.key,
@@ -253,7 +259,7 @@ const WhatIfSimulator = () => {
 														<span className="text-gray-500">%</span>
 													</div>
 													<div className="text-xs text-gray-500 mt-1">
-														Current: {current.target}%
+														Current: {current?.target || 0}%
 													</div>
 												</div>
 												<div>
@@ -264,7 +270,7 @@ const WhatIfSimulator = () => {
 														<input
 															type="number"
 															min="0"
-															value={simulated.current}
+															value={simulated?.current || 0}
 															onChange={(e) =>
 																handleQuotaChange(
 																	category.key,
@@ -286,10 +292,13 @@ const WhatIfSimulator = () => {
 												<div className="w-full bg-gray-200 rounded-full h-2">
 													<div
 														className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(
-															simulated.percentage
+															simulated?.percentage || 0
 														)}`}
 														style={{
-															width: `${Math.min(simulated.percentage, 100)}%`,
+															width: `${Math.min(
+																simulated?.percentage || 0,
+																100
+															)}%`,
 														}}
 													></div>
 												</div>
@@ -333,10 +342,10 @@ const WhatIfSimulator = () => {
 										{quotaCategories.map((category) => {
 											const current = currentQuotas[category.key];
 											const simulated = simulatedQuotas[category.key];
-											const targetChange = simulated.target - current.target;
+											const targetChange =
+												(simulated?.target || 0) - (current?.target || 0);
 											const allocatedChange =
-												simulated.current - current.current;
-
+												(simulated?.current || 0) - (current?.current || 0);
 											return (
 												<tr
 													key={category.key}
@@ -355,7 +364,7 @@ const WhatIfSimulator = () => {
 														{current.current}
 													</td>
 													<td className="py-3 px-4 text-center text-gray-600">
-														{simulated.current}
+														{simulated?.current || 0}
 													</td>
 													<td className="py-3 px-4 text-center">
 														<div className="flex flex-col space-y-1">

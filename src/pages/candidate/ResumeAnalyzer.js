@@ -111,6 +111,10 @@ const ResumeAnalyzer = () => {
 		gemini: { available: false },
 		recommended: "mock",
 	});
+	const [historySearchTerm, setHistorySearchTerm] = useState("");
+	const [historyFilterBy, setHistoryFilterBy] = useState("all");
+	const [showHistoryDetails, setShowHistoryDetails] = useState(null);
+	const [historySort, setHistorySort] = useState("date-desc");
 	const fileInputRef = useRef(null);
 
 	// Load analysis history when user is available
@@ -474,6 +478,72 @@ const ResumeAnalyzer = () => {
 			console.error("Error deleting analysis:", error);
 			toast.error("Failed to delete analysis");
 		}
+	};
+
+	// Filter and sort history
+	const getFilteredAndSortedHistory = () => {
+		let filtered = analysisHistory;
+
+		// Filter by search term
+		if (historySearchTerm) {
+			filtered = filtered.filter((item) =>
+				item.filename.toLowerCase().includes(historySearchTerm.toLowerCase())
+			);
+		}
+
+		// Filter by score range
+		if (historyFilterBy !== "all") {
+			switch (historyFilterBy) {
+				case "high":
+					filtered = filtered.filter((item) => item.score >= 80);
+					break;
+				case "medium":
+					filtered = filtered.filter(
+						(item) => item.score >= 60 && item.score < 80
+					);
+					break;
+				case "low":
+					filtered = filtered.filter((item) => item.score < 60);
+					break;
+			}
+		}
+
+		// Sort
+		switch (historySort) {
+			case "date-desc":
+				filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+				break;
+			case "date-asc":
+				filtered.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+				break;
+			case "score-desc":
+				filtered.sort((a, b) => b.score - a.score);
+				break;
+			case "score-asc":
+				filtered.sort((a, b) => a.score - b.score);
+				break;
+			case "name":
+				filtered.sort((a, b) => a.filename.localeCompare(b.filename));
+				break;
+		}
+
+		return filtered;
+	};
+
+	// Get analysis preview data
+	const getAnalysisPreview = (analysisData) => {
+		if (!analysisData) return null;
+
+		return {
+			skillsCount: analysisData.extractedSkills?.length || 0,
+			atsScore: analysisData.atsCompatibility?.score || 0,
+			improvementsCount: analysisData.improvements?.length || 0,
+			careerSuggestionsCount: analysisData.careerSuggestions?.length || 0,
+			topSkills:
+				analysisData.extractedSkills?.slice(0, 3).map((s) => s.name) || [],
+			topImprovements:
+				analysisData.improvements?.slice(0, 2).map((i) => i.suggestion) || [],
+		};
 	};
 
 	// Extract basic info from resume text
@@ -1170,17 +1240,74 @@ const ResumeAnalyzer = () => {
 							)}
 						</div>
 
-						{/* Resume Preview */}
+						{/* Enhanced Resume Preview */}
 						{resumePreview && (
 							<div className="bg-white rounded-xl shadow-sm border p-6">
 								<div className="flex items-center justify-between mb-4">
-									<h3 className="text-lg font-semibold text-gray-900">
-										Preview
+									<h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+										<Eye className="w-5 h-5 text-blue-600" />
+										<span>Dynamic Preview</span>
 									</h3>
-									<button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
-										<Maximize2 className="w-4 h-4" />
-									</button>
+									<div className="flex items-center space-x-2">
+										{realTimeScore > 0 && (
+											<div
+												className={`px-3 py-1 rounded-full text-sm font-medium ${getScoreColor(
+													realTimeScore
+												)}`}
+											>
+												{realTimeScore}/100
+											</div>
+										)}
+										<button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+											<Maximize2 className="w-4 h-4" />
+										</button>
+									</div>
 								</div>
+
+								{/* File Information Header */}
+								<div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-6">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center space-x-3">
+											<div className="p-2 bg-white rounded-lg shadow-sm">
+												{resumePreview.type === "pdf" ? (
+													<FileText className="w-6 h-6 text-red-500" />
+												) : resumePreview.type === "image" ? (
+													<FileText className="w-6 h-6 text-green-500" />
+												) : (
+													<FileText className="w-6 h-6 text-blue-500" />
+												)}
+											</div>
+											<div>
+												<h4 className="font-semibold text-gray-900">
+													{resumePreview.filename}
+												</h4>
+												<p className="text-sm text-gray-600">
+													{resumePreview.type.toUpperCase()} •{" "}
+													{resumePreview.size}
+												</p>
+											</div>
+										</div>
+
+										{/* Dynamic Stats */}
+										<div className="grid grid-cols-2 gap-4 text-center">
+											<div>
+												<div className="text-lg font-bold text-blue-600">
+													{extractedText
+														? extractedText.split(/\s+/).length
+														: 0}
+												</div>
+												<div className="text-xs text-gray-600">Words</div>
+											</div>
+											<div>
+												<div className="text-lg font-bold text-green-600">
+													{analysis?.skills?.length || 0}
+												</div>
+												<div className="text-xs text-gray-600">Skills</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
 								<div className="border rounded-lg overflow-hidden bg-gray-50">
 									{resumePreview.type === "image" ? (
 										<img
@@ -1188,39 +1315,66 @@ const ResumeAnalyzer = () => {
 											alt="Resume preview"
 											className="w-full h-64 object-contain bg-white"
 										/>
-									) : resumePreview.type === "pdf" ? (
-										<div className="flex flex-col items-center justify-center h-64 p-6 text-center">
-											<FileText className="w-16 h-16 text-red-500 mb-4" />
-											<h4 className="font-medium text-gray-900 mb-2">
-												{resumePreview.filename}
-											</h4>
-											<p className="text-sm text-gray-600 mb-2">PDF Document</p>
-											<p className="text-xs text-gray-500">
-												{resumePreview.size}
-											</p>
-											{extractedText && (
-												<div className="mt-4 p-3 bg-white rounded border text-xs text-left max-h-48 overflow-y-auto w-full">
-													<div className="text-gray-700 whitespace-pre-wrap">
-														{extractedText.length > 500 ? (
+									) : extractedText ? (
+										<div className="p-6">
+											{/* Extracted Text Preview with Skills Highlighting */}
+											<div className="bg-white rounded-lg border p-4 mb-4">
+												<h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+													<FileText className="w-4 h-4 mr-2 text-blue-500" />
+													Extracted Content Preview
+												</h5>
+												<div className="max-h-64 overflow-y-auto">
+													<div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+														{extractedText.length > 800 ? (
 															<>
-																<p>{extractedText.substring(0, 500)}...</p>
-																<button
-																	onClick={() => {
-																		const modal = document.createElement("div");
-																		modal.style.cssText =
-																			"position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;";
-																		modal.innerHTML = `<div style="background: white; padding: 20px; border-radius: 12px; max-width: 90%; max-height: 90%; overflow: hidden; position: relative;"><button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 10px; right: 15px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">&times;</button><h3 style="margin-top: 0; margin-bottom: 15px; color: #1f2937;">Full Resume Text</h3><pre style="white-space: pre-wrap; font-family: monospace; padding: 20px; background: #f8f9fa; border-radius: 8px; max-height: 70vh; overflow-y: auto; font-size: 12px;">${extractedText}</pre></div>`;
-																		document.body.appendChild(modal);
-																		modal.onclick = (e) =>
-																			e.target === modal && modal.remove();
-																	}}
-																	className="mt-2 text-blue-600 hover:text-blue-800 underline cursor-pointer"
-																>
-																	View Full Text
-																</button>
+																{extractedText.substring(0, 800)}
+																<span className="text-gray-500">...</span>
+																<div className="mt-3 text-center">
+																	<button
+																		onClick={() => {
+																			const modal =
+																				document.createElement("div");
+																			modal.style.cssText =
+																				"position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;";
+																			modal.innerHTML = `<div style="background: white; padding: 20px; border-radius: 12px; max-width: 90%; max-height: 90%; overflow: hidden; position: relative;"><button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 10px; right: 15px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">&times;</button><h3 style="margin-top: 0; margin-bottom: 15px; color: #1f2937;">Complete Resume Text</h3><pre style="white-space: pre-wrap; font-family: 'Inter', sans-serif; padding: 20px; background: #f8f9fa; border-radius: 8px; max-height: 70vh; overflow-y: auto; font-size: 14px; line-height: 1.5;">${extractedText}</pre></div>`;
+																			document.body.appendChild(modal);
+																			modal.onclick = (e) =>
+																				e.target === modal && modal.remove();
+																		}}
+																		className="inline-flex items-center space-x-1 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+																	>
+																		<Eye className="w-4 h-4" />
+																		<span>View Full Text</span>
+																	</button>
+																</div>
 															</>
 														) : (
-															<p>{extractedText}</p>
+															extractedText
+														)}
+													</div>
+												</div>
+											</div>
+
+											{/* Skills Preview */}
+											{analysis?.skills?.length > 0 && (
+												<div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
+													<h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+														<Award className="w-4 h-4 mr-2 text-blue-500" />
+														Identified Skills ({analysis.skills.length})
+													</h5>
+													<div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+														{analysis.skills.slice(0, 20).map((skill, idx) => (
+															<span
+																key={idx}
+																className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white text-blue-700 border border-blue-300 shadow-sm"
+															>
+																{skill}
+															</span>
+														))}
+														{analysis.skills.length > 20 && (
+															<span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600">
+																+{analysis.skills.length - 20} more
+															</span>
 														)}
 													</div>
 												</div>
@@ -1277,25 +1431,77 @@ const ResumeAnalyzer = () => {
 									)}
 								</div>
 
-								{/* File Info */}
-								<div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-									<div>
-										<span className="text-gray-600">Type:</span>
-										<span className="ml-2 font-medium text-gray-900">
-											{resumePreview.type === "image"
-												? "Image"
-												: resumePreview.type === "pdf"
-												? "PDF"
-												: "Document"}
-										</span>
+								{/* Enhanced File Info & Preview Stats */}
+								<div className="mt-6 space-y-4">
+									<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+										<div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+											<div className="text-xl font-bold text-blue-600">
+												{extractedText
+													? Math.ceil(extractedText.length / 2000)
+													: "-"}
+											</div>
+											<div className="text-sm text-blue-700">Est. Pages</div>
+										</div>
+										<div className="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+											<div className="text-xl font-bold text-green-600">
+												{extractedText
+													? extractedText
+															.split("\n")
+															.filter((line) => line.trim()).length
+													: "-"}
+											</div>
+											<div className="text-sm text-green-700">Text Lines</div>
+										</div>
+										<div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+											<div className="text-xl font-bold text-purple-600">
+												{extractedText ? extractedText.length : "-"}
+											</div>
+											<div className="text-sm text-purple-700">Characters</div>
+										</div>
+										<div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
+											<div className="text-xl font-bold text-orange-600">
+												{analysis ? "Complete" : "Pending"}
+											</div>
+											<div className="text-sm text-orange-700">Analysis</div>
+										</div>
 									</div>
-									<div>
-										<span className="text-gray-600">Size:</span>
-										<span className="ml-2 font-medium text-gray-900">
-											{resumePreview.size ||
-												(file &&
-													(file.size / (1024 * 1024)).toFixed(2) + " MB")}
-										</span>
+
+									{/* File Details */}
+									<div className="bg-gray-50 rounded-lg p-4">
+										<h5 className="font-semibold text-gray-900 mb-3 flex items-center">
+											<Info className="w-4 h-4 mr-2 text-gray-600" />
+											Document Information
+										</h5>
+										<div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+											<div>
+												<span className="text-gray-600">Type:</span>
+												<span className="ml-2 font-medium text-gray-900">
+													{resumePreview.type === "image"
+														? "Image"
+														: resumePreview.type === "pdf"
+														? "PDF"
+														: "Document"}
+												</span>
+											</div>
+											<div>
+												<span className="text-gray-600">Size:</span>
+												<span className="ml-2 font-medium text-gray-900">
+													{resumePreview.size ||
+														(file &&
+															(file.size / (1024 * 1024)).toFixed(2) + " MB")}
+												</span>
+											</div>
+											<div>
+												<span className="text-gray-600">Status:</span>
+												<span
+													className={`ml-2 font-medium ${
+														analysis ? "text-green-600" : "text-orange-600"
+													}`}
+												>
+													{analysis ? "Analyzed" : "Ready for Analysis"}
+												</span>
+											</div>
+										</div>
 									</div>
 								</div>
 
@@ -1893,117 +2099,284 @@ const ResumeAnalyzer = () => {
 													exit={{ opacity: 0, y: -20 }}
 													className="space-y-6"
 												>
-													<h3 className="text-xl font-bold text-gray-900">
-														Analysis History
-													</h3>
+													<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+														<h3 className="text-xl font-bold text-gray-900">
+															Analysis History ({analysisHistory.length})
+														</h3>
 
-													{analysisHistory.length > 0 ? (
+														{/* Search and Filter Controls */}
+														<div className="flex flex-col sm:flex-row gap-3">
+															<div className="relative">
+																<Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+																<input
+																	type="text"
+																	placeholder="Search by filename..."
+																	value={historySearchTerm}
+																	onChange={(e) =>
+																		setHistorySearchTerm(e.target.value)
+																	}
+																	className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+																/>
+															</div>
+
+															<select
+																value={historyFilterBy}
+																onChange={(e) =>
+																	setHistoryFilterBy(e.target.value)
+																}
+																className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+															>
+																<option value="all">All Scores</option>
+																<option value="high">High (80-100)</option>
+																<option value="medium">Medium (60-79)</option>
+																<option value="low">Low (&lt;60)</option>
+															</select>
+
+															<select
+																value={historySort}
+																onChange={(e) => setHistorySort(e.target.value)}
+																className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+															>
+																<option value="date-desc">Newest First</option>
+																<option value="date-asc">Oldest First</option>
+																<option value="score-desc">
+																	Highest Score
+																</option>
+																<option value="score-asc">Lowest Score</option>
+																<option value="name">By Name</option>
+															</select>
+														</div>
+													</div>
+
+													{getFilteredAndSortedHistory().length > 0 ? (
 														<div className="space-y-4 max-h-96 overflow-y-auto">
-															{analysisHistory.map((item) => (
-																<div
-																	key={item.id}
-																	className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow"
-																>
-																	<div className="flex flex-col space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
-																		<div className="flex-1 min-w-0">
-																			<h4
-																				className="font-semibold text-gray-900 truncate"
-																				title={item.filename}
-																			>
-																				{item.filename}
-																			</h4>
-																			<p className="text-sm text-gray-600 mt-1">
-																				{new Date(
-																					item.timestamp
-																				).toLocaleDateString()}{" "}
-																				at{" "}
-																				{new Date(
-																					item.timestamp
-																				).toLocaleTimeString([], {
-																					hour: "2-digit",
-																					minute: "2-digit",
-																				})}
-																			</p>
-																			{item.extractedText && (
-																				<p className="text-xs text-gray-500 mt-2 line-clamp-2">
-																					{item.extractedText}
-																				</p>
-																			)}
-																		</div>
-																		<div className="flex items-center justify-between lg:justify-end space-x-4 flex-shrink-0">
-																			<div
-																				className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${getScoreColor(
-																					item.score
-																				)}`}
-																			>
-																				{item.score}/100
+															{getFilteredAndSortedHistory().map((item) => {
+																const preview = getAnalysisPreview(
+																	item.analysis
+																);
+																return (
+																	<div
+																		key={item.id}
+																		className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow"
+																	>
+																		<div className="flex flex-col space-y-4">
+																			{/* Header Row */}
+																			<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
+																				<div className="flex-1 min-w-0">
+																					<div className="flex items-center space-x-3">
+																						<FileText className="w-5 h-5 text-blue-500 flex-shrink-0" />
+																						<h4
+																							className="font-semibold text-gray-900 truncate"
+																							title={item.filename}
+																						>
+																							{item.filename}
+																						</h4>
+																						<span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+																							{item.fileType?.toUpperCase() ||
+																								"FILE"}
+																						</span>
+																					</div>
+																					<p className="text-sm text-gray-600 mt-1 flex items-center space-x-4">
+																						<span className="flex items-center space-x-1">
+																							<Calendar className="w-4 h-4" />
+																							<span>
+																								{new Date(
+																									item.timestamp
+																								).toLocaleDateString()}
+																							</span>
+																						</span>
+																						<span className="flex items-center space-x-1">
+																							<Clock className="w-4 h-4" />
+																							<span>
+																								{new Date(
+																									item.timestamp
+																								).toLocaleTimeString([], {
+																									hour: "2-digit",
+																									minute: "2-digit",
+																								})}
+																							</span>
+																						</span>
+																						{item.fileSize && (
+																							<span className="text-xs text-gray-500">
+																								{typeof item.fileSize ===
+																								"string"
+																									? item.fileSize
+																									: (
+																											item.fileSize /
+																											(1024 * 1024)
+																									  ).toFixed(2) + " MB"}
+																							</span>
+																						)}
+																					</p>
+																				</div>
+																				<div className="flex items-center space-x-3">
+																					<div
+																						className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${getScoreColor(
+																							item.score
+																						)}`}
+																					>
+																						{item.score}/100
+																					</div>
+																				</div>
 																			</div>
-																			<div className="flex items-center space-x-2">
+
+																			{/* Analysis Preview */}
+																			{preview && (
+																				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+																					<div className="text-center">
+																						<div className="text-lg font-semibold text-blue-600">
+																							{preview.skillsCount}
+																						</div>
+																						<div className="text-xs text-gray-600">
+																							Skills Found
+																						</div>
+																					</div>
+																					<div className="text-center">
+																						<div className="text-lg font-semibold text-green-600">
+																							{preview.atsScore}%
+																						</div>
+																						<div className="text-xs text-gray-600">
+																							ATS Score
+																						</div>
+																					</div>
+																					<div className="text-center">
+																						<div className="text-lg font-semibold text-orange-600">
+																							{preview.improvementsCount}
+																						</div>
+																						<div className="text-xs text-gray-600">
+																							Improvements
+																						</div>
+																					</div>
+																					<div className="text-center">
+																						<div className="text-lg font-semibold text-purple-600">
+																							{preview.careerSuggestionsCount}
+																						</div>
+																						<div className="text-xs text-gray-600">
+																							Career Matches
+																						</div>
+																					</div>
+																				</div>
+																			)}
+
+																			{/* Top Skills Preview */}
+																			{preview?.topSkills?.length > 0 && (
+																				<div className="flex flex-wrap gap-2">
+																					<span className="text-sm text-gray-600">
+																						Top Skills:
+																					</span>
+																					{preview.topSkills.map(
+																						(skill, idx) => (
+																							<span
+																								key={idx}
+																								className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+																							>
+																								{skill}
+																							</span>
+																						)
+																					)}
+																				</div>
+																			)}
+
+																			{/* Action Buttons */}
+																			<div className="flex items-center justify-between pt-3 border-t border-gray-200">
 																				<button
-																					onClick={async () => {
-																						try {
-																							toast.loading(
-																								"Loading analysis..."
-																							);
-																							const fullAnalysis =
-																								await resumeDatabase.getFullAnalysis(
-																									item.id
+																					onClick={() =>
+																						setShowHistoryDetails(item.id)
+																					}
+																					className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline"
+																				>
+																					<Eye className="w-4 h-4" />
+																					<span>View Full Details</span>
+																				</button>
+
+																				<div className="flex items-center space-x-2">
+																					<button
+																						onClick={async () => {
+																							try {
+																								toast.loading(
+																									"Loading analysis..."
 																								);
+																								const fullAnalysis =
+																									await resumeDatabase.getFullAnalysis(
+																										item.id
+																									);
 
-																							setAnalysis(
-																								fullAnalysis.analysis_data
-																							);
-																							setCurrentAnalysisId(item.id);
-																							setRealTimeScore(
-																								fullAnalysis.overall_score
-																							);
-																							setImprovements(
-																								fullAnalysis.improvements || []
-																							);
-																							setCareerSuggestions(
-																								fullAnalysis.careerSuggestions ||
-																									[]
-																							);
-																							setActiveTab("overview");
+																								setAnalysis(
+																									fullAnalysis.analysis_data
+																								);
+																								setCurrentAnalysisId(item.id);
+																								setRealTimeScore(
+																									fullAnalysis.overall_score
+																								);
+																								setImprovements(
+																									fullAnalysis.improvements ||
+																										[]
+																								);
+																								setCareerSuggestions(
+																									fullAnalysis.careerSuggestions ||
+																										[]
+																								);
+																								setActiveTab("overview");
 
-																							toast.success(
-																								"Loaded previous analysis"
-																							);
-																						} catch (error) {
-																							console.error(
-																								"Error loading analysis:",
-																								error
-																							);
-																							toast.error(
-																								"Failed to load analysis details"
-																							);
-																						}
-																					}}
-																					className="text-blue-600 hover:text-blue-800 text-sm font-medium whitespace-nowrap hover:underline"
-																				>
-																					View Details
-																				</button>
-																				<button
-																					onClick={(e) => {
-																						e.stopPropagation();
-																						if (
-																							confirm(
-																								"Are you sure you want to delete this analysis?"
-																							)
-																						) {
-																							deleteAnalysis(item.id);
-																						}
-																					}}
-																					className="p-1 text-red-400 hover:text-red-600 transition-colors"
-																					title="Delete analysis"
-																				>
-																					<Trash2 className="w-4 h-4" />
-																				</button>
+																								toast.success(
+																									"Loaded previous analysis"
+																								);
+																							} catch (error) {
+																								console.error(
+																									"Error loading analysis:",
+																									error
+																								);
+																								toast.error(
+																									"Failed to load analysis details"
+																								);
+																							}
+																						}}
+																						className="flex items-center space-x-1 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors"
+																					>
+																						<ArrowRight className="w-4 h-4" />
+																						<span>Load Analysis</span>
+																					</button>
+																					<button
+																						onClick={(e) => {
+																							e.stopPropagation();
+																							if (
+																								confirm(
+																									"Are you sure you want to delete this analysis?"
+																								)
+																							) {
+																								deleteAnalysis(item.id);
+																							}
+																						}}
+																						className="p-2 text-red-400 hover:text-red-600 transition-colors"
+																						title="Delete analysis"
+																					>
+																						<Trash2 className="w-4 h-4" />
+																					</button>
+																				</div>
 																			</div>
 																		</div>
 																	</div>
-																</div>
-															))}
+																);
+															})}
+														</div>
+													) : analysisHistory.length > 0 ? (
+														<div className="text-center py-12">
+															<Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+															<h4 className="text-lg font-medium text-gray-900 mb-2">
+																No Results Found
+															</h4>
+															<p className="text-gray-600 mb-4">
+																Try adjusting your search or filter criteria
+															</p>
+															<button
+																onClick={() => {
+																	setHistorySearchTerm("");
+																	setHistoryFilterBy("all");
+																}}
+																className="text-blue-600 hover:text-blue-800 font-medium"
+															>
+																Clear Filters
+															</button>
 														</div>
 													) : (
 														<div className="text-center py-12">

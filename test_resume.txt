@@ -1,0 +1,73 @@
+JOHN SMITH
+Senior Software Engineer
+
+Email: john.smith@email.com
+Phone: (555) 123-4567
+LinkedIn: linkedin.com/in/johnsmith
+Address: San Francisco, CA
+
+SUMMARY
+Experienced software engineer with 5+ years developing scalable web applications using modern technologies. Proven track record in full-stack development, cloud architecture, and team leadership.
+
+TECHNICAL SKILLS
+Programming Languages: JavaScript, Python, Java, TypeScript, C++
+Frontend Technologies: React, Vue.js, Angular, HTML5, CSS3, Sass
+Backend Technologies: Node.js, Express.js, Django, Flask, Spring Boot
+Databases: PostgreSQL, MongoDB, MySQL, Redis, Elasticsearch
+Cloud Platforms: AWS, Google Cloud Platform, Microsoft Azure
+DevOps Tools: Docker, Kubernetes, Jenkins, GitLab CI/CD
+Version Control: Git, GitHub, Bitbucket
+Testing: Jest, Pytest, Selenium, Cypress
+
+PROFESSIONAL EXPERIENCE
+
+Senior Software Engineer | TechCorp Inc. | Jan 2021 - Present
+• Led development of microservices architecture serving 100K+ daily users
+• Implemented CI/CD pipelines reducing deployment time by 60%
+• Mentored 3 junior developers and conducted code reviews
+• Built RESTful APIs using Node.js and Express.js with PostgreSQL database
+• Optimized application performance resulting in 40% faster load times
+
+Software Engineer | StartupXYZ | Jun 2019 - Dec 2020
+• Developed responsive web applications using React and Redux
+• Integrated third-party APIs and payment processing systems
+• Collaborated with UX/UI designers to implement pixel-perfect designs
+• Wrote comprehensive unit tests achieving 85% code coverage
+• Participated in agile development process with daily standups
+
+Junior Developer | WebSolutions | Aug 2018 - May 2019
+• Built dynamic websites using HTML, CSS, JavaScript, and PHP
+• Maintained legacy codebases and implemented bug fixes
+• Assisted senior developers with database design and optimization
+• Learned modern development practices and design patterns
+
+EDUCATION
+Bachelor of Science in Computer Science
+University of California, Berkeley | Graduated: May 2018
+GPA: 3.7/4.0
+
+Relevant Coursework: Data Structures, Algorithms, Database Systems, Software Engineering, Web Development
+
+PROJECTS
+
+E-Commerce Platform (2021)
+• Built full-stack e-commerce application using React, Node.js, and MongoDB
+• Implemented user authentication, payment processing, and admin dashboard
+• Deployed on AWS using Docker containers and load balancers
+• Technologies: React, Node.js, MongoDB, Stripe API, AWS
+
+Real-time Chat Application (2020)
+• Developed real-time messaging app with Socket.io and Express.js
+• Implemented user authentication and message encryption
+• Built responsive UI with React and Material-UI
+• Technologies: React, Socket.io, Express.js, JWT, Material-UI
+
+CERTIFICATIONS
+• AWS Certified Solutions Architect - Associate (2021)
+• Google Cloud Professional Developer (2020)
+• MongoDB Certified Developer Associate (2019)
+
+ACHIEVEMENTS
+• Employee of the Month - TechCorp Inc. (March 2022)
+• Best Innovation Award - Internal Hackathon (2021)
+• Dean's List - UC Berkeley (2017, 2018)
