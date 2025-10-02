@@ -546,6 +546,7 @@ const Signup = () => {
         {steps.map((step, index) => (
           <div key={step.number} className="flex flex-col items-center">
             <button
+              type="button"
               onClick={() => goToStep(step.number)}
               disabled={
                 !completedSteps.includes(step.number - 1) &&
@@ -1778,7 +1779,15 @@ const Signup = () => {
           <ProgressIndicator />
 
           {/* Multi-step Form */}
-          <div>
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && currentStep !== totalSteps) {
+                e.preventDefault();
+              }
+            }}
+            noValidate
+          >
             <AnimatePresence mode="wait">
               {currentStep === 1 && <Step1BasicInfo key="step1" />}
               {currentStep === 2 && <Step2Address key="step2" />}
@@ -1788,7 +1797,11 @@ const Signup = () => {
             </AnimatePresence>
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+            <div
+              className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200"
+              role="group"
+              aria-label="form navigation"
+            >
               <button
                 type="button"
                 onClick={prevStep}
@@ -1808,7 +1821,7 @@ const Signup = () => {
               </div>
 
               <button
-                type="button"
+                type={currentStep === totalSteps ? "submit" : "button"}
                 onClick={currentStep === totalSteps ? handleSubmit : nextStep}
                 disabled={loading}
                 className="flex items-center px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1831,7 +1844,7 @@ const Signup = () => {
                 )}
               </button>
             </div>
-          </div>
+          </form>
         </motion.div>
       </div>
     </div>

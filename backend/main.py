@@ -222,9 +222,12 @@ if PLACEMENT_ROUTERS_OK:
     app.include_router(placement_reco_router, prefix="/placement")
 
 
+def create_app():
+    return app
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run("main:create_app", host="0.0.0.0", port=port, factory=True)
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -261,33 +264,41 @@ langchain_analyzer = None
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize AI services on startup"""
-    global nlp_processor, advanced_resume_analyzer, coding_scraper, langchain_analyzer
-    
-    print("🚀 Initializing AI Services...")
-    initialization_results = await initialize_ai_services()
-    print(f"📊 AI Services Status: {initialization_results}")
-    
-    # Initialize advanced analyzers
-    try:
-        print("🔧 Initializing Advanced NLP Processor...")
-        nlp_processor = AdvancedNLPProcessor()
-        await nlp_processor.initialize()
-        
-        print("📄 Initializing Advanced Resume Analyzer...")
-        advanced_resume_analyzer = AdvancedResumeAnalyzer()
-        
-        print("💻 Initializing Coding Profile Scraper...")
-        coding_scraper = CodingProfileScraper()
-        
-        print("🤖 Initializing LangChain Gemini Analyzer...")
-        langchain_analyzer = LangChainGeminiAnalyzer()
-        
-        print("✅ All advanced analyzers initialized successfully!")
-        
-    except Exception as e:
-        print(f"⚠️ Warning: Could not initialize advanced analyzers: {e}")
-        print("📝 Falling back to basic analyzers")
+    """Fast startup on Render: skip heavy initialization unless explicitly enabled.
+    Set SKIP_HEAVY_INIT=0 to enable full initialization.
+    """
+    if os.environ.get("SKIP_HEAVY_INIT", "1") == "1":
+        print("⏭️  SKIP_HEAVY_INIT is enabled; skipping heavy AI initializations.")
+        return
+
+    async def _init_heavy():
+        global nlp_processor, advanced_resume_analyzer, coding_scraper, langchain_analyzer
+        try:
+            print("🚀 Initializing AI Services...")
+            initialization_results = await initialize_ai_services()
+            print(f"📊 AI Services Status: {initialization_results}")
+
+            print("🔧 Initializing Advanced NLP Processor...")
+            nlp_processor = AdvancedNLPProcessor()
+            await nlp_processor.initialize()
+
+            print("📄 Initializing Advanced Resume Analyzer...")
+            advanced_resume_analyzer = AdvancedResumeAnalyzer()
+
+            print("💻 Initializing Coding Profile Scraper...")
+            coding_scraper = CodingProfileScraper()
+
+            print("🤖 Initializing LangChain Gemini Analyzer...")
+            langchain_analyzer = LangChainGeminiAnalyzer()
+
+            print("✅ All advanced analyzers initialized successfully!")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not initialize advanced analyzers: {e}")
+            print("📝 Falling back to basic analyzers")
+
+    # Run heavy init in background so server can bind the port immediately
+    import asyncio as _asyncio
+    _asyncio.create_task(_init_heavy())
 
 # CORS middleware - Updated for production
 app.add_middleware(
