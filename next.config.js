@@ -12,16 +12,13 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   env: {
     NEXT_PUBLIC_API_URL:
       process.env.NEXT_PUBLIC_API_URL ||
       "https://bharatintern-backend.onrender.com",
   },
   // Specify custom pages directory to avoid conflicts with src/pages
-  pageExtensions: ["js", "jsx", "ts", "tsx"],
+  pageExtensions: ["js", "jsx"],
 
   // Ensure proper page resolution
   experimental: {
@@ -45,14 +42,6 @@ const nextConfig = {
     }
 
     return config;
-  },
-  // Skip problematic rewrites for static export
-  async rewrites() {
-    return [];
-  },
-  // Skip redirects for static export
-  async redirects() {
-    return [];
   },
   // Use default SWC transformer for better performance
   swcMinify: true,

@@ -121,3 +121,9 @@ local-deploy.*
 *~
 backup/
 old/
+
+# TypeScript files (project uses JavaScript only)
+*.ts
+*.tsx
+tsconfig.json
+next-env.d.ts
