@@ -39,7 +39,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "serve -s out -l $PORT",
     "lint": "next lint",
     "test": "jest --passWithNoTests",
     "build:frontend": "next build",
@@ -50,7 +50,7 @@
     "build:static": "next build && next export",
     "build:render": "npm ci && npm run build",
     "render:build": "npm run build",
-    "render:start": "npx serve build"
+    "render:start": "serve -s out -l $PORT"
   },
   "eslintConfig": {
     "extends": [

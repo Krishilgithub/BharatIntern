@@ -3,7 +3,7 @@ const nextConfig = {
   // Production configuration for Render deployment
   output: "export",
   trailingSlash: true,
-  distDir: "build",
+  // Use default .next dir during build; export outputs to 'out'
 
   images: {
     unoptimized: true,
