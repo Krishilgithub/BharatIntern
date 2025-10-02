@@ -1,3 +1,231 @@
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from typing import Optional, List, Dict, Any
+from datetime import datetime
+import tempfile
+import os
+import uvicorn
+
+# Import model functions from consolidated modules
+MODELS_AVAILABLE = True
+IMPORT_ERRORS: List[str] = []
+
+try:
+    from models.internship_resume_analyzer import process_resume_file  # type: ignore
+except Exception as e:
+    MODELS_AVAILABLE = False
+    IMPORT_ERRORS.append(f"internship_resume_analyzer: {e}")
+
+try:
+    from models.internship_technical_assessment import (  # type: ignore
+        generate_internship_technical_assessment,
+        evaluate_technical_assessment,
+    )
+except Exception as e:
+    MODELS_AVAILABLE = False
+    IMPORT_ERRORS.append(f"internship_technical_assessment: {e}")
+
+try:
+    from models.internship_skill_assessor import (  # type: ignore
+        assess_internship_skills,
+        create_learning_roadmap,
+    )
+except Exception as e:
+    MODELS_AVAILABLE = False
+    IMPORT_ERRORS.append(f"internship_skill_assessor: {e}")
+
+try:
+    from models.internship_matcher import InternshipMatcher  # type: ignore
+except Exception as e:
+    MODELS_AVAILABLE = False
+    IMPORT_ERRORS.append(f"internship_matcher: {e}")
+
+# Optional: mount placement_ai JSON routes if present
+PLACEMENT_ROUTERS_OK = True
+try:
+    from placement_ai.routes.resume import router as placement_resume_router  # type: ignore
+    from placement_ai.routes.recommendations import (  # type: ignore
+        router as placement_reco_router,
+    )
+except Exception as e:
+    PLACEMENT_ROUTERS_OK = False
+
+
+app = FastAPI(title="BharatIntern API", version="1.0.0")
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://*.onrender.com",
+        "https://*.vercel.app",
+        "*",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/")
+def root():
+    return {
+        "message": "BharatIntern Backend is running",
+        "docs": "/docs",
+        "health": "/health",
+        "models_available": MODELS_AVAILABLE,
+        "import_errors": IMPORT_ERRORS,
+    }
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "models_available": MODELS_AVAILABLE,
+    }
+
+
+# ========== Resume Analysis (File upload) ==========
+@app.post("/internship/analyze-resume")
+async def analyze_internship_resume(file: UploadFile = File(...)):
+    if not MODELS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Models unavailable")
+
+    # Validate extension
+    if not file.filename.lower().endswith((".pdf", ".doc", ".docx", ".txt")):
+        raise HTTPException(status_code=400, detail="Only PDF/DOC/DOCX/TXT supported")
+
+    # Persist temp file and analyze
+    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
+        content = await file.read()
+        tmp.write(content)
+        tmp_path = tmp.name
+
+    try:
+        result = process_resume_file(tmp_path)
+        return {
+            "success": True,
+            "filename": file.filename,
+            "analysis": result,
+            "analysis_type": "internship",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Resume analysis failed: {e}")
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+
+# ========== Technical Assessment ==========
+@app.post("/internship/technical-assessment")
+async def technical_assessment(
+    internship_role: str = Form("Software Development"),
+    num_questions: int = Form(10),
+    difficulty: str = Form("moderate"),
+):
+    if not MODELS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Models unavailable")
+    try:
+        questions = generate_internship_technical_assessment(
+            internship_role, num_questions, difficulty
+        )
+        return {"success": True, "role": internship_role, "questions": questions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Assessment generation failed: {e}")
+
+
+@app.post("/internship/evaluate-assessment")
+async def evaluate_assessment(payload: Dict[str, Any]):
+    if not MODELS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Models unavailable")
+    try:
+        user_answers = payload.get("user_answers", [])
+        correct_answers = payload.get("correct_answers", [])
+        result = evaluate_technical_assessment(user_answers, correct_answers)
+        return {"success": True, "evaluation": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Assessment evaluation failed: {e}")
+
+
+# ========== Skill Assessment / Learning Roadmap ==========
+@app.post("/internship/skill-assessment")
+async def skill_assessment(
+    candidate_info: str = Form(""), internship_domain: str = Form("Software Development")
+):
+    if not MODELS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Models unavailable")
+    try:
+        result = assess_internship_skills(candidate_info, internship_domain)
+        return {"success": True, "assessment": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Skill assessment failed: {e}")
+
+
+@app.post("/internship/learning-roadmap")
+async def learning_roadmap(payload: Dict[str, Any]):
+    if not MODELS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Models unavailable")
+    try:
+        assessment_data = payload.get("assessment_data", {})
+        domain = payload.get("domain", "Software Development")
+        roadmap = create_learning_roadmap(assessment_data, domain)
+        return {"success": True, "roadmap": roadmap}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Learning roadmap failed: {e}")
+
+
+# ========== Matching ==========
+matcher_instance = None
+try:
+    matcher_instance = InternshipMatcher()  # type: ignore
+except Exception:
+    matcher_instance = None
+
+
+@app.post("/internship/match")
+async def match_internships(payload: Dict[str, Any]):
+    if not MODELS_AVAILABLE or matcher_instance is None:
+        raise HTTPException(status_code=503, detail="Matcher unavailable")
+    try:
+        candidate_profile = payload.get("candidate_profile", {})
+        internship_listings = payload.get("internship_listings")
+        result = matcher_instance.match_candidates([candidate_profile], internship_listings or [])
+        return {"success": True, "matches": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Matching failed: {e}")
+
+
+@app.get("/internship/domains")
+def internship_domains():
+    return {
+        "domains": [
+            "Software Development",
+            "Data Science",
+            "Web Development",
+            "Mobile Development",
+            "UI/UX Design",
+            "Digital Marketing",
+            "Content Writing",
+            "Business Development",
+        ]
+    }
+
+
+# ========== Mount optional placement_ai routers ==========
+if PLACEMENT_ROUTERS_OK:
+    app.include_router(placement_resume_router, prefix="/placement")
+    app.include_router(placement_reco_router, prefix="/placement")
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse

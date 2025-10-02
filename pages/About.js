@@ -1,9 +1,9 @@
 import dynamic from "next/dynamic";
 
-const ReactRouterApp = dynamic(() => import("../src/App.jsx"), {
-	ssr: false,
+const About = dynamic(() => import("../src/pages/About"), {
+  ssr: false,
 });
 
-export default function About() {
-	return <ReactRouterApp />;
+export default function AboutPage() {
+  return <About />;
 }

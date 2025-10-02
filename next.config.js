@@ -22,16 +22,15 @@ const nextConfig = {
   },
   // Specify custom pages directory to avoid conflicts with src/pages
   pageExtensions: ["js", "jsx", "ts", "tsx"],
+
+  // Ensure proper page resolution
+  experimental: {
+    esmExternals: false,
+  },
   webpack: (config, { isServer }) => {
     // Exclude backup and old files from build
     config.module.rules.push({
       test: /\.(backup|old)\.(js|jsx|ts|tsx)$/,
-      use: "ignore-loader",
-    });
-
-    // Exclude src/pages from Next.js page routing
-    config.module.rules.push({
-      test: /src\/pages\/.*\.(js|jsx|ts|tsx)$/,
       use: "ignore-loader",
     });
 
@@ -58,10 +57,6 @@ const nextConfig = {
   // Use default SWC transformer for better performance
   swcMinify: true,
   // Skip build-time pre-rendering for pages with context issues
-  experimental: {
-    skipMiddlewareUrlNormalize: true,
-    esmExternals: false,
-  },
 };
 
 module.exports = nextConfig;

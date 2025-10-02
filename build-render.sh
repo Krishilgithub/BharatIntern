@@ -3,18 +3,12 @@
 # Build script for Render deployment
 echo "Starting build process..."
 
-# Install frontend dependencies
-echo "Installing frontend dependencies..."
-npm install
+# Install dependencies
+echo "Installing dependencies..."
+npm ci
 
-# Build frontend
-echo "Building frontend..."
+# Build the application
+echo "Building application..."
 npm run build
-
-# Install backend dependencies
-echo "Installing backend dependencies..."
-cd backend
-pip install -r requirements.txt
-cd ..
 
 echo "Build completed successfully!"
