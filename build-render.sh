@@ -3,7 +3,10 @@
 # Build script for Render deployment
 echo "Starting build process..."
 
-# Install dependencies
+# Set Node environment
+export NODE_ENV=production
+
+# Install all dependencies (including dev dependencies for build)
 echo "Installing dependencies..."
 npm ci
 

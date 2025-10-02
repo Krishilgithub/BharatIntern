@@ -1,4 +1,4 @@
-import "../src/index.css";
+import "../styles/globals.css";
 import { AuthProvider } from "../src/contexts/AuthContext";
 import { Toaster } from "react-hot-toast";
 import Navbar from "../src/components/Navbar";
