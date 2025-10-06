@@ -250,9 +250,19 @@ from ai_modules.ai_orchestrator import (
     get_analytics_report
 )
 from ai_modules.advanced_nlp_processor import AdvancedNLPProcessor
-from ai_modules.advanced_resume_analyzer import AdvancedResumeAnalyzer
 from ai_modules.coding_profile_scraper import CodingProfileScraper
 from ai_modules.langchain_gemini_analyzer import LangChainGeminiAnalyzer
+import logging
+from ai_modules.langchain_matching_engine import (
+    LangChainMatchingEngine,
+    Candidate,
+    Opportunity,
+    MatchingResult,
+    langchain_matching_engine
+)
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="PM Internship Portal API", version="1.0.0")
 
@@ -261,6 +271,7 @@ nlp_processor = None
 advanced_resume_analyzer = None
 coding_scraper = None
 langchain_analyzer = None
+langchain_matching = None
 
 @app.on_event("startup")
 async def startup_event():
@@ -272,7 +283,7 @@ async def startup_event():
         return
 
     async def _init_heavy():
-        global nlp_processor, advanced_resume_analyzer, coding_scraper, langchain_analyzer
+        global nlp_processor, advanced_resume_analyzer, coding_scraper, langchain_analyzer, langchain_matching
         try:
             print("🚀 Initializing AI Services...")
             initialization_results = await initialize_ai_services()
@@ -290,6 +301,10 @@ async def startup_event():
 
             print("🤖 Initializing LangChain Gemini Analyzer...")
             langchain_analyzer = LangChainGeminiAnalyzer()
+
+            print("🎯 Initializing LangChain Matching Engine...")
+            langchain_matching = LangChainMatchingEngine()
+            await langchain_matching.initialize()
 
             print("✅ All advanced analyzers initialized successfully!")
         except Exception as e:
@@ -1223,6 +1238,394 @@ async def get_sample_internship_data():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# ========== LangChain Matching Engine Endpoints ==========
+
+@app.post("/langchain/match")
+async def langchain_match_candidate_to_opportunity(request: Request):
+    """
+    Match a candidate to an opportunity using LangChain and free LLM APIs
+    
+    Expected payload:
+    {
+        "candidate": {
+            "skills": ["Python", "JavaScript", "React"],
+            "education": {"degree": "B.Tech", "field": "Computer Science"},
+            "location": "Bangalore",
+            "experience_years": 2.5,
+            "coding_profiles": {"github": "username", "leetcode": "username"},
+            "soft_skill_scores": {"communication": 0.8, "leadership": 0.7},
+            "projects": [{"name": "Project 1", "description": "..."}],
+            "certifications": ["AWS Certified"],
+            "languages": ["Python", "JavaScript"],
+            "resume_text": "Full resume text..."
+        },
+        "opportunity": {
+            "required_skills": ["Python", "Machine Learning", "Data Analysis"],
+            "industry": "Technology",
+            "location": "Bangalore",
+            "experience_level": "mid",
+            "job_title": "Data Scientist",
+            "company_size": "startup",
+            "remote_friendly": true,
+            "salary_range": {"min": 600000, "max": 1200000},
+            "benefits": ["Health Insurance", "Learning Budget"],
+            "description": "Looking for a data scientist..."
+        }
+    }
+    """
+    try:
+        if not langchain_matching or not langchain_matching.initialized:
+            raise HTTPException(
+                status_code=503, 
+                detail="LangChain matching engine not available. Please ensure LLM API keys are configured."
+            )
+        
+        # Parse request data
+        data = await request.json()
+        
+        if not data:
+            raise HTTPException(status_code=400, detail="Request body is required")
+        
+        candidate_data = data.get("candidate")
+        opportunity_data = data.get("opportunity")
+        
+        if not candidate_data:
+            raise HTTPException(status_code=400, detail="Candidate data is required")
+        
+        if not opportunity_data:
+            raise HTTPException(status_code=400, detail="Opportunity data is required")
+        
+        # Perform matching
+        result = await langchain_matching.match_candidate_to_opportunity(
+            candidate_data, 
+            opportunity_data
+        )
+        
+        if not result.get("success", False):
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Matching failed: {result.get('error', 'Unknown error')}"
+            )
+        
+        return JSONResponse(content=result)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"LangChain matching endpoint error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.post("/langchain/batch-match")
+async def langchain_batch_match(request: Request):
+    """
+    Batch match multiple candidates to multiple opportunities using LangChain
+    
+    Expected payload:
+    {
+        "candidates": [
+            {
+                "skills": ["Python", "JavaScript"],
+                "education": {"degree": "B.Tech"},
+                "location": "Bangalore",
+                "experience_years": 2
+            }
+        ],
+        "opportunities": [
+            {
+                "required_skills": ["Python", "Machine Learning"],
+                "industry": "Technology",
+                "location": "Bangalore",
+                "experience_level": "mid"
+            }
+        ]
+    }
+    """
+    try:
+        if not langchain_matching or not langchain_matching.initialized:
+            raise HTTPException(
+                status_code=503, 
+                detail="LangChain matching engine not available"
+            )
+        
+        # Parse request data
+        data = await request.json()
+        
+        if not data:
+            raise HTTPException(status_code=400, detail="Request body is required")
+        
+        candidates = data.get("candidates", [])
+        opportunities = data.get("opportunities", [])
+        
+        if not candidates:
+            raise HTTPException(status_code=400, detail="Candidates list is required")
+        
+        if not opportunities:
+            raise HTTPException(status_code=400, detail="Opportunities list is required")
+        
+        if len(candidates) > 10:
+            raise HTTPException(status_code=400, detail="Maximum 10 candidates allowed per batch")
+        
+        if len(opportunities) > 10:
+            raise HTTPException(status_code=400, detail="Maximum 10 opportunities allowed per batch")
+        
+        # Perform batch matching
+        result = await langchain_matching.batch_match_candidates(candidates, opportunities)
+        
+        if not result.get("success", False):
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Batch matching failed: {result.get('error', 'Unknown error')}"
+            )
+        
+        return JSONResponse(content=result)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"LangChain batch matching endpoint error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/langchain/status")
+async def get_langchain_matching_status():
+    """Get LangChain matching engine status and configuration"""
+    try:
+        if not langchain_matching:
+            return JSONResponse(content={
+                "success": False,
+                "error": "LangChain matching engine not initialized",
+                "status": "unavailable"
+            })
+        
+        status = langchain_matching.get_engine_status()
+        
+        return JSONResponse(content={
+            "success": True,
+            "status": "available" if status["initialized"] else "unavailable",
+            "engine_status": status
+        })
+        
+    except Exception as e:
+        logger.error(f"LangChain status endpoint error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.post("/langchain/test-match")
+async def test_langchain_matching():
+    """Test endpoint with sample data to verify LangChain matching functionality"""
+    try:
+        if not langchain_matching or not langchain_matching.initialized:
+            raise HTTPException(
+                status_code=503, 
+                detail="LangChain matching engine not available"
+            )
+        
+        # Sample test data
+        sample_candidate = {
+            "skills": ["Python", "JavaScript", "React", "Node.js", "MongoDB"],
+            "education": {
+                "degree": "Bachelor of Technology",
+                "field": "Computer Science",
+                "institution": "IIT Delhi",
+                "graduation_year": 2023
+            },
+            "location": "Bangalore",
+            "experience_years": 1.5,
+            "coding_profiles": {
+                "github": "johndoe",
+                "leetcode": "johndoe_coder"
+            },
+            "soft_skill_scores": {
+                "communication": 0.8,
+                "leadership": 0.6,
+                "teamwork": 0.9,
+                "problem_solving": 0.85
+            },
+            "projects": [
+                {
+                    "name": "E-commerce Platform",
+                    "description": "Full-stack e-commerce application with React and Node.js",
+                    "technologies": ["React", "Node.js", "MongoDB", "Express"]
+                },
+                {
+                    "name": "Task Management App",
+                    "description": "Collaborative task management tool",
+                    "technologies": ["React", "Python", "PostgreSQL"]
+                }
+            ],
+            "certifications": ["AWS Cloud Practitioner", "Google Analytics Certified"],
+            "languages": ["Python", "JavaScript", "TypeScript", "SQL"],
+            "resume_text": "Experienced software developer with 1.5 years of experience in full-stack development..."
+        }
+        
+        sample_opportunity = {
+            "required_skills": ["Python", "JavaScript", "React", "Node.js", "MongoDB"],
+            "industry": "Technology",
+            "location": "Bangalore",
+            "experience_level": "mid",
+            "job_title": "Full Stack Developer",
+            "company_size": "startup",
+            "remote_friendly": True,
+            "salary_range": {"min": 800000, "max": 1500000},
+            "benefits": ["Health Insurance", "Learning Budget", "Flexible Hours"],
+            "description": "We are looking for a talented Full Stack Developer to join our growing team...",
+            "preferences": {
+                "startup_experience": "preferred",
+                "remote_work": "allowed",
+                "team_collaboration": "essential"
+            }
+        }
+        
+        # Perform test matching
+        result = await langchain_matching.match_candidate_to_opportunity(
+            sample_candidate, 
+            sample_opportunity
+        )
+        
+        return JSONResponse(content={
+            "success": True,
+            "message": "Test matching completed successfully",
+            "test_data": {
+                "candidate": sample_candidate,
+                "opportunity": sample_opportunity
+            },
+            "matching_result": result
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"LangChain test matching endpoint error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/langchain/sample-data")
+async def get_langchain_sample_data():
+    """Get sample candidate and opportunity data for testing the LangChain matching engine"""
+    sample_candidates = [
+        {
+            "skills": ["Python", "JavaScript", "React", "Node.js", "MongoDB"],
+            "education": {
+                "degree": "Bachelor of Technology",
+                "field": "Computer Science",
+                "institution": "IIT Delhi",
+                "graduation_year": 2023
+            },
+            "location": "Bangalore",
+            "experience_years": 1.5,
+            "coding_profiles": {
+                "github": "johndoe",
+                "leetcode": "johndoe_coder"
+            },
+            "soft_skill_scores": {
+                "communication": 0.8,
+                "leadership": 0.6,
+                "teamwork": 0.9,
+                "problem_solving": 0.85
+            },
+            "projects": [
+                {
+                    "name": "E-commerce Platform",
+                    "description": "Full-stack e-commerce application",
+                    "technologies": ["React", "Node.js", "MongoDB"]
+                }
+            ],
+            "certifications": ["AWS Cloud Practitioner"],
+            "languages": ["Python", "JavaScript", "TypeScript"],
+            "resume_text": "Experienced software developer with 1.5 years of experience..."
+        },
+        {
+            "skills": ["Java", "Spring Boot", "MySQL", "Docker", "Kubernetes"],
+            "education": {
+                "degree": "Master of Technology",
+                "field": "Software Engineering",
+                "institution": "IIIT Bangalore",
+                "graduation_year": 2022
+            },
+            "location": "Mumbai",
+            "experience_years": 2.5,
+            "coding_profiles": {
+                "github": "janedoe",
+                "leetcode": "janedoe_dev"
+            },
+            "soft_skill_scores": {
+                "communication": 0.9,
+                "leadership": 0.8,
+                "teamwork": 0.85,
+                "problem_solving": 0.9
+            },
+            "projects": [
+                {
+                    "name": "Microservices Architecture",
+                    "description": "Scalable microservices system",
+                    "technologies": ["Java", "Spring Boot", "Docker"]
+                }
+            ],
+            "certifications": ["Oracle Java Certified", "Kubernetes Administrator"],
+            "languages": ["Java", "Python", "Go"],
+            "resume_text": "Senior software engineer with expertise in Java and microservices..."
+        }
+    ]
+    
+    sample_opportunities = [
+        {
+            "required_skills": ["Python", "JavaScript", "React", "Node.js"],
+            "industry": "Technology",
+            "location": "Bangalore",
+            "experience_level": "mid",
+            "job_title": "Full Stack Developer",
+            "company_size": "startup",
+            "remote_friendly": True,
+            "salary_range": {"min": 800000, "max": 1500000},
+            "benefits": ["Health Insurance", "Learning Budget"],
+            "description": "Looking for a talented Full Stack Developer...",
+            "preferences": {
+                "startup_experience": "preferred",
+                "remote_work": "allowed"
+            }
+        },
+        {
+            "required_skills": ["Java", "Spring Boot", "Microservices", "Docker"],
+            "industry": "Fintech",
+            "location": "Mumbai",
+            "experience_level": "senior",
+            "job_title": "Senior Backend Engineer",
+            "company_size": "enterprise",
+            "remote_friendly": False,
+            "salary_range": {"min": 1200000, "max": 2000000},
+            "benefits": ["Health Insurance", "Stock Options", "Gym Membership"],
+            "description": "Seeking a Senior Backend Engineer with microservices experience...",
+            "preferences": {
+                "fintech_experience": "preferred",
+                "team_leadership": "required"
+            }
+        },
+        {
+            "required_skills": ["Python", "Machine Learning", "TensorFlow", "SQL"],
+            "industry": "AI/ML",
+            "location": "Remote",
+            "experience_level": "entry",
+            "job_title": "Machine Learning Engineer",
+            "company_size": "startup",
+            "remote_friendly": True,
+            "salary_range": {"min": 600000, "max": 1000000},
+            "benefits": ["Health Insurance", "Research Time"],
+            "description": "Entry-level ML Engineer position for recent graduates...",
+            "preferences": {
+                "research_background": "preferred",
+                "remote_work": "required"
+            }
+        }
+    ]
+    
+    return JSONResponse(content={
+        "success": True,
+        "sample_candidates": sample_candidates,
+        "sample_opportunities": sample_opportunities,
+        "usage_instructions": {
+            "single_match": "Use POST /langchain/match with candidate and opportunity data",
+            "batch_match": "Use POST /langchain/batch-match with arrays of candidates and opportunities",
+            "test_match": "Use POST /langchain/test-match to test with predefined sample data"
+        }
+    })
 
 # Health check
 @app.get("/health")

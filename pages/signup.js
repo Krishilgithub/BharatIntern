@@ -7,5 +7,3 @@ const Signup = dynamic(() => import("../src/pages/Signup"), {
 export default function SignupPage() {
   return <Signup />;
 }
-
-

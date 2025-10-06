@@ -119,12 +119,12 @@ class LangChainGeminiAnalyzer:
             return False
     
     def _create_analysis_chains(self):
-        \"\"\"Create LangChain analysis chains\"\"\"
+        """Create LangChain analysis chains"""
         try:
             # Resume Analysis Chain
             analysis_prompt = PromptTemplate(
                 input_variables=["resume_text", "job_description"],
-                template=\"\"\"
+                template="""
 You are an expert AI resume analyst and career counselor with deep knowledge of current job markets, hiring trends, and industry requirements.
 
 RESUME TO ANALYZE:
@@ -177,13 +177,13 @@ Please provide a comprehensive analysis of this resume with the following struct
 - Professional branding suggestions
 
 Please provide detailed, actionable insights that will genuinely help this candidate improve their career prospects.
-\"\"\"
+"""
             )
             
             # Interview Questions Chain
             questions_prompt = PromptTemplate(
                 input_variables=["resume_text", "job_role", "experience_level"],
-                template=\"\"\"
+                template="""
 You are an expert technical interviewer and hiring manager with experience across multiple industries.
 
 CANDIDATE RESUME:
@@ -228,7 +228,7 @@ Focus on questions that will effectively evaluate:
 - Specific experiences mentioned in their resume
 
 Make questions specific, relevant, and challenging but fair for their experience level.
-\"\"\"
+"""
             )
             
             # Create chains
@@ -251,7 +251,7 @@ Make questions specific, relevant, and challenging but fair for their experience
             logger.error(f"❌ Failed to create analysis chains: {e}")
     
     async def analyze_resume_with_llm(self, resume_text: str, job_description: str = "") -> Dict[str, Any]:
-        \"\"\"Analyze resume using LangChain and Gemini\"\"\"
+        """Analyze resume using LangChain and Gemini"""
         if not self.initialized:
             return {"error": "LangChain Gemini Analyzer not initialized"}
         
@@ -289,7 +289,7 @@ Make questions specific, relevant, and challenging but fair for their experience
     
     async def generate_interview_questions(self, resume_text: str, job_role: str = "Software Engineer", 
                                          experience_level: str = "Mid-Level") -> Dict[str, Any]:
-        \"\"\"Generate interview questions using LLM\"\"\"
+        """Generate interview questions using LLM"""
         if not self.initialized:
             return {"error": "LangChain Gemini Analyzer not initialized"}
         
@@ -326,7 +326,7 @@ Make questions specific, relevant, and challenging but fair for their experience
             }
     
     def _parse_analysis_result(self, analysis_text: str) -> Dict[str, Any]:
-        \"\"\"Parse LLM analysis result into structured format\"\"\"
+        """Parse LLM analysis result into structured format"""
         try:
             # Initialize structured result
             structured = {
@@ -407,7 +407,7 @@ Make questions specific, relevant, and challenging but fair for their experience
             }
     
     def _parse_questions_result(self, questions_text: str) -> Dict[str, Any]:
-        \"\"\"Parse LLM questions result into structured format\"\"\"
+        """Parse LLM questions result into structured format"""
         try:
             structured = {
                 "technical_questions": [],
@@ -466,7 +466,7 @@ Make questions specific, relevant, and challenging but fair for their experience
             }
     
     def _get_fallback_questions(self, job_role: str, experience_level: str) -> Dict[str, List[str]]:
-        \"\"\"Provide fallback questions when LLM fails\"\"\"
+        """Provide fallback questions when LLM fails"""
         return {
             "technical_questions": [
                 f"Describe your experience with the main technologies used in {job_role} roles",
@@ -489,12 +489,12 @@ Make questions specific, relevant, and challenging but fair for their experience
         }
     
     async def generate_career_roadmap(self, resume_text: str, target_role: str = "") -> Dict[str, Any]:
-        \"\"\"Generate personalized career roadmap\"\"\"
+        """Generate personalized career roadmap"""
         if not self.initialized:
             return {"error": "LangChain Gemini Analyzer not initialized"}
         
         try:
-            roadmap_prompt = f\"\"\"
+            roadmap_prompt = f"""
 Based on this resume, create a detailed 12-month career development roadmap:
 
 RESUME:
@@ -511,7 +511,7 @@ Provide a month-by-month plan including:
 6. Specific milestones and goals
 
 Make it actionable and realistic for their current level.
-\"\"\"
+"""
             
             roadmap_result = await self.chat_model.apredict(roadmap_prompt)
             

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,6 +40,13 @@ const Signup = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([]);
   const totalSteps = 5;
+
+  // Prevent page reload on any unhandled form submission
+  const preventReload = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, []);
 
   // Form data with enhanced fields
   const [formData, setFormData] = useState({
@@ -119,9 +126,18 @@ const Signup = () => {
   const { signup } = useAuth();
   const router = useRouter();
 
+  // Debounce utility to prevent excessive state updates
+  const debounceRef = useRef({});
+  const debounce = useCallback((func, delay, key) => {
+    clearTimeout(debounceRef.current[key]);
+    debounceRef.current[key] = setTimeout(func, delay);
+  }, []);
+
   // Enhanced form handlers
   const handleChange = (e) => {
+    e.preventDefault(); // Prevent any default form behavior
     const { name, value, type, checked, files } = e.target;
+
     if (type === "checkbox") {
       setFormData((prev) => ({ ...prev, [name]: checked }));
     } else if (type === "file") {
@@ -132,13 +148,13 @@ const Signup = () => {
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
 
-      // Trigger real-time validations
+      // Debounce real-time validations to prevent excessive re-renders
       if (name === "collegeCode" && value.length >= 6) {
-        verifyAICTECode(value);
+        debounce(() => verifyAICTECode(value), 500, "collegeCode");
       } else if (name === "aadhaarNumber" && value.length === 12) {
-        validateAadhaar(value);
+        debounce(() => validateAadhaar(value), 300, "aadhaar");
       } else if (name === "email") {
-        validateEmail(value);
+        debounce(() => validateEmail(value), 300, "email");
       }
     }
   };
@@ -284,7 +300,10 @@ const Signup = () => {
 
   // Step Navigation
   const nextStep = (e) => {
-    if (e) e.preventDefault();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation(); // Stop event bubbling
+    }
     console.log("nextStep called, current step:", currentStep);
     if (validateCurrentStep()) {
       console.log("Validation passed, moving to next step");
@@ -295,7 +314,11 @@ const Signup = () => {
     }
   };
 
-  const prevStep = () => {
+  const prevStep = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
@@ -1780,10 +1803,12 @@ const Signup = () => {
 
           {/* Multi-step Form */}
           <form
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={preventReload}
             onKeyDown={(e) => {
               if (e.key === "Enter" && currentStep !== totalSteps) {
                 e.preventDefault();
+                e.stopPropagation();
+                return false;
               }
             }}
             noValidate
@@ -1804,7 +1829,11 @@ const Signup = () => {
             >
               <button
                 type="button"
-                onClick={prevStep}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  prevStep(e);
+                }}
                 disabled={currentStep === 1}
                 className={`flex items-center px-6 py-3 rounded-lg font-medium transition-all ${
                   currentStep === 1
@@ -1821,8 +1850,16 @@ const Signup = () => {
               </div>
 
               <button
-                type={currentStep === totalSteps ? "submit" : "button"}
-                onClick={currentStep === totalSteps ? handleSubmit : nextStep}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (currentStep === totalSteps) {
+                    handleSubmit(e);
+                  } else {
+                    nextStep(e);
+                  }
+                }}
                 disabled={loading}
                 className="flex items-center px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
