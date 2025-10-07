@@ -7,7 +7,7 @@ async function createSupabaseTables() {
 	const supabaseUrl =
 		process.env.NEXT_PUBLIC_SUPABASE_URL ||
 		"https://kqijjfivbwudbvkykgyo.supabase.co";
-	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+	const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxaWpqZml2Ynd1ZGJ2a3lrZ3lvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDA5NjAsImV4cCI6MjA3MzQxNjk2MH0.JW3Or03UFI0T0dDkloXHQ3yhpx-V3A7g4tQDi66uFCo";
 
 	if (!supabaseKey) {
 		console.error("❌ Supabase anon key not found!");

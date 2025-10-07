@@ -147,7 +147,7 @@ CREATE POLICY "Users can insert career suggestions for their analyses" ON public
 CREATE POLICY "Users can view ATS compatibility from their analyses" ON public.ats_compatibility
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM public.resume_analyses 
+            SELECT 1 FROM public.resume_analyses `
             WHERE id = analysis_id AND user_id = auth.uid()
         )
     );

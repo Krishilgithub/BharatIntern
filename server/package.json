@@ -1,0 +1,85 @@
+{
+	"name": "bharatintern-ai-server",
+	"version": "1.0.0",
+	"description": "AI-powered internship and recruitment platform backend server",
+	"main": "app.js",
+	"scripts": {
+		"start": "node app.js",
+		"dev": "nodemon app.js",
+		"test": "jest",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix"
+	},
+	"keywords": [
+		"ai",
+		"internship",
+		"recruitment",
+		"resume-analysis",
+		"job-matching",
+		"assessment",
+		"interview"
+	],
+	"author": "BharatIntern Team",
+	"license": "MIT",
+	"dependencies": {
+		"express": "^4.18.2",
+		"cors": "^2.8.5",
+		"helmet": "^7.1.0",
+		"express-rate-limit": "^7.1.5",
+		"multer": "^1.4.5-lts.1",
+		"dotenv": "^16.3.1",
+		"axios": "^1.6.2",
+		"joi": "^17.11.0",
+		"bcryptjs": "^2.4.3",
+		"jsonwebtoken": "^9.0.2",
+		"uuid": "^9.0.1",
+		"moment": "^2.29.4",
+		"pdf-parse": "^1.1.1",
+		"mammoth": "^1.6.0",
+		"node-nlp": "^4.27.0",
+		"natural": "^6.10.0",
+		"compromise": "^14.10.0",
+		"puppeteer": "^21.6.1",
+		"cheerio": "^1.0.0-rc.12",
+		"node-cache": "^5.1.2",
+		"redis": "^4.6.10",
+		"mongoose": "^8.0.3",
+		"sharp": "^0.33.1",
+		"ffmpeg-static": "^5.2.0",
+		"fluent-ffmpeg": "^2.1.2",
+		"speech-to-text": "^3.0.0",
+		"openai": "^4.20.1",
+		"@google/generative-ai": "^0.3.1",
+		"@huggingface/inference": "^2.6.4",
+		"langchain": "^0.0.207",
+		"@langchain/community": "^0.0.20",
+		"@langchain/openai": "^0.0.14",
+		"@langchain/google-genai": "^0.0.5",
+		"sentence-transformers": "^1.0.0",
+		"tensorflow": "^4.15.0",
+		"@tensorflow/tfjs-node": "^4.15.0",
+		"transformers": "^2.11.0"
+	},
+	"devDependencies": {
+		"nodemon": "^3.0.2",
+		"jest": "^29.7.0",
+		"supertest": "^6.3.3",
+		"eslint": "^8.55.0",
+		"eslint-config-standard": "^17.1.0",
+		"eslint-plugin-import": "^2.29.0",
+		"eslint-plugin-node": "^11.1.0",
+		"eslint-plugin-promise": "^6.1.1"
+	},
+	"engines": {
+		"node": ">=18.0.0",
+		"npm": ">=9.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Krishilgithub/BharatIntern.git"
+	},
+	"bugs": {
+		"url": "https://github.com/Krishilgithub/BharatIntern/issues"
+	},
+	"homepage": "https://github.com/Krishilgithub/BharatIntern#readme"
+}
