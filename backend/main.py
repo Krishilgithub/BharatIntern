@@ -226,7 +226,7 @@ def create_app():
     return app
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 5000))
     uvicorn.run("main:create_app", host="0.0.0.0", port=port, factory=True)
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
@@ -1637,5 +1637,5 @@ async def health_check():
     }
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 5000))
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

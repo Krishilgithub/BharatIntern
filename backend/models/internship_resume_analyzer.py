@@ -4,7 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.schema import HumanMessage, SystemMessage
 from dotenv import load_dotenv
 import re
-from llm_provider import get_chat_model
+from .llm_provider import get_chat_model
 from datetime import datetime
 
 # Add imports for file handling

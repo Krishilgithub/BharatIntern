@@ -105,7 +105,7 @@ const AnalyticsDashboard = () => {
 			{/* Tabs */}
 			<div className="bg-white rounded-lg shadow-md">
 				<div className="border-b border-gray-200">
-					<nav className="flex space-x-8 px-6">
+					<nav className="flex space-x-8 px-3">
 						{[
 							{ id: "overview", label: "Overview", icon: BarChart3 },
 							{ id: "fraud", label: "Fraud Detection", icon: Shield },

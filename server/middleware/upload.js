@@ -12,10 +12,10 @@ const config = require("../config");
 // Ensure upload directories exist
 const ensureUploadDirs = () => {
 	const dirs = [
-		config.files.uploadDir,
-		path.join(config.files.uploadDir, "resumes"),
-		path.join(config.files.uploadDir, "audio"),
-		path.join(config.files.uploadDir, "temp"),
+		config.files.upload.destination,
+		path.join(config.files.upload.destination, "resumes"),
+		path.join(config.files.upload.destination, "audio"),
+		path.join(config.files.upload.destination, "temp"),
 	];
 
 	dirs.forEach((dir) => {

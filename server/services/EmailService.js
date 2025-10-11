@@ -3,511 +3,525 @@
  * Advanced email handling with templates, queues, and analytics
  */
 
-const nodemailer = require('nodemailer');
-const path = require('path');
-const fs = require('fs').promises;
-const config = require('../config');
+const nodemailer = require("nodemailer");
+const path = require("path");
+const fs = require("fs").promises;
+const config = require("../config");
 
 class EmailService {
-  constructor() {
-    this.transporter = null;
-    this.emailQueue = [];
-    this.templates = new Map();
-    this.emailStats = {
-      sent: 0,
-      failed: 0,
-      bounced: 0,
-      opened: 0,
-      clicked: 0
-    };
-    this.isProcessing = false;
-    this.retryAttempts = 3;
-    this.retryDelay = 5000; // 5 seconds
-    
-    this.initializeTransporter();
-    this.loadEmailTemplates();
-    this.startQueueProcessor();
-  }
+	constructor() {
+		this.transporter = null;
+		this.emailQueue = [];
+		this.templates = new Map();
+		this.emailStats = {
+			sent: 0,
+			failed: 0,
+			bounced: 0,
+			opened: 0,
+			clicked: 0,
+		};
+		this.isProcessing = false;
+		this.retryAttempts = 3;
+		this.retryDelay = 5000; // 5 seconds
 
-  /**
-   * Initialize email transporter with multiple provider support
-   */
-  async initializeTransporter() {
-    const emailConfig = config.email || {};
-    
-    // Support multiple email providers
-    const providers = {
-      gmail: {
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false
-      },
-      outlook: {
-        host: 'smtp-mail.outlook.com',
-        port: 587,
-        secure: false
-      },
-      sendgrid: {
-        host: 'smtp.sendgrid.net',
-        port: 587,
-        secure: false
-      },
-      mailgun: {
-        host: 'smtp.mailgun.org',
-        port: 587,
-        secure: false
-      }
-    };
+		this.initializeTransporter();
+		this.loadEmailTemplates();
+		this.startQueueProcessor();
+	}
 
-    const providerConfig = providers[emailConfig.provider] || providers.gmail;
+	/**
+	 * Initialize email transporter with multiple provider support
+	 */
+	async initializeTransporter() {
+		const emailConfig = config.email || {};
 
-    try {
-      this.transporter = nodemailer.createTransporter({
-        ...providerConfig,
-        auth: {
-          user: emailConfig.user || process.env.EMAIL_USER,
-          pass: emailConfig.password || process.env.EMAIL_PASSWORD
-        },
-        pool: true, // Use connection pooling
-        maxConnections: 5,
-        maxMessages: 100,
-        rateLimit: 10, // Max 10 emails per second
-        tls: {
-          rejectUnauthorized: false
-        }
-      });
+		// Support multiple email providers
+		const providers = {
+			gmail: {
+				host: "smtp.gmail.com",
+				port: 587,
+				secure: false,
+			},
+			outlook: {
+				host: "smtp-mail.outlook.com",
+				port: 587,
+				secure: false,
+			},
+			sendgrid: {
+				host: "smtp.sendgrid.net",
+				port: 587,
+				secure: false,
+			},
+			mailgun: {
+				host: "smtp.mailgun.org",
+				port: 587,
+				secure: false,
+			},
+		};
 
-      // Verify transporter
-      await this.transporter.verify();
-      console.log('Email service initialized successfully');
-      
-    } catch (error) {
-      console.error('Failed to initialize email service:', error);
-      // Fallback to console logging for development
-      this.transporter = {
-        sendMail: async (options) => {
-          console.log('Email would be sent:', {
-            to: options.to,
-            subject: options.subject,
-            text: options.text?.substring(0, 100) + '...'
-          });
-          return { messageId: 'dev_' + Date.now() };
-        }
-      };
-    }
-  }
+		const providerConfig = providers[emailConfig.provider] || providers.gmail;
 
-  /**
-   * Load email templates from files
-   */
-  async loadEmailTemplates() {
-    const templateDir = path.join(__dirname, '../templates/email');
-    
-    // Default templates (inline)
-    const defaultTemplates = {
-      welcome_candidate: {
-        subject: 'Welcome to BharatIntern - Your AI Career Journey Begins!',
-        html: this.getWelcomeCandidateTemplate(),
-        text: 'Welcome to BharatIntern! Your AI-powered career journey starts now.'
-      },
-      welcome_company: {
-        subject: 'Welcome to BharatIntern - Transform Your Hiring Process',
-        html: this.getWelcomeCompanyTemplate(),
-        text: 'Welcome to BharatIntern! Start hiring with AI-powered recruitment tools.'
-      },
-      job_application_received: {
-        subject: 'Application Received - {{jobTitle}}',
-        html: this.getApplicationReceivedTemplate(),
-        text: 'Your application for {{jobTitle}} has been received and is under review.'
-      },
-      interview_scheduled: {
-        subject: 'Interview Scheduled - {{jobTitle}} at {{companyName}}',
-        html: this.getInterviewScheduledTemplate(),
-        text: 'Your interview for {{jobTitle}} at {{companyName}} is scheduled for {{interviewDate}}.'
-      },
-      assessment_invitation: {
-        subject: 'Assessment Invitation - {{assessmentTitle}}',
-        html: this.getAssessmentInvitationTemplate(),
-        text: 'You have been invited to take the {{assessmentTitle}} assessment.'
-      },
-      assessment_results: {
-        subject: 'Assessment Results - {{assessmentTitle}}',
-        html: this.getAssessmentResultsTemplate(),
-        text: 'Your assessment results for {{assessmentTitle}} are now available.'
-      },
-      job_match_notification: {
-        subject: 'Perfect Job Match Found - {{matchScore}}% Match!',
-        html: this.getJobMatchTemplate(),
-        text: 'We found a {{matchScore}}% job match: {{jobTitle}} at {{companyName}}'
-      },
-      application_status_update: {
-        subject: 'Application Update - {{jobTitle}}',
-        html: this.getApplicationStatusTemplate(),
-        text: 'Your application status for {{jobTitle}} has been updated to: {{status}}'
-      },
-      interview_reminder: {
-        subject: 'Interview Reminder - Tomorrow at {{interviewTime}}',
-        html: this.getInterviewReminderTemplate(),
-        text: 'Reminder: Your interview is scheduled for tomorrow at {{interviewTime}}'
-      },
-      password_reset: {
-        subject: 'Password Reset Request - BharatIntern',
-        html: this.getPasswordResetTemplate(),
-        text: 'Click the link to reset your password: {{resetLink}}'
-      },
-      account_verification: {
-        subject: 'Verify Your BharatIntern Account',
-        html: this.getAccountVerificationTemplate(),
-        text: 'Please verify your account by clicking: {{verificationLink}}'
-      },
-      weekly_summary: {
-        subject: 'Your Weekly Summary - {{weekStartDate}} to {{weekEndDate}}',
-        html: this.getWeeklySummaryTemplate(),
-        text: 'Your weekly activity summary is available.'
-      }
-    };
+		try {
+			this.transporter = nodemailer.createTransporter({
+				...providerConfig,
+				auth: {
+					user: emailConfig.user || process.env.EMAIL_USER,
+					pass: emailConfig.password || process.env.EMAIL_PASSWORD,
+				},
+				pool: true, // Use connection pooling
+				maxConnections: 5,
+				maxMessages: 100,
+				rateLimit: 10, // Max 10 emails per second
+				tls: {
+					rejectUnauthorized: false,
+				},
+			});
 
-    // Load templates
-    for (const [name, template] of Object.entries(defaultTemplates)) {
-      this.templates.set(name, template);
-    }
+			// Verify transporter
+			await this.transporter.verify();
+			console.log("Email service initialized successfully");
+		} catch (error) {
+			console.error("Failed to initialize email service:", error);
+			// Fallback to console logging for development
+			this.transporter = {
+				sendMail: async (options) => {
+					console.log("Email would be sent:", {
+						to: options.to,
+						subject: options.subject,
+						text: options.text?.substring(0, 100) + "...",
+					});
+					return { messageId: "dev_" + Date.now() };
+				},
+			};
+		}
+	}
 
-    console.log(`Loaded ${this.templates.size} email templates`);
-  }
+	/**
+	 * Load email templates from files
+	 */
+	async loadEmailTemplates() {
+		const templateDir = path.join(__dirname, "../templates/email");
 
-  /**
-   * Send email with queue support
-   */
-  async sendEmail(emailData) {
-    const {
-      to,
-      subject,
-      template,
-      data = {},
-      attachments = [],
-      priority = 'normal',
-      scheduleAt = null,
-      trackOpens = false,
-      trackClicks = false
-    } = emailData;
+		// Default templates (inline)
+		const defaultTemplates = {
+			welcome_candidate: {
+				subject: "Welcome to BharatIntern - Your AI Career Journey Begins!",
+				html: this.getWelcomeCandidateTemplate(),
+				text: "Welcome to BharatIntern! Your AI-powered career journey starts now.",
+			},
+			welcome_company: {
+				subject: "Welcome to BharatIntern - Transform Your Hiring Process",
+				html: this.getWelcomeCompanyTemplate(),
+				text: "Welcome to BharatIntern! Start hiring with AI-powered recruitment tools.",
+			},
+			job_application_received: {
+				subject: "Application Received - {{jobTitle}}",
+				html: this.getApplicationReceivedTemplate(),
+				text: "Your application for {{jobTitle}} has been received and is under review.",
+			},
+			interview_scheduled: {
+				subject: "Interview Scheduled - {{jobTitle}} at {{companyName}}",
+				html: this.getInterviewScheduledTemplate(),
+				text: "Your interview for {{jobTitle}} at {{companyName}} is scheduled for {{interviewDate}}.",
+			},
+			assessment_invitation: {
+				subject: "Assessment Invitation - {{assessmentTitle}}",
+				html: this.getAssessmentInvitationTemplate(),
+				text: "You have been invited to take the {{assessmentTitle}} assessment.",
+			},
+			assessment_results: {
+				subject: "Assessment Results - {{assessmentTitle}}",
+				html: this.getAssessmentResultsTemplate(),
+				text: "Your assessment results for {{assessmentTitle}} are now available.",
+			},
+			job_match_notification: {
+				subject: "Perfect Job Match Found - {{matchScore}}% Match!",
+				html: this.getJobMatchTemplate(),
+				text: "We found a {{matchScore}}% job match: {{jobTitle}} at {{companyName}}",
+			},
+			application_status_update: {
+				subject: "Application Update - {{jobTitle}}",
+				html: this.getApplicationStatusTemplate(),
+				text: "Your application status for {{jobTitle}} has been updated to: {{status}}",
+			},
+			interview_reminder: {
+				subject: "Interview Reminder - Tomorrow at {{interviewTime}}",
+				html: this.getInterviewReminderTemplate(),
+				text: "Reminder: Your interview is scheduled for tomorrow at {{interviewTime}}",
+			},
+			password_reset: {
+				subject: "Password Reset Request - BharatIntern",
+				html: this.getPasswordResetTemplate(),
+				text: "Click the link to reset your password: {{resetLink}}",
+			},
+			account_verification: {
+				subject: "Verify Your BharatIntern Account",
+				html: this.getAccountVerificationTemplate(),
+				text: "Please verify your account by clicking: {{verificationLink}}",
+			},
+			weekly_summary: {
+				subject: "Your Weekly Summary - {{weekStartDate}} to {{weekEndDate}}",
+				html: this.getWeeklySummaryTemplate(),
+				text: "Your weekly activity summary is available.",
+			},
+		};
 
-    // Validate email address
-    if (!this.isValidEmail(to)) {
-      throw new Error('Invalid email address');
-    }
+		// Load templates
+		for (const [name, template] of Object.entries(defaultTemplates)) {
+			this.templates.set(name, template);
+		}
 
-    const emailJob = {
-      id: this.generateEmailId(),
-      to,
-      subject,
-      template,
-      data,
-      attachments,
-      priority,
-      scheduleAt,
-      trackOpens,
-      trackClicks,
-      attempts: 0,
-      createdAt: new Date().toISOString(),
-      status: 'queued'
-    };
+		console.log(`Loaded ${this.templates.size} email templates`);
+	}
 
-    // Add to queue
-    this.addToQueue(emailJob);
+	/**
+	 * Send email with queue support
+	 */
+	async sendEmail(emailData) {
+		const {
+			to,
+			subject,
+			template,
+			data = {},
+			attachments = [],
+			priority = "normal",
+			scheduleAt = null,
+			trackOpens = false,
+			trackClicks = false,
+		} = emailData;
 
-    return {
-      emailId: emailJob.id,
-      status: 'queued',
-      scheduledFor: scheduleAt
-    };
-  }
+		// Validate email address
+		if (!this.isValidEmail(to)) {
+			throw new Error("Invalid email address");
+		}
 
-  /**
-   * Send immediate email (bypass queue)
-   */
-  async sendImmediateEmail(emailData) {
-    const {
-      to,
-      subject,
-      template,
-      data = {},
-      attachments = [],
-      trackOpens = false,
-      trackClicks = false
-    } = emailData;
+		const emailJob = {
+			id: this.generateEmailId(),
+			to,
+			subject,
+			template,
+			data,
+			attachments,
+			priority,
+			scheduleAt,
+			trackOpens,
+			trackClicks,
+			attempts: 0,
+			createdAt: new Date().toISOString(),
+			status: "queued",
+		};
 
-    try {
-      const templateData = this.templates.get(template);
-      if (!templateData) {
-        throw new Error(`Template '${template}' not found`);
-      }
+		// Add to queue
+		this.addToQueue(emailJob);
 
-      // Render template
-      const htmlContent = this.renderTemplate(templateData.html, data);
-      const textContent = this.renderTemplate(templateData.text, data);
-      const renderedSubject = subject || this.renderTemplate(templateData.subject, data);
+		return {
+			emailId: emailJob.id,
+			status: "queued",
+			scheduledFor: scheduleAt,
+		};
+	}
 
-      // Add tracking pixels if enabled
-      let finalHtmlContent = htmlContent;
-      if (trackOpens) {
-        const trackingPixel = `<img src="${config.baseUrl}/api/email/track/open/${this.generateTrackingId()}" width="1" height="1" style="display:none;" />`;
-        finalHtmlContent += trackingPixel;
-      }
+	/**
+	 * Send immediate email (bypass queue)
+	 */
+	async sendImmediateEmail(emailData) {
+		const {
+			to,
+			subject,
+			template,
+			data = {},
+			attachments = [],
+			trackOpens = false,
+			trackClicks = false,
+		} = emailData;
 
-      if (trackClicks) {
-        finalHtmlContent = this.addClickTracking(finalHtmlContent, data.userId);
-      }
+		try {
+			const templateData = this.templates.get(template);
+			if (!templateData) {
+				throw new Error(`Template '${template}' not found`);
+			}
 
-      const mailOptions = {
-        from: `"BharatIntern" <${config.email.from || 'noreply@bharatintern.com'}>`,
-        to,
-        subject: renderedSubject,
-        html: finalHtmlContent,
-        text: textContent,
-        attachments,
-        headers: {
-          'X-Mailer': 'BharatIntern-Platform-v1.0',
-          'X-Priority': '3'
-        }
-      };
+			// Render template
+			const htmlContent = this.renderTemplate(templateData.html, data);
+			const textContent = this.renderTemplate(templateData.text, data);
+			const renderedSubject =
+				subject || this.renderTemplate(templateData.subject, data);
 
-      const result = await this.transporter.sendMail(mailOptions);
-      
-      this.emailStats.sent++;
-      
-      return {
-        success: true,
-        messageId: result.messageId,
-        response: result.response
-      };
+			// Add tracking pixels if enabled
+			let finalHtmlContent = htmlContent;
+			if (trackOpens) {
+				const trackingPixel = `<img src="${
+					config.baseUrl
+				}/api/email/track/open/${this.generateTrackingId()}" width="1" height="1" style="display:none;" />`;
+				finalHtmlContent += trackingPixel;
+			}
 
-    } catch (error) {
-      this.emailStats.failed++;
-      console.error('Email sending failed:', error);
-      throw error;
-    }
-  }
+			if (trackClicks) {
+				finalHtmlContent = this.addClickTracking(finalHtmlContent, data.userId);
+			}
 
-  /**
-   * Send bulk emails
-   */
-  async sendBulkEmails(recipients, emailTemplate, commonData = {}) {
-    const bulkJob = {
-      id: this.generateEmailId(),
-      type: 'bulk',
-      recipients,
-      template: emailTemplate.template,
-      commonData: { ...commonData, ...emailTemplate.data },
-      subject: emailTemplate.subject,
-      priority: emailTemplate.priority || 'normal',
-      batchSize: emailTemplate.batchSize || 50,
-      createdAt: new Date().toISOString(),
-      status: 'queued'
-    };
+			const mailOptions = {
+				from: `"BharatIntern" <${
+					config.email.from || "noreply@bharatintern.com"
+				}>`,
+				to,
+				subject: renderedSubject,
+				html: finalHtmlContent,
+				text: textContent,
+				attachments,
+				headers: {
+					"X-Mailer": "BharatIntern-Platform-v1.0",
+					"X-Priority": "3",
+				},
+			};
 
-    this.addToQueue(bulkJob);
+			const result = await this.transporter.sendMail(mailOptions);
 
-    return {
-      bulkJobId: bulkJob.id,
-      totalRecipients: recipients.length,
-      status: 'queued'
-    };
-  }
+			this.emailStats.sent++;
 
-  /**
-   * Process email queue
-   */
-  async processEmailQueue() {
-    if (this.isProcessing || this.emailQueue.length === 0) {
-      return;
-    }
+			return {
+				success: true,
+				messageId: result.messageId,
+				response: result.response,
+			};
+		} catch (error) {
+			this.emailStats.failed++;
+			console.error("Email sending failed:", error);
+			throw error;
+		}
+	}
 
-    this.isProcessing = true;
+	/**
+	 * Send bulk emails
+	 */
+	async sendBulkEmails(recipients, emailTemplate, commonData = {}) {
+		const bulkJob = {
+			id: this.generateEmailId(),
+			type: "bulk",
+			recipients,
+			template: emailTemplate.template,
+			commonData: { ...commonData, ...emailTemplate.data },
+			subject: emailTemplate.subject,
+			priority: emailTemplate.priority || "normal",
+			batchSize: emailTemplate.batchSize || 50,
+			createdAt: new Date().toISOString(),
+			status: "queued",
+		};
 
-    while (this.emailQueue.length > 0) {
-      const emailJob = this.emailQueue.shift();
+		this.addToQueue(bulkJob);
 
-      try {
-        if (emailJob.type === 'bulk') {
-          await this.processBulkEmail(emailJob);
-        } else {
-          await this.processSingleEmail(emailJob);
-        }
-      } catch (error) {
-        console.error('Error processing email job:', error);
-        await this.handleFailedEmail(emailJob, error);
-      }
+		return {
+			bulkJobId: bulkJob.id,
+			totalRecipients: recipients.length,
+			status: "queued",
+		};
+	}
 
-      // Rate limiting - delay between emails
-      await this.delay(100); // 100ms delay
-    }
+	/**
+	 * Process email queue
+	 */
+	async processEmailQueue() {
+		if (this.isProcessing || this.emailQueue.length === 0) {
+			return;
+		}
 
-    this.isProcessing = false;
-  }
+		this.isProcessing = true;
 
-  /**
-   * Process single email from queue
-   */
-  async processSingleEmail(emailJob) {
-    // Check if scheduled email
-    if (emailJob.scheduleAt && new Date(emailJob.scheduleAt) > new Date()) {
-      // Re-queue for later
-      this.addToQueue(emailJob);
-      return;
-    }
+		while (this.emailQueue.length > 0) {
+			const emailJob = this.emailQueue.shift();
 
-    try {
-      await this.sendImmediateEmail({
-        to: emailJob.to,
-        subject: emailJob.subject,
-        template: emailJob.template,
-        data: emailJob.data,
-        attachments: emailJob.attachments,
-        trackOpens: emailJob.trackOpens,
-        trackClicks: emailJob.trackClicks
-      });
+			try {
+				if (emailJob.type === "bulk") {
+					await this.processBulkEmail(emailJob);
+				} else {
+					await this.processSingleEmail(emailJob);
+				}
+			} catch (error) {
+				console.error("Error processing email job:", error);
+				await this.handleFailedEmail(emailJob, error);
+			}
 
-      emailJob.status = 'sent';
-      emailJob.sentAt = new Date().toISOString();
+			// Rate limiting - delay between emails
+			await this.delay(100); // 100ms delay
+		}
 
-    } catch (error) {
-      throw error;
-    }
-  }
+		this.isProcessing = false;
+	}
 
-  /**
-   * Process bulk email job
-   */
-  async processBulkEmail(bulkJob) {
-    const { recipients, template, commonData, subject, batchSize } = bulkJob;
-    const results = [];
+	/**
+	 * Process single email from queue
+	 */
+	async processSingleEmail(emailJob) {
+		// Check if scheduled email
+		if (emailJob.scheduleAt && new Date(emailJob.scheduleAt) > new Date()) {
+			// Re-queue for later
+			this.addToQueue(emailJob);
+			return;
+		}
 
-    // Process in batches
-    for (let i = 0; i < recipients.length; i += batchSize) {
-      const batch = recipients.slice(i, i + batchSize);
-      
-      const batchPromises = batch.map(async (recipient) => {
-        try {
-          await this.sendImmediateEmail({
-            to: recipient.email,
-            subject,
-            template,
-            data: { ...commonData, ...recipient }
-          });
-          return { email: recipient.email, status: 'sent' };
-        } catch (error) {
-          return { email: recipient.email, status: 'failed', error: error.message };
-        }
-      });
+		try {
+			await this.sendImmediateEmail({
+				to: emailJob.to,
+				subject: emailJob.subject,
+				template: emailJob.template,
+				data: emailJob.data,
+				attachments: emailJob.attachments,
+				trackOpens: emailJob.trackOpens,
+				trackClicks: emailJob.trackClicks,
+			});
 
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
+			emailJob.status = "sent";
+			emailJob.sentAt = new Date().toISOString();
+		} catch (error) {
+			throw error;
+		}
+	}
 
-      // Delay between batches
-      if (i + batchSize < recipients.length) {
-        await this.delay(2000); // 2 second delay between batches
-      }
-    }
+	/**
+	 * Process bulk email job
+	 */
+	async processBulkEmail(bulkJob) {
+		const { recipients, template, commonData, subject, batchSize } = bulkJob;
+		const results = [];
 
-    bulkJob.status = 'completed';
-    bulkJob.completedAt = new Date().toISOString();
-    bulkJob.results = results;
+		// Process in batches
+		for (let i = 0; i < recipients.length; i += batchSize) {
+			const batch = recipients.slice(i, i + batchSize);
 
-    return results;
-  }
+			const batchPromises = batch.map(async (recipient) => {
+				try {
+					await this.sendImmediateEmail({
+						to: recipient.email,
+						subject,
+						template,
+						data: { ...commonData, ...recipient },
+					});
+					return { email: recipient.email, status: "sent" };
+				} catch (error) {
+					return {
+						email: recipient.email,
+						status: "failed",
+						error: error.message,
+					};
+				}
+			});
 
-  /**
-   * Handle failed email with retry logic
-   */
-  async handleFailedEmail(emailJob, error) {
-    emailJob.attempts++;
-    emailJob.lastError = error.message;
+			const batchResults = await Promise.all(batchPromises);
+			results.push(...batchResults);
 
-    if (emailJob.attempts < this.retryAttempts) {
-      // Retry with exponential backoff
-      setTimeout(() => {
-        this.addToQueue(emailJob);
-      }, this.retryDelay * Math.pow(2, emailJob.attempts - 1));
-    } else {
-      emailJob.status = 'failed';
-      emailJob.failedAt = new Date().toISOString();
-      console.error(`Email job ${emailJob.id} failed permanently:`, error);
-    }
-  }
+			// Delay between batches
+			if (i + batchSize < recipients.length) {
+				await this.delay(2000); // 2 second delay between batches
+			}
+		}
 
-  /**
-   * Add email to queue with priority handling
-   */
-  addToQueue(emailJob) {
-    if (emailJob.priority === 'high') {
-      this.emailQueue.unshift(emailJob);
-    } else {
-      this.emailQueue.push(emailJob);
-    }
-  }
+		bulkJob.status = "completed";
+		bulkJob.completedAt = new Date().toISOString();
+		bulkJob.results = results;
 
-  /**
-   * Start queue processor
-   */
-  startQueueProcessor() {
-    // Process queue every 5 seconds
-    setInterval(() => {
-      this.processEmailQueue();
-    }, 5000);
-  }
+		return results;
+	}
 
-  /**
-   * Get email statistics
-   */
-  getEmailStats() {
-    return {
-      ...this.emailStats,
-      queueLength: this.emailQueue.length,
-      queueStatus: this.isProcessing ? 'processing' : 'idle'
-    };
-  }
+	/**
+	 * Handle failed email with retry logic
+	 */
+	async handleFailedEmail(emailJob, error) {
+		emailJob.attempts++;
+		emailJob.lastError = error.message;
 
-  /**
-   * Template rendering methods
-   */
-  renderTemplate(template, data) {
-    let rendered = template;
-    
-    // Replace variables
-    Object.entries(data).forEach(([key, value]) => {
-      const regex = new RegExp(`{{${key}}}`, 'g');
-      rendered = rendered.replace(regex, value || '');
-    });
-    
-    // Handle conditionals
-    rendered = rendered.replace(/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g, (match, condition, content) => {
-      return data[condition] ? content : '';
-    });
-    
-    // Handle loops (simplified)
-    rendered = rendered.replace(/{{#each\s+(\w+)}}([\s\S]*?){{\/each}}/g, (match, arrayName, content) => {
-      const array = data[arrayName];
-      if (Array.isArray(array)) {
-        return array.map(item => {
-          let itemContent = content;
-          Object.entries(item).forEach(([key, value]) => {
-            const regex = new RegExp(`{{${key}}}`, 'g');
-            itemContent = itemContent.replace(regex, value || '');
-          });
-          return itemContent;
-        }).join('');
-      }
-      return '';
-    });
-    
-    return rendered;
-  }
+		if (emailJob.attempts < this.retryAttempts) {
+			// Retry with exponential backoff
+			setTimeout(() => {
+				this.addToQueue(emailJob);
+			}, this.retryDelay * Math.pow(2, emailJob.attempts - 1));
+		} else {
+			emailJob.status = "failed";
+			emailJob.failedAt = new Date().toISOString();
+			console.error(`Email job ${emailJob.id} failed permanently:`, error);
+		}
+	}
 
-  /**
-   * Email template methods
-   */
-  getWelcomeCandidateTemplate() {
-    return `
+	/**
+	 * Add email to queue with priority handling
+	 */
+	addToQueue(emailJob) {
+		if (emailJob.priority === "high") {
+			this.emailQueue.unshift(emailJob);
+		} else {
+			this.emailQueue.push(emailJob);
+		}
+	}
+
+	/**
+	 * Start queue processor
+	 */
+	startQueueProcessor() {
+		// Process queue every 5 seconds
+		setInterval(() => {
+			this.processEmailQueue();
+		}, 5000);
+	}
+
+	/**
+	 * Get email statistics
+	 */
+	getEmailStats() {
+		return {
+			...this.emailStats,
+			queueLength: this.emailQueue.length,
+			queueStatus: this.isProcessing ? "processing" : "idle",
+		};
+	}
+
+	/**
+	 * Template rendering methods
+	 */
+	renderTemplate(template, data) {
+		let rendered = template;
+
+		// Replace variables
+		Object.entries(data).forEach(([key, value]) => {
+			const regex = new RegExp(`{{${key}}}`, "g");
+			rendered = rendered.replace(regex, value || "");
+		});
+
+		// Handle conditionals
+		rendered = rendered.replace(
+			/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g,
+			(match, condition, content) => {
+				return data[condition] ? content : "";
+			}
+		);
+
+		// Handle loops (simplified)
+		rendered = rendered.replace(
+			/{{#each\s+(\w+)}}([\s\S]*?){{\/each}}/g,
+			(match, arrayName, content) => {
+				const array = data[arrayName];
+				if (Array.isArray(array)) {
+					return array
+						.map((item) => {
+							let itemContent = content;
+							Object.entries(item).forEach(([key, value]) => {
+								const regex = new RegExp(`{{${key}}}`, "g");
+								itemContent = itemContent.replace(regex, value || "");
+							});
+							return itemContent;
+						})
+						.join("");
+				}
+				return "";
+			}
+		);
+
+		return rendered;
+	}
+
+	/**
+	 * Email template methods
+	 */
+	getWelcomeCandidateTemplate() {
+		return `
       <div style="max-width: 600px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to BharatIntern!</h1>
@@ -552,10 +566,10 @@ class EmailService {
         </div>
       </div>
     `;
-  }
+	}
 
-  getWelcomeCompanyTemplate() {
-    return `
+	getWelcomeCompanyTemplate() {
+		return `
       <div style="max-width: 600px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc;">
         <div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); padding: 40px 20px; text-align: center;">
           <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to BharatIntern!</h1>
@@ -588,10 +602,10 @@ class EmailService {
         </div>
       </div>
     `;
-  }
+	}
 
-  getJobMatchTemplate() {
-    return `
+	getJobMatchTemplate() {
+		return `
       <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
         <div style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); padding: 30px 20px; text-align: center;">
           <h1 style="color: white; margin: 0;">🎯 Perfect Match Found!</h1>
@@ -624,10 +638,10 @@ class EmailService {
         </div>
       </div>
     `;
-  }
+	}
 
-  getInterviewScheduledTemplate() {
-    return `
+	getInterviewScheduledTemplate() {
+		return `
       <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
         <div style="background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%); padding: 30px 20px; text-align: center;">
           <h1 style="color: white; margin: 0;">📅 Interview Scheduled!</h1>
@@ -660,68 +674,68 @@ class EmailService {
         </div>
       </div>
     `;
-  }
+	}
 
-  // Additional template methods would go here...
-  getApplicationReceivedTemplate() {
-    return `<div style="padding: 20px;"><h2>Application Received</h2><p>Your application for {{jobTitle}} has been received and is under review.</p></div>`;
-  }
+	// Additional template methods would go here...
+	getApplicationReceivedTemplate() {
+		return `<div style="padding: 20px;"><h2>Application Received</h2><p>Your application for {{jobTitle}} has been received and is under review.</p></div>`;
+	}
 
-  getAssessmentInvitationTemplate() {
-    return `<div style="padding: 20px;"><h2>Assessment Invitation</h2><p>You have been invited to take the {{assessmentTitle}} assessment.</p></div>`;
-  }
+	getAssessmentInvitationTemplate() {
+		return `<div style="padding: 20px;"><h2>Assessment Invitation</h2><p>You have been invited to take the {{assessmentTitle}} assessment.</p></div>`;
+	}
 
-  getAssessmentResultsTemplate() {
-    return `<div style="padding: 20px;"><h2>Assessment Results</h2><p>Your assessment results for {{assessmentTitle}} are now available. Score: {{score}}%</p></div>`;
-  }
+	getAssessmentResultsTemplate() {
+		return `<div style="padding: 20px;"><h2>Assessment Results</h2><p>Your assessment results for {{assessmentTitle}} are now available. Score: {{score}}%</p></div>`;
+	}
 
-  getApplicationStatusTemplate() {
-    return `<div style="padding: 20px;"><h2>Application Update</h2><p>Your application status for {{jobTitle}} has been updated to: {{status}}</p></div>`;
-  }
+	getApplicationStatusTemplate() {
+		return `<div style="padding: 20px;"><h2>Application Update</h2><p>Your application status for {{jobTitle}} has been updated to: {{status}}</p></div>`;
+	}
 
-  getInterviewReminderTemplate() {
-    return `<div style="padding: 20px;"><h2>Interview Reminder</h2><p>Reminder: Your interview is scheduled for tomorrow at {{interviewTime}}</p></div>`;
-  }
+	getInterviewReminderTemplate() {
+		return `<div style="padding: 20px;"><h2>Interview Reminder</h2><p>Reminder: Your interview is scheduled for tomorrow at {{interviewTime}}</p></div>`;
+	}
 
-  getPasswordResetTemplate() {
-    return `<div style="padding: 20px;"><h2>Password Reset</h2><p>Click <a href="{{resetLink}}">here</a> to reset your password.</p></div>`;
-  }
+	getPasswordResetTemplate() {
+		return `<div style="padding: 20px;"><h2>Password Reset</h2><p>Click <a href="{{resetLink}}">here</a> to reset your password.</p></div>`;
+	}
 
-  getAccountVerificationTemplate() {
-    return `<div style="padding: 20px;"><h2>Verify Account</h2><p>Please <a href="{{verificationLink}}">verify your account</a>.</p></div>`;
-  }
+	getAccountVerificationTemplate() {
+		return `<div style="padding: 20px;"><h2>Verify Account</h2><p>Please <a href="{{verificationLink}}">verify your account</a>.</p></div>`;
+	}
 
-  getWeeklySummaryTemplate() {
-    return `<div style="padding: 20px;"><h2>Weekly Summary</h2><p>Your weekly activity summary from {{weekStartDate}} to {{weekEndDate}} is available.</p></div>`;
-  }
+	getWeeklySummaryTemplate() {
+		return `<div style="padding: 20px;"><h2>Weekly Summary</h2><p>Your weekly activity summary from {{weekStartDate}} to {{weekEndDate}} is available.</p></div>`;
+	}
 
-  /**
-   * Utility methods
-   */
-  isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
+	/**
+	 * Utility methods
+	 */
+	isValidEmail(email) {
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		return emailRegex.test(email);
+	}
 
-  generateEmailId() {
-    return `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
+	generateEmailId() {
+		return `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+	}
 
-  generateTrackingId() {
-    return `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
+	generateTrackingId() {
+		return `track_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+	}
 
-  addClickTracking(html, userId) {
-    // Simple click tracking implementation
-    return html.replace(
-      /<a\s+href="([^"]+)"([^>]*)>/gi,
-      `<a href="${config.baseUrl}/api/email/track/click?url=$1&user=${userId}"$2>`
-    );
-  }
+	addClickTracking(html, userId) {
+		// Simple click tracking implementation
+		return html.replace(
+			/<a\s+href="([^"]+)"([^>]*)>/gi,
+			`<a href="${config.baseUrl}/api/email/track/click?url=$1&user=${userId}"$2>`
+		);
+	}
 
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+	delay(ms) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
 }
 
 module.exports = EmailService;

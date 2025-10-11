@@ -16,15 +16,15 @@ const fs = require("fs");
 require("dotenv").config();
 
 // Import middleware
-const errorHandler = require("./middleware/errorHandler");
+const { errorHandler } = require("./middleware/errorHandler");
 const validationHandler = require("./middleware/validationHandler");
 const authMiddleware = require("./middleware/authMiddleware");
 
 // Import routes
-const resumeRoutes = require("./routes/resumeRoutes");
-const assessmentRoutes = require("./routes/assessmentRoutes");
-const jobMatchingRoutes = require("./routes/jobMatchingRoutes");
-const interviewRoutes = require("./routes/interviewRoutes");
+const resumeRoutes = require("./routes/resume");
+const assessmentRoutes = require("./routes/assessment");
+const jobMatchingRoutes = require("./routes/jobMatching");
+const interviewRoutes = require("./routes/interview");
 const codingProfileRoutes = require("./routes/codingProfileRoutes");
 const healthRoutes = require("./routes/healthRoutes");
 
@@ -165,13 +165,11 @@ process.on("SIGTERM", () => {
 
 // Start server
 app.listen(PORT, () => {
-	console.log(`🚀 BharatIntern AI Platform API running on port ${PORT}`);
-	console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-	console.log(`📚 API docs: http://localhost:${PORT}/api/docs`);
+	console.log(`BharatIntern AI Platform API running on port ${PORT}`);
+	console.log(`Health check: http://localhost:${PORT}/api/health`);
+	console.log(`API docs: http://localhost:${PORT}/api/docs`);
 	console.log(
-		`🔒 CORS enabled for: ${
-			process.env.FRONTEND_URL || "http://localhost:3000"
-		}`
+		`CORS enabled for: ${process.env.FRONTEND_URL || "http://localhost:3000"}`
 	);
 });
 

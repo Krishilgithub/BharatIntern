@@ -1252,11 +1252,11 @@ class InterviewAssessmentService {
 		};
 
 		responses.forEach((response) => {
-			const eval = response.evaluation;
-			avgScores.technical += eval.breakdown.technical;
-			avgScores.communication += eval.breakdown.communication;
-			avgScores.problemSolving += eval.breakdown.problemSolving;
-			avgScores.behavioral += eval.breakdown.behavioral;
+			const evaluation = response.evaluation;
+			avgScores.technical += evaluation.breakdown.technical;
+			avgScores.communication += evaluation.breakdown.communication;
+			avgScores.problemSolving += evaluation.breakdown.problemSolving;
+			avgScores.behavioral += evaluation.breakdown.behavioral;
 		});
 
 		Object.keys(avgScores).forEach((key) => {

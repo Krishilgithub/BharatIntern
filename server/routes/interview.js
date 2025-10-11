@@ -5,7 +5,7 @@
 
 const express = require("express");
 const multer = require("multer");
-const { authenticateToken, requireRole } = require("../middleware/auth");
+const { verifyToken, restrictTo } = require("../middleware/auth");
 const { validateFile } = require("../middleware/upload");
 const InterviewAssessmentService = require("../services/InterviewAssessmentService");
 const { processAudio } = require("../utils/audioProcessor");
@@ -50,7 +50,7 @@ const audioUpload = multer({
  * @desc Create a new interview session
  * @access Private (Candidate/Company/Admin)
  */
-router.post("/sessions", authenticateToken, async (req, res) => {
+router.post("/sessions", verifyToken, async (req, res) => {
 	try {
 		const {
 			jobId,
@@ -111,7 +111,7 @@ router.post("/sessions", authenticateToken, async (req, res) => {
  * @desc Get interview session details
  * @access Private (Owner/Company/Admin)
  */
-router.get("/sessions/:sessionId", authenticateToken, async (req, res) => {
+router.get("/sessions/:sessionId", verifyToken, async (req, res) => {
 	try {
 		const { sessionId } = req.params;
 		const { includeQuestions = false, includeAnalysis = true } = req.query;
@@ -155,40 +155,36 @@ router.get("/sessions/:sessionId", authenticateToken, async (req, res) => {
  * @desc Start an interview session
  * @access Private (Candidate/Company/Admin)
  */
-router.post(
-	"/sessions/:sessionId/start",
-	authenticateToken,
-	async (req, res) => {
-		try {
-			const { sessionId } = req.params;
-			const { browserInfo, deviceInfo } = req.body;
+router.post("/sessions/:sessionId/start", verifyToken, async (req, res) => {
+	try {
+		const { sessionId } = req.params;
+		const { browserInfo, deviceInfo } = req.body;
 
-			const startResult = await interviewService.startInterview(sessionId, {
-				candidateId: req.user.id,
-				browserInfo,
-				deviceInfo,
-				startedAt: new Date().toISOString(),
-			});
+		const startResult = await interviewService.startInterview(sessionId, {
+			candidateId: req.user.id,
+			browserInfo,
+			deviceInfo,
+			startedAt: new Date().toISOString(),
+		});
 
-			res.json({
-				success: true,
-				message: "Interview started successfully",
-				data: {
-					session: startResult.session,
-					firstQuestion: startResult.firstQuestion,
-					instructions: startResult.instructions,
-					timeRemaining: startResult.timeRemaining,
-				},
-			});
-		} catch (error) {
-			console.error("Error starting interview:", error);
-			res.status(500).json({
-				success: false,
-				message: error.message || "Failed to start interview",
-			});
-		}
+		res.json({
+			success: true,
+			message: "Interview started successfully",
+			data: {
+				session: startResult.session,
+				firstQuestion: startResult.firstQuestion,
+				instructions: startResult.instructions,
+				timeRemaining: startResult.timeRemaining,
+			},
+		});
+	} catch (error) {
+		console.error("Error starting interview:", error);
+		res.status(500).json({
+			success: false,
+			message: error.message || "Failed to start interview",
+		});
 	}
-);
+});
 
 /**
  * @route GET /api/interview/sessions/:sessionId/questions/:questionId
@@ -197,7 +193,7 @@ router.post(
  */
 router.get(
 	"/sessions/:sessionId/questions/:questionId",
-	authenticateToken,
+	verifyToken,
 	async (req, res) => {
 		try {
 			const { sessionId, questionId } = req.params;
@@ -237,61 +233,57 @@ router.get(
  * @desc Submit response to interview question
  * @access Private (Active session participant)
  */
-router.post(
-	"/sessions/:sessionId/responses",
-	authenticateToken,
-	async (req, res) => {
-		try {
-			const { sessionId } = req.params;
-			const {
-				questionId,
-				responseText,
-				responseTime,
-				confidence = 50,
-				metadata = {},
-			} = req.body;
+router.post("/sessions/:sessionId/responses", verifyToken, async (req, res) => {
+	try {
+		const { sessionId } = req.params;
+		const {
+			questionId,
+			responseText,
+			responseTime,
+			confidence = 50,
+			metadata = {},
+		} = req.body;
 
-			if (!questionId || !responseText) {
-				return res.status(400).json({
-					success: false,
-					message: "Question ID and response text are required",
-				});
-			}
-
-			const responseData = {
-				questionId,
-				candidateId: req.user.id,
-				responseText,
-				responseTime,
-				confidence,
-				metadata,
-				submittedAt: new Date().toISOString(),
-			};
-
-			const result = await interviewService.submitResponse(
-				sessionId,
-				responseData
-			);
-
-			res.json({
-				success: true,
-				message: "Response submitted successfully",
-				data: {
-					responseId: result.responseId,
-					evaluation: result.evaluation,
-					nextQuestion: result.nextQuestion,
-					progress: result.progress,
-				},
-			});
-		} catch (error) {
-			console.error("Error submitting response:", error);
-			res.status(500).json({
+		if (!questionId || !responseText) {
+			return res.status(400).json({
 				success: false,
-				message: error.message || "Failed to submit response",
+				message: "Question ID and response text are required",
 			});
 		}
+
+		const responseData = {
+			questionId,
+			candidateId: req.user.id,
+			responseText,
+			responseTime,
+			confidence,
+			metadata,
+			submittedAt: new Date().toISOString(),
+		};
+
+		const result = await interviewService.submitResponse(
+			sessionId,
+			responseData
+		);
+
+		res.json({
+			success: true,
+			message: "Response submitted successfully",
+			data: {
+				responseId: result.responseId,
+				evaluation: result.evaluation,
+				nextQuestion: result.nextQuestion,
+				progress: result.progress,
+			},
+		});
+	} catch (error) {
+		console.error("Error submitting response:", error);
+		res.status(500).json({
+			success: false,
+			message: error.message || "Failed to submit response",
+		});
 	}
-);
+});
 
 /**
  * @route POST /api/interview/sessions/:sessionId/audio-response
@@ -300,7 +292,7 @@ router.post(
  */
 router.post(
 	"/sessions/:sessionId/audio-response",
-	authenticateToken,
+	verifyToken,
 	audioUpload.single("audioFile"),
 	async (req, res) => {
 		try {
@@ -389,108 +381,100 @@ router.post(
  * @desc Complete an interview session
  * @access Private (Active session participant)
  */
-router.post(
-	"/sessions/:sessionId/complete",
-	authenticateToken,
-	async (req, res) => {
-		try {
-			const { sessionId } = req.params;
-			const {
-				feedback = "",
-				experience = "",
-				technicalIssues = false,
-				completionReason = "finished",
-			} = req.body;
+router.post("/sessions/:sessionId/complete", verifyToken, async (req, res) => {
+	try {
+		const { sessionId } = req.params;
+		const {
+			feedback = "",
+			experience = "",
+			technicalIssues = false,
+			completionReason = "finished",
+		} = req.body;
 
-			const completionData = {
-				candidateId: req.user.id,
-				feedback,
-				experience,
-				technicalIssues,
-				completionReason,
-				completedAt: new Date().toISOString(),
-			};
+		const completionData = {
+			candidateId: req.user.id,
+			feedback,
+			experience,
+			technicalIssues,
+			completionReason,
+			completedAt: new Date().toISOString(),
+		};
 
-			const result = await interviewService.completeInterview(
-				sessionId,
-				completionData
-			);
+		const result = await interviewService.completeInterview(
+			sessionId,
+			completionData
+		);
 
-			res.json({
-				success: true,
-				message: "Interview completed successfully",
-				data: {
-					sessionSummary: result.summary,
-					overallScore: result.overallScore,
-					detailedAnalysis: result.analysis,
-					recommendations: result.recommendations,
-					certificate: result.certificate,
-				},
-			});
-		} catch (error) {
-			console.error("Error completing interview:", error);
-			res.status(500).json({
-				success: false,
-				message: error.message || "Failed to complete interview",
-			});
-		}
+		res.json({
+			success: true,
+			message: "Interview completed successfully",
+			data: {
+				sessionSummary: result.summary,
+				overallScore: result.overallScore,
+				detailedAnalysis: result.analysis,
+				recommendations: result.recommendations,
+				certificate: result.certificate,
+			},
+		});
+	} catch (error) {
+		console.error("Error completing interview:", error);
+		res.status(500).json({
+			success: false,
+			message: error.message || "Failed to complete interview",
+		});
 	}
-);
+});
 
 /**
  * @route GET /api/interview/sessions/:sessionId/results
  * @desc Get interview results and analysis
  * @access Private (Participant/Company/Admin)
  */
-router.get(
-	"/sessions/:sessionId/results",
-	authenticateToken,
-	async (req, res) => {
-		try {
-			const { sessionId } = req.params;
-			const {
-				includeDetailed = true,
-				includeRecommendations = true,
-				format = "json",
-			} = req.query;
+router.get("/sessions/:sessionId/results", verifyToken, async (req, res) => {
+	try {
+		const { sessionId } = req.params;
+		const {
+			includeDetailed = true,
+			includeRecommendations = true,
+			format = "json",
+		} = req.query;
 
-			const results = await interviewService.getInterviewResults(sessionId, {
-				includeDetailed: includeDetailed === "true",
-				includeRecommendations: includeRecommendations === "true",
-				requestedBy: req.user.id,
-				userRole: req.user.role,
-			});
+		const results = await interviewService.getInterviewResults(sessionId, {
+			includeDetailed: includeDetailed === "true",
+			includeRecommendations: includeRecommendations === "true",
+			requestedBy: req.user.id,
+			userRole: req.user.role,
+		});
 
-			if (format === "pdf") {
-				const pdfBuffer = await interviewService.generateResultsPDF(results);
-				res.setHeader("Content-Type", "application/pdf");
-				res.setHeader(
-					"Content-Disposition",
-					`attachment; filename="interview-results-${sessionId}.pdf"`
-				);
-				return res.send(pdfBuffer);
-			}
-
-			res.json({
-				success: true,
-				data: {
-					results: results,
-					exportOptions: ["pdf", "json", "csv"],
-					sharing: {
-						canShare: req.user.role !== "candidate",
-						shareableLink: results.shareableLink,
-					},
-				},
-			});
-		} catch (error) {
-			console.error("Error fetching interview results:", error);
-			res.status(500).json({
-				success: false,
-				message: error.message || "Failed to fetch interview results",
-			});
+		if (format === "pdf") {
+			const pdfBuffer = await interviewService.generateResultsPDF(results);
+			res.setHeader("Content-Type", "application/pdf");
+			res.setHeader(
+				"Content-Disposition",
+				`attachment; filename="interview-results-${sessionId}.pdf"`
+			);
+			return res.send(pdfBuffer);
 		}
+
+		res.json({
+			success: true,
+			data: {
+				results: results,
+				exportOptions: ["pdf", "json", "csv"],
+				sharing: {
+					canShare: req.user.role !== "candidate",
+					shareableLink: results.shareableLink,
+				},
+			},
+		});
+	} catch (error) {
+		console.error("Error fetching interview results:", error);
+		res.status(500).json({
+			success: false,
+			message: error.message || "Failed to fetch interview results",
+		});
 	}
-);
+});
 
 /**
  * @route GET /api/interview/sessions/:sessionId/analysis/:type
@@ -499,8 +483,8 @@ router.get(
  */
 router.get(
 	"/sessions/:sessionId/analysis/:type",
-	authenticateToken,
-	requireRole(["company", "admin"]),
+	verifyToken,
+	restrictTo(["company", "admin"]),
 	async (req, res) => {
 		try {
 			const { sessionId, type } = req.params;
@@ -556,7 +540,7 @@ router.get(
  * @desc Get interview sessions for user
  * @access Private (All authenticated users)
  */
-router.get("/sessions", authenticateToken, async (req, res) => {
+router.get("/sessions", verifyToken, async (req, res) => {
 	try {
 		const {
 			status = "all",
@@ -611,8 +595,8 @@ router.get("/sessions", authenticateToken, async (req, res) => {
  */
 router.get(
 	"/templates",
-	authenticateToken,
-	requireRole(["company", "admin"]),
+	verifyToken,
+	restrictTo(["company", "admin"]),
 	async (req, res) => {
 		try {
 			const {
@@ -661,8 +645,8 @@ router.get(
  */
 router.post(
 	"/templates",
-	authenticateToken,
-	requireRole(["company", "admin"]),
+	verifyToken,
+	restrictTo(["company", "admin"]),
 	async (req, res) => {
 		try {
 			const {
@@ -723,8 +707,8 @@ router.post(
  */
 router.get(
 	"/analytics",
-	authenticateToken,
-	requireRole(["company", "admin"]),
+	verifyToken,
+	restrictTo(["company", "admin"]),
 	async (req, res) => {
 		try {
 			const {
@@ -772,7 +756,7 @@ router.get(
  * @desc Submit feedback for interview experience
  * @access Private (All authenticated users)
  */
-router.post("/feedback", authenticateToken, async (req, res) => {
+router.post("/feedback", verifyToken, async (req, res) => {
 	try {
 		const {
 			sessionId,

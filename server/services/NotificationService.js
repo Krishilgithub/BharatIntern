@@ -3,360 +3,366 @@
  * Handles email notifications, in-app notifications, and push notifications
  */
 
-const nodemailer = require('nodemailer');
-const config = require('../config');
+const nodemailer = require("nodemailer");
+const config = require("../config");
 
 class NotificationService {
-  constructor() {
-    this.emailTransporter = this.initializeEmailTransporter();
-    this.notifications = new Map(); // In-memory storage (use database in production)
-    this.templates = this.initializeEmailTemplates();
-    this.pushSubscriptions = new Map();
-  }
+	constructor() {
+		this.emailTransporter = this.initializeEmailTransporter();
+		this.notifications = new Map(); // In-memory storage (use database in production)
+		this.templates = this.initializeEmailTemplates();
+		this.pushSubscriptions = new Map();
+	}
 
-  /**
-   * Initialize email transporter
-   */
-  initializeEmailTransporter() {
-    return nodemailer.createTransporter({
-      host: config.email.host || 'smtp.gmail.com',
-      port: config.email.port || 587,
-      secure: false,
-      auth: {
-        user: config.email.user,
-        pass: config.email.password
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-  }
+	/**
+	 * Initialize email transporter
+	 */
+	initializeEmailTransporter() {
+		return nodemailer.createTransporter({
+			host: config.email.host || "smtp.gmail.com",
+			port: config.email.port || 587,
+			secure: false,
+			auth: {
+				user: config.email.user,
+				pass: config.email.password,
+			},
+			tls: {
+				rejectUnauthorized: false,
+			},
+		});
+	}
 
-  /**
-   * Send email notification
-   */
-  async sendEmail(emailData) {
-    const {
-      to,
-      subject,
-      template,
-      data = {},
-      attachments = [],
-      priority = 'normal'
-    } = emailData;
+	/**
+	 * Send email notification
+	 */
+	async sendEmail(emailData) {
+		const {
+			to,
+			subject,
+			template,
+			data = {},
+			attachments = [],
+			priority = "normal",
+		} = emailData;
 
-    try {
-      const templateContent = this.templates[template];
-      if (!templateContent) {
-        throw new Error(`Email template '${template}' not found`);
-      }
+		try {
+			const templateContent = this.templates[template];
+			if (!templateContent) {
+				throw new Error(`Email template '${template}' not found`);
+			}
 
-      const htmlContent = this.renderTemplate(templateContent.html, data);
-      const textContent = this.renderTemplate(templateContent.text, data);
+			const htmlContent = this.renderTemplate(templateContent.html, data);
+			const textContent = this.renderTemplate(templateContent.text, data);
 
-      const mailOptions = {
-        from: `"BharatIntern Platform" <${config.email.from}>`,
-        to: to,
-        subject: subject || templateContent.subject,
-        html: htmlContent,
-        text: textContent,
-        attachments: attachments,
-        priority: priority
-      };
+			const mailOptions = {
+				from: `"BharatIntern Platform" <${config.email.from}>`,
+				to: to,
+				subject: subject || templateContent.subject,
+				html: htmlContent,
+				text: textContent,
+				attachments: attachments,
+				priority: priority,
+			};
 
-      const result = await this.emailTransporter.sendMail(mailOptions);
-      
-      // Log email sent
-      console.log(`Email sent successfully: ${result.messageId}`);
-      
-      return {
-        success: true,
-        messageId: result.messageId,
-        response: result.response
-      };
+			const result = await this.emailTransporter.sendMail(mailOptions);
 
-    } catch (error) {
-      console.error('Email sending failed:', error);
-      throw new Error(`Email sending failed: ${error.message}`);
-    }
-  }
+			// Log email sent
+			console.log(`Email sent successfully: ${result.messageId}`);
 
-  /**
-   * Send welcome email to new user
-   */
-  async sendWelcomeEmail(userData) {
-    return await this.sendEmail({
-      to: userData.email,
-      template: 'welcome',
-      data: {
-        name: userData.name,
-        role: userData.role,
-        loginUrl: `${config.baseUrl}/login`,
-        supportEmail: config.email.support
-      }
-    });
-  }
+			return {
+				success: true,
+				messageId: result.messageId,
+				response: result.response,
+			};
+		} catch (error) {
+			console.error("Email sending failed:", error);
+			throw new Error(`Email sending failed: ${error.message}`);
+		}
+	}
 
-  /**
-   * Send interview invitation
-   */
-  async sendInterviewInvitation(invitationData) {
-    const {
-      candidateEmail,
-      candidateName,
-      companyName,
-      interviewDate,
-      interviewLink,
-      jobTitle,
-      interviewType
-    } = invitationData;
+	/**
+	 * Send welcome email to new user
+	 */
+	async sendWelcomeEmail(userData) {
+		return await this.sendEmail({
+			to: userData.email,
+			template: "welcome",
+			data: {
+				name: userData.name,
+				role: userData.role,
+				loginUrl: `${config.baseUrl}/login`,
+				supportEmail: config.email.support,
+			},
+		});
+	}
 
-    return await this.sendEmail({
-      to: candidateEmail,
-      template: 'interview_invitation',
-      data: {
-        candidateName,
-        companyName,
-        interviewDate: new Date(interviewDate).toLocaleString(),
-        interviewLink,
-        jobTitle,
-        interviewType,
-        supportEmail: config.email.support
-      }
-    });
-  }
+	/**
+	 * Send interview invitation
+	 */
+	async sendInterviewInvitation(invitationData) {
+		const {
+			candidateEmail,
+			candidateName,
+			companyName,
+			interviewDate,
+			interviewLink,
+			jobTitle,
+			interviewType,
+		} = invitationData;
 
-  /**
-   * Send job match notification
-   */
-  async sendJobMatchNotification(matchData) {
-    const {
-      candidateEmail,
-      candidateName,
-      jobTitle,
-      companyName,
-      matchScore,
-      jobUrl,
-      applicationDeadline
-    } = matchData;
+		return await this.sendEmail({
+			to: candidateEmail,
+			template: "interview_invitation",
+			data: {
+				candidateName,
+				companyName,
+				interviewDate: new Date(interviewDate).toLocaleString(),
+				interviewLink,
+				jobTitle,
+				interviewType,
+				supportEmail: config.email.support,
+			},
+		});
+	}
 
-    return await this.sendEmail({
-      to: candidateEmail,
-      template: 'job_match',
-      data: {
-        candidateName,
-        jobTitle,
-        companyName,
-        matchScore,
-        jobUrl: `${config.baseUrl}/jobs/${jobUrl}`,
-        applicationDeadline: applicationDeadline ? 
-          new Date(applicationDeadline).toLocaleDateString() : 'Not specified',
-        profileUrl: `${config.baseUrl}/profile`
-      }
-    });
-  }
+	/**
+	 * Send job match notification
+	 */
+	async sendJobMatchNotification(matchData) {
+		const {
+			candidateEmail,
+			candidateName,
+			jobTitle,
+			companyName,
+			matchScore,
+			jobUrl,
+			applicationDeadline,
+		} = matchData;
 
-  /**
-   * Send assessment completion notification
-   */
-  async sendAssessmentCompletionNotification(assessmentData) {
-    const {
-      candidateEmail,
-      candidateName,
-      assessmentTitle,
-      score,
-      companyName,
-      resultsUrl,
-      feedback
-    } = assessmentData;
+		return await this.sendEmail({
+			to: candidateEmail,
+			template: "job_match",
+			data: {
+				candidateName,
+				jobTitle,
+				companyName,
+				matchScore,
+				jobUrl: `${config.baseUrl}/jobs/${jobUrl}`,
+				applicationDeadline: applicationDeadline
+					? new Date(applicationDeadline).toLocaleDateString()
+					: "Not specified",
+				profileUrl: `${config.baseUrl}/profile`,
+			},
+		});
+	}
 
-    return await this.sendEmail({
-      to: candidateEmail,
-      template: 'assessment_completion',
-      data: {
-        candidateName,
-        assessmentTitle,
-        score,
-        companyName,
-        resultsUrl: `${config.baseUrl}/results/${resultsUrl}`,
-        feedback,
-        dashboardUrl: `${config.baseUrl}/dashboard`
-      }
-    });
-  }
+	/**
+	 * Send assessment completion notification
+	 */
+	async sendAssessmentCompletionNotification(assessmentData) {
+		const {
+			candidateEmail,
+			candidateName,
+			assessmentTitle,
+			score,
+			companyName,
+			resultsUrl,
+			feedback,
+		} = assessmentData;
 
-  /**
-   * Send bulk notification to multiple recipients
-   */
-  async sendBulkNotification(recipients, notificationData) {
-    const results = [];
-    const { template, subject, data, batchSize = 10 } = notificationData;
+		return await this.sendEmail({
+			to: candidateEmail,
+			template: "assessment_completion",
+			data: {
+				candidateName,
+				assessmentTitle,
+				score,
+				companyName,
+				resultsUrl: `${config.baseUrl}/results/${resultsUrl}`,
+				feedback,
+				dashboardUrl: `${config.baseUrl}/dashboard`,
+			},
+		});
+	}
 
-    // Process in batches to avoid overwhelming the email service
-    for (let i = 0; i < recipients.length; i += batchSize) {
-      const batch = recipients.slice(i, i + batchSize);
-      const batchPromises = batch.map(async (recipient) => {
-        try {
-          const result = await this.sendEmail({
-            to: recipient.email,
-            subject: subject,
-            template: template,
-            data: { ...data, ...recipient }
-          });
-          return { email: recipient.email, success: true, result };
-        } catch (error) {
-          return { email: recipient.email, success: false, error: error.message };
-        }
-      });
+	/**
+	 * Send bulk notification to multiple recipients
+	 */
+	async sendBulkNotification(recipients, notificationData) {
+		const results = [];
+		const { template, subject, data, batchSize = 10 } = notificationData;
 
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
+		// Process in batches to avoid overwhelming the email service
+		for (let i = 0; i < recipients.length; i += batchSize) {
+			const batch = recipients.slice(i, i + batchSize);
+			const batchPromises = batch.map(async (recipient) => {
+				try {
+					const result = await this.sendEmail({
+						to: recipient.email,
+						subject: subject,
+						template: template,
+						data: { ...data, ...recipient },
+					});
+					return { email: recipient.email, success: true, result };
+				} catch (error) {
+					return {
+						email: recipient.email,
+						success: false,
+						error: error.message,
+					};
+				}
+			});
 
-      // Add delay between batches
-      if (i + batchSize < recipients.length) {
-        await this.delay(1000); // 1 second delay
-      }
-    }
+			const batchResults = await Promise.all(batchPromises);
+			results.push(...batchResults);
 
-    return {
-      totalRecipients: recipients.length,
-      successful: results.filter(r => r.success).length,
-      failed: results.filter(r => !r.success).length,
-      results: results
-    };
-  }
+			// Add delay between batches
+			if (i + batchSize < recipients.length) {
+				await this.delay(1000); // 1 second delay
+			}
+		}
 
-  /**
-   * Create in-app notification
-   */
-  async createInAppNotification(notificationData) {
-    const {
-      userId,
-      type,
-      title,
-      message,
-      data = {},
-      priority = 'normal',
-      expiresAt = null
-    } = notificationData;
+		return {
+			totalRecipients: recipients.length,
+			successful: results.filter((r) => r.success).length,
+			failed: results.filter((r) => !r.success).length,
+			results: results,
+		};
+	}
 
-    const notification = {
-      id: this.generateId('notification'),
-      userId,
-      type,
-      title,
-      message,
-      data,
-      priority,
-      read: false,
-      createdAt: new Date().toISOString(),
-      expiresAt: expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
-    };
+	/**
+	 * Create in-app notification
+	 */
+	async createInAppNotification(notificationData) {
+		const {
+			userId,
+			type,
+			title,
+			message,
+			data = {},
+			priority = "normal",
+			expiresAt = null,
+		} = notificationData;
 
-    this.notifications.set(notification.id, notification);
+		const notification = {
+			id: this.generateId("notification"),
+			userId,
+			type,
+			title,
+			message,
+			data,
+			priority,
+			read: false,
+			createdAt: new Date().toISOString(),
+			expiresAt:
+				expiresAt ||
+				new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+		};
 
-    return notification;
-  }
+		this.notifications.set(notification.id, notification);
 
-  /**
-   * Get notifications for user
-   */
-  async getUserNotifications(userId, options = {}) {
-    const {
-      unreadOnly = false,
-      limit = 50,
-      offset = 0,
-      type = null
-    } = options;
+		return notification;
+	}
 
-    const userNotifications = Array.from(this.notifications.values())
-      .filter(notification => {
-        if (notification.userId !== userId) return false;
-        if (unreadOnly && notification.read) return false;
-        if (type && notification.type !== type) return false;
-        if (notification.expiresAt && new Date(notification.expiresAt) < new Date()) return false;
-        return true;
-      })
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(offset, offset + limit);
+	/**
+	 * Get notifications for user
+	 */
+	async getUserNotifications(userId, options = {}) {
+		const { unreadOnly = false, limit = 50, offset = 0, type = null } = options;
 
-    const unreadCount = Array.from(this.notifications.values())
-      .filter(n => n.userId === userId && !n.read).length;
+		const userNotifications = Array.from(this.notifications.values())
+			.filter((notification) => {
+				if (notification.userId !== userId) return false;
+				if (unreadOnly && notification.read) return false;
+				if (type && notification.type !== type) return false;
+				if (
+					notification.expiresAt &&
+					new Date(notification.expiresAt) < new Date()
+				)
+					return false;
+				return true;
+			})
+			.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+			.slice(offset, offset + limit);
 
-    return {
-      notifications: userNotifications,
-      unreadCount: unreadCount,
-      total: userNotifications.length
-    };
-  }
+		const unreadCount = Array.from(this.notifications.values()).filter(
+			(n) => n.userId === userId && !n.read
+		).length;
 
-  /**
-   * Mark notification as read
-   */
-  async markNotificationAsRead(notificationId, userId) {
-    const notification = this.notifications.get(notificationId);
-    
-    if (!notification) {
-      throw new Error('Notification not found');
-    }
-    
-    if (notification.userId !== userId) {
-      throw new Error('Access denied to this notification');
-    }
+		return {
+			notifications: userNotifications,
+			unreadCount: unreadCount,
+			total: userNotifications.length,
+		};
+	}
 
-    notification.read = true;
-    notification.readAt = new Date().toISOString();
-    
-    this.notifications.set(notificationId, notification);
-    
-    return notification;
-  }
+	/**
+	 * Mark notification as read
+	 */
+	async markNotificationAsRead(notificationId, userId) {
+		const notification = this.notifications.get(notificationId);
 
-  /**
-   * Mark all notifications as read for user
-   */
-  async markAllNotificationsAsRead(userId) {
-    let updatedCount = 0;
-    
-    for (const [id, notification] of this.notifications.entries()) {
-      if (notification.userId === userId && !notification.read) {
-        notification.read = true;
-        notification.readAt = new Date().toISOString();
-        this.notifications.set(id, notification);
-        updatedCount++;
-      }
-    }
-    
-    return { updatedCount };
-  }
+		if (!notification) {
+			throw new Error("Notification not found");
+		}
 
-  /**
-   * Delete notification
-   */
-  async deleteNotification(notificationId, userId) {
-    const notification = this.notifications.get(notificationId);
-    
-    if (!notification) {
-      throw new Error('Notification not found');
-    }
-    
-    if (notification.userId !== userId) {
-      throw new Error('Access denied to this notification');
-    }
+		if (notification.userId !== userId) {
+			throw new Error("Access denied to this notification");
+		}
 
-    this.notifications.delete(notificationId);
-    
-    return { success: true };
-  }
+		notification.read = true;
+		notification.readAt = new Date().toISOString();
 
-  /**
-   * Initialize email templates
-   */
-  initializeEmailTemplates() {
-    return {
-      welcome: {
-        subject: 'Welcome to BharatIntern AI Platform!',
-        html: `
+		this.notifications.set(notificationId, notification);
+
+		return notification;
+	}
+
+	/**
+	 * Mark all notifications as read for user
+	 */
+	async markAllNotificationsAsRead(userId) {
+		let updatedCount = 0;
+
+		for (const [id, notification] of this.notifications.entries()) {
+			if (notification.userId === userId && !notification.read) {
+				notification.read = true;
+				notification.readAt = new Date().toISOString();
+				this.notifications.set(id, notification);
+				updatedCount++;
+			}
+		}
+
+		return { updatedCount };
+	}
+
+	/**
+	 * Delete notification
+	 */
+	async deleteNotification(notificationId, userId) {
+		const notification = this.notifications.get(notificationId);
+
+		if (!notification) {
+			throw new Error("Notification not found");
+		}
+
+		if (notification.userId !== userId) {
+			throw new Error("Access denied to this notification");
+		}
+
+		this.notifications.delete(notificationId);
+
+		return { success: true };
+	}
+
+	/**
+	 * Initialize email templates
+	 */
+	initializeEmailTemplates() {
+		return {
+			welcome: {
+				subject: "Welcome to BharatIntern AI Platform!",
+				html: `
           <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
             <h2 style="color: #2563eb;">Welcome to BharatIntern, {{name}}!</h2>
             <p>Thank you for joining our AI-powered recruitment platform.</p>
@@ -376,12 +382,12 @@ class NotificationService {
             <p>Best regards,<br>The BharatIntern Team</p>
           </div>
         `,
-        text: `Welcome to BharatIntern, {{name}}! Thank you for joining our platform. Login at {{loginUrl}} to get started.`
-      },
-      
-      interview_invitation: {
-        subject: 'Interview Invitation - {{jobTitle}} at {{companyName}}',
-        html: `
+				text: `Welcome to BharatIntern, {{name}}! Thank you for joining our platform. Login at {{loginUrl}} to get started.`,
+			},
+
+			interview_invitation: {
+				subject: "Interview Invitation - {{jobTitle}} at {{companyName}}",
+				html: `
           <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
             <h2 style="color: #2563eb;">Interview Invitation</h2>
             <p>Dear {{candidateName}},</p>
@@ -401,12 +407,12 @@ class NotificationService {
             <p>Best regards,<br>The BharatIntern Team</p>
           </div>
         `,
-        text: `Interview invitation for {{jobTitle}} at {{companyName}} on {{interviewDate}}. Join at: {{interviewLink}}`
-      },
-      
-      job_match: {
-        subject: 'New Job Match Found - {{matchScore}}% Match!',
-        html: `
+				text: `Interview invitation for {{jobTitle}} at {{companyName}} on {{interviewDate}}. Join at: {{interviewLink}}`,
+			},
+
+			job_match: {
+				subject: "New Job Match Found - {{matchScore}}% Match!",
+				html: `
           <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
             <h2 style="color: #2563eb;">Great News! We Found a Perfect Match</h2>
             <p>Hi {{candidateName}},</p>
@@ -430,12 +436,12 @@ class NotificationService {
             <p>The BharatIntern Team</p>
           </div>
         `,
-        text: `New job match: {{jobTitle}} at {{companyName}} ({{matchScore}}% match). View at: {{jobUrl}}`
-      },
+				text: `New job match: {{jobTitle}} at {{companyName}} ({{matchScore}}% match). View at: {{jobUrl}}`,
+			},
 
-      assessment_completion: {
-        subject: 'Assessment Results - {{assessmentTitle}}',
-        html: `
+			assessment_completion: {
+				subject: "Assessment Results - {{assessmentTitle}}",
+				html: `
           <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
             <h2 style="color: #2563eb;">Assessment Completed!</h2>
             <p>Dear {{candidateName}},</p>
@@ -463,157 +469,160 @@ class NotificationService {
             <p>Best regards,<br>The BharatIntern Team</p>
           </div>
         `,
-        text: `Assessment completed: {{assessmentTitle}}. Score: {{score}}%. View results: {{resultsUrl}}`
-      }
-    };
-  }
+				text: `Assessment completed: {{assessmentTitle}}. Score: {{score}}%. View results: {{resultsUrl}}`,
+			},
+		};
+	}
 
-  /**
-   * Render email template with data
-   */
-  renderTemplate(template, data) {
-    let rendered = template;
-    
-    // Simple template rendering (in production, use a proper template engine)
-    Object.entries(data).forEach(([key, value]) => {
-      const regex = new RegExp(`{{${key}}}`, 'g');
-      rendered = rendered.replace(regex, value || '');
-    });
-    
-    // Handle conditional blocks (simplified)
-    rendered = rendered.replace(/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g, (match, condition, content) => {
-      return data[condition] ? content : '';
-    });
-    
-    return rendered;
-  }
+	/**
+	 * Render email template with data
+	 */
+	renderTemplate(template, data) {
+		let rendered = template;
 
-  /**
-   * Send push notification (mock implementation)
-   */
-  async sendPushNotification(pushData) {
-    const {
-      userId,
-      title,
-      body,
-      data = {},
-      icon = '/icon-192x192.png',
-      badge = '/badge-72x72.png'
-    } = pushData;
+		// Simple template rendering (in production, use a proper template engine)
+		Object.entries(data).forEach(([key, value]) => {
+			const regex = new RegExp(`{{${key}}}`, "g");
+			rendered = rendered.replace(regex, value || "");
+		});
 
-    // In production, integrate with actual push service (FCM, etc.)
-    console.log(`Push notification sent to user ${userId}: ${title}`);
-    
-    return {
-      success: true,
-      messageId: this.generateId('push'),
-      deliveredAt: new Date().toISOString()
-    };
-  }
+		// Handle conditional blocks (simplified)
+		rendered = rendered.replace(
+			/{{#if\s+(\w+)}}([\s\S]*?){{\/if}}/g,
+			(match, condition, content) => {
+				return data[condition] ? content : "";
+			}
+		);
 
-  /**
-   * Schedule notification for later delivery
-   */
-  async scheduleNotification(scheduleData) {
-    const {
-      userId,
-      type,
-      deliverAt,
-      notificationData
-    } = scheduleData;
+		return rendered;
+	}
 
-    const scheduledNotification = {
-      id: this.generateId('scheduled'),
-      userId,
-      type,
-      deliverAt,
-      notificationData,
-      status: 'scheduled',
-      createdAt: new Date().toISOString()
-    };
+	/**
+	 * Send push notification (mock implementation)
+	 */
+	async sendPushNotification(pushData) {
+		const {
+			userId,
+			title,
+			body,
+			data = {},
+			icon = "/icon-192x192.png",
+			badge = "/badge-72x72.png",
+		} = pushData;
 
-    // In production, use a job queue like Redis/Bull
-    setTimeout(async () => {
-      try {
-        if (type === 'email') {
-          await this.sendEmail(notificationData);
-        } else if (type === 'in-app') {
-          await this.createInAppNotification(notificationData);
-        } else if (type === 'push') {
-          await this.sendPushNotification(notificationData);
-        }
-        
-        scheduledNotification.status = 'delivered';
-        scheduledNotification.deliveredAt = new Date().toISOString();
-      } catch (error) {
-        scheduledNotification.status = 'failed';
-        scheduledNotification.error = error.message;
-      }
-    }, new Date(deliverAt) - new Date());
+		// In production, integrate with actual push service (FCM, etc.)
+		console.log(`Push notification sent to user ${userId}: ${title}`);
 
-    return scheduledNotification;
-  }
+		return {
+			success: true,
+			messageId: this.generateId("push"),
+			deliveredAt: new Date().toISOString(),
+		};
+	}
 
-  /**
-   * Get notification statistics
-   */
-  async getNotificationStats(userId = null, timeframe = '30d') {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - parseInt(timeframe.replace('d', '')));
+	/**
+	 * Schedule notification for later delivery
+	 */
+	async scheduleNotification(scheduleData) {
+		const { userId, type, deliverAt, notificationData } = scheduleData;
 
-    const notifications = Array.from(this.notifications.values())
-      .filter(n => {
-        if (userId && n.userId !== userId) return false;
-        return new Date(n.createdAt) >= startDate;
-      });
+		const scheduledNotification = {
+			id: this.generateId("scheduled"),
+			userId,
+			type,
+			deliverAt,
+			notificationData,
+			status: "scheduled",
+			createdAt: new Date().toISOString(),
+		};
 
-    const stats = {
-      total: notifications.length,
-      unread: notifications.filter(n => !n.read).length,
-      byType: {},
-      byPriority: {},
-      readRate: 0
-    };
+		// In production, use a job queue like Redis/Bull
+		setTimeout(async () => {
+			try {
+				if (type === "email") {
+					await this.sendEmail(notificationData);
+				} else if (type === "in-app") {
+					await this.createInAppNotification(notificationData);
+				} else if (type === "push") {
+					await this.sendPushNotification(notificationData);
+				}
 
-    notifications.forEach(n => {
-      stats.byType[n.type] = (stats.byType[n.type] || 0) + 1;
-      stats.byPriority[n.priority] = (stats.byPriority[n.priority] || 0) + 1;
-    });
+				scheduledNotification.status = "delivered";
+				scheduledNotification.deliveredAt = new Date().toISOString();
+			} catch (error) {
+				scheduledNotification.status = "failed";
+				scheduledNotification.error = error.message;
+			}
+		}, new Date(deliverAt) - new Date());
 
-    const readNotifications = notifications.filter(n => n.read).length;
-    stats.readRate = notifications.length > 0 ? 
-      Math.round((readNotifications / notifications.length) * 100) : 0;
+		return scheduledNotification;
+	}
 
-    return stats;
-  }
+	/**
+	 * Get notification statistics
+	 */
+	async getNotificationStats(userId = null, timeframe = "30d") {
+		const startDate = new Date();
+		startDate.setDate(
+			startDate.getDate() - parseInt(timeframe.replace("d", ""))
+		);
 
-  /**
-   * Utility methods
-   */
-  generateId(prefix = 'notif') {
-    return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
+		const notifications = Array.from(this.notifications.values()).filter(
+			(n) => {
+				if (userId && n.userId !== userId) return false;
+				return new Date(n.createdAt) >= startDate;
+			}
+		);
 
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+		const stats = {
+			total: notifications.length,
+			unread: notifications.filter((n) => !n.read).length,
+			byType: {},
+			byPriority: {},
+			readRate: 0,
+		};
 
-  /**
-   * Cleanup expired notifications
-   */
-  async cleanupExpiredNotifications() {
-    const now = new Date();
-    let deletedCount = 0;
+		notifications.forEach((n) => {
+			stats.byType[n.type] = (stats.byType[n.type] || 0) + 1;
+			stats.byPriority[n.priority] = (stats.byPriority[n.priority] || 0) + 1;
+		});
 
-    for (const [id, notification] of this.notifications.entries()) {
-      if (notification.expiresAt && new Date(notification.expiresAt) < now) {
-        this.notifications.delete(id);
-        deletedCount++;
-      }
-    }
+		const readNotifications = notifications.filter((n) => n.read).length;
+		stats.readRate =
+			notifications.length > 0
+				? Math.round((readNotifications / notifications.length) * 100)
+				: 0;
 
-    return { deletedCount };
-  }
+		return stats;
+	}
+
+	/**
+	 * Utility methods
+	 */
+	generateId(prefix = "notif") {
+		return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+	}
+
+	delay(ms) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
+
+	/**
+	 * Cleanup expired notifications
+	 */
+	async cleanupExpiredNotifications() {
+		const now = new Date();
+		let deletedCount = 0;
+
+		for (const [id, notification] of this.notifications.entries()) {
+			if (notification.expiresAt && new Date(notification.expiresAt) < now) {
+				this.notifications.delete(id);
+				deletedCount++;
+			}
+		}
+
+		return { deletedCount };
+	}
 }
 
 module.exports = NotificationService;
