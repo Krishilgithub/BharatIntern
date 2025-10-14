@@ -1,0 +1,21 @@
+# Render Frontend Service Configuration
+services:
+  - type: web
+    name: bharatintern-frontend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: |
+      npm install
+      cp next.config.production.js next.config.js
+      cp package.production.json package.json
+      npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://bharatintern-backend.onrender.com
+      - key: PORT
+        value: 10000

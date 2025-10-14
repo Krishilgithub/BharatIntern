@@ -1,0 +1,44 @@
+services:
+  # Frontend Service (Next.js Static)
+  - type: static
+    name: bharatintern-frontend
+    buildCommand: |
+      npm install
+      npm run build
+    publishDirectory: build
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://bharatintern-backend.onrender.com
+
+  # Backend Service (FastAPI Python)
+  - type: web
+    name: bharatintern-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: |
+      cd backend
+      pip install --upgrade pip
+      pip install -r requirements-production.txt
+    startCommand: cd backend && python main-production.py
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: NODE_ENV
+        value: production
+
+  # Database (if using PostgreSQL)
+  - type: pserv
+    name: bharatintern-db
+    env: postgresql
+    region: oregon
+    plan: free
+    databaseName: bharatintern_db
+    databaseUser: bharatintern_user

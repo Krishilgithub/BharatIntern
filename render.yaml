@@ -1,0 +1,24 @@
+# Render Configuration for React Static Site
+# This file configures deployment as a Static Site
+
+# Static Site Configuration
+buildCommand: npm run build
+publishDirectory: build
+
+# Environment Configuration
+environment: static
+
+# Headers for SPA routing
+headers:
+  - source: "/*"
+    headers:
+      - key: "X-Frame-Options"
+        value: "DENY"
+      - key: "X-Content-Type-Options"
+        value: "nosniff"
+
+# Redirects for SPA
+redirects:
+  - source: "/*"
+    destination: "/index.html"
+    type: rewrite

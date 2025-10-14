@@ -1,0 +1,26 @@
+# Render Backend Service Configuration
+services:
+  - type: web
+    name: bharatintern-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: |
+      cd backend
+      pip install --upgrade pip
+      pip install -r requirements-production.txt
+    startCommand: cd backend && python main-production.py
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: UVICORN_HOST
+        value: 0.0.0.0
+      - key: UVICORN_PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
