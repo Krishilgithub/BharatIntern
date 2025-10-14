@@ -67,10 +67,19 @@ def ai_health():
     """AI system health check"""
     return {
         "status": "operational",
+        "openai": {
+            "available": False,  # OpenAI not configured in simple backend
+            "status": "not_configured"
+        },
+        "gemini": {
+            "available": False,  # Gemini not configured in simple backend
+            "status": "not_configured"
+        },
         "perplexity": {
             "available": PERPLEXITY_AVAILABLE,
             "status": "ready" if PERPLEXITY_AVAILABLE else "not_configured"
         },
+        "recommended": "perplexity" if PERPLEXITY_AVAILABLE else "mock",
         "timestamp": datetime.now().isoformat()
     }
 
