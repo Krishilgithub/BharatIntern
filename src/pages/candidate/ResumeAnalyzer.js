@@ -102,15 +102,192 @@ const ResumeAnalyzer = () => {
 		certifications: [],
 	});
 
+	// Parse Perplexity AI analysis response into structured format
+	const parsePerplexityAnalysis = (perplexityResponse) => {
+		console.log("🤖 Parsing Perplexity AI response");
+
+		const analysisText =
+			perplexityResponse.analysis_text || perplexityResponse.analysisText || "";
+
+	// Extract sections using regex patterns
+	const extractSection = (text, sectionName) => {
+		if (!text || typeof text !== 'string') return "";
+		const regex = new RegExp(
+			`\\*\\*${sectionName}\\*\\*([\\s\\S]*?)(?=\\*\\*[A-Z]|$)`,
+			"i"
+		);
+		const match = text.match(regex);
+		return match && match[1] ? match[1].trim() : "";
+	};
+
+	const extractListItems = (text) => {
+		if (!text || typeof text !== 'string') return [];
+		const lines = text.split("\n").filter((line) => line.trim());
+		return lines
+			.map((line) => line.replace(/^[•\-\d.]+\s*/, "").trim())
+			.filter((item) => item.length > 0);
+	};
+
+	const extractScore = (text, pattern) => {
+		if (!text || typeof text !== 'string') return 75;
+		const match = text.match(pattern);
+		return match && match[1] ? parseInt(match[1]) : 75;
+	};
+
+	// Parse structured sections
+	const summary = extractSection(analysisText, "OVERALL SUMMARY");
+		const strengthsText = extractSection(analysisText, "STRENGTHS");
+		const weaknessesText = extractSection(
+			analysisText,
+			"AREAS FOR IMPROVEMENT|WEAKNESSES"
+		);
+		const skillsText = extractSection(analysisText, "SKILLS ASSESSMENT");
+		const experienceText = extractSection(analysisText, "EXPERIENCE ANALYSIS");
+		const educationText = extractSection(analysisText, "EDUCATION BACKGROUND");
+		const formattingText = extractSection(
+			analysisText,
+			"FORMATTING & PRESENTATION"
+		);
+		const atsText = extractSection(analysisText, "ATS COMPATIBILITY SCORE");
+		const recommendationsText = extractSection(
+			analysisText,
+			"KEY RECOMMENDATIONS|RECOMMENDATIONS"
+		);
+		const ratingText = extractSection(analysisText, "OVERALL RATING");
+		const careerText = extractSection(analysisText, "CAREER SUGGESTIONS");
+
+		// Extract scores
+		const overallScore = extractScore(ratingText, /Score:\s*(\d+)\/10/) * 10;
+		const atsScore = extractScore(atsText, /Score:\s*(\d+)\/10/) * 10;
+
+		// Parse lists
+		const strengths = extractListItems(strengthsText);
+		const weaknesses = extractListItems(weaknessesText);
+		const recommendations = extractListItems(recommendationsText);
+
+		return {
+			success: true,
+			overallScore: overallScore || 75,
+			summary: summary || "Professional resume with strong background",
+			strengths:
+				strengths.length > 0
+					? strengths
+					: [
+							"Strong technical background",
+							"Clear communication",
+							"Relevant experience",
+					  ],
+			weaknesses:
+				weaknesses.length > 0
+					? weaknesses
+					: [
+							"Could add more quantifiable achievements",
+							"Consider updating formatting",
+					  ],
+
+			skillAnalysis: {
+				technical: skillsText.includes("Technical Skills")
+					? skillsText.split("Technical Skills:")[1]?.split("\n")[0]
+					: "Strong technical foundation",
+				soft: skillsText.includes("Soft Skills")
+					? skillsText.split("Soft Skills:")[1]?.split("\n")[0]
+					: "Good interpersonal abilities",
+				summary:
+					skillsText || "Well-rounded skill set with technical and soft skills",
+			},
+
+			experienceAnalysis: {
+				quality: experienceText.includes("Work Experience Quality")
+					? experienceText.split("Work Experience Quality:")[1]?.split("\n")[0]
+					: "Good experience",
+				relevance: experienceText.includes("Relevance")
+					? experienceText.split("Relevance")[1]?.split("\n")[0]
+					: "Relevant to target role",
+				progression: experienceText.includes("Career Progression")
+					? experienceText.split("Career Progression:")[1]?.split("\n")[0]
+					: "Steady growth",
+				summary: experienceText || "Solid professional experience",
+			},
+
+			educationAnalysis: educationText || "Good educational background",
+
+			atsCompatibility: {
+				score: atsScore || 70,
+				strengths: [
+					"Clear section headers",
+					"Standard formatting",
+					"Keyword usage",
+				],
+				weaknesses: atsText.includes("missing")
+					? ["Missing some keywords"]
+					: ["Minor formatting issues"],
+				recommendations: [
+					"Add more industry keywords",
+					"Use standard section names",
+				],
+				summary:
+					atsText || "Good ATS compatibility with minor improvements needed",
+			},
+
+			improvements:
+				recommendations.length > 0
+					? recommendations.map((rec, idx) => ({
+							category:
+								idx < 2 ? "Skills" : idx < 4 ? "Experience" : "Presentation",
+							priority: idx < 2 ? "High" : "Medium",
+							description: rec,
+							impact: "+10-15%",
+					  }))
+					: [],
+
+			careerSuggestions: careerText
+				? {
+						suitableRoles: extractListItems(
+							careerText.includes("Suitable Roles")
+								? careerText.split("Suitable Roles:")[1]?.split("Industries")[0]
+								: ""
+						),
+						industries: extractListItems(
+							careerText.includes("Industries")
+								? careerText.split("Industries")[1]?.split("Next")[0]
+								: ""
+						),
+						nextSteps: extractListItems(
+							careerText.includes("Next Career Steps")
+								? careerText.split("Next Career Steps:")[1]
+								: ""
+						),
+						summary: careerText,
+				  }
+				: null,
+
+			formattingAnalysis: formattingText || "Well-structured resume",
+			rawAnalysis: analysisText,
+			timestamp: new Date().toISOString(),
+			analyzedBy: "Perplexity AI",
+		};
+	};
+
 	// Transform backend analysis data to frontend format with enhanced features
 	const transformBackendAnalysis = (backendData) => {
 		console.log("🔄 Transforming backend analysis:", backendData);
-		
+
 		// Handle different analyzer outputs
 		let analysis = {};
 
+		// Check for Perplexity AI response first
+		if (
+			backendData.analysis_text ||
+			backendData.analysisText ||
+			backendData.model === "llama-3.1-sonar-large-128k-online"
+		) {
+			console.log("🤖 Detected Perplexity AI response");
+			const parsed = parsePerplexityAnalysis(backendData);
+			analysis = parsed;
+			console.log("📊 Using Perplexity parsed data");
+		}
 		// Check for advanced analyzer results in priority order
-		if (backendData.resume_analysis) {
+		else if (backendData.resume_analysis) {
 			analysis = backendData.resume_analysis;
 			console.log("📊 Using resume_analysis data");
 		} else if (backendData.nlp_analysis) {
@@ -130,64 +307,93 @@ const ResumeAnalyzer = () => {
 			console.log("📊 Using direct backendData");
 		}
 
-					// Enhanced transformation to match all tab features
-					// First extract skills from various possible backend formats
-					const extractedSkills = analysis.extractedSkills || 
-					                       analysis.skills || 
-					                       analysis.nerAnalysis?.skills ||
-					                       analysis.nlp_skills ||
-					                       transformSkills(analysis.skills || analysis.entities || {});
-					
-					// Transform skills to proper format
-					const skillsArray = transformSkills(extractedSkills);
-					
-					const transformedAnalysis = {
-						// Overview data
-						overallScore: analysis.overall_score || analysis.overallScore || 
-						             analysis.atsScore || analysis.score || 75,
-						
-						// Skills Analysis data - Use actual extracted skills from resume
-						extractedSkills: skillsArray,
-						missingSkills: analysis.missingSkills || generateMissingSkillsSuggestions(skillsArray),
-						skillAnalysis: analysis.skillAnalysis || {
-							totalSkills: skillsArray.length,
-							categories: categorizeSkills(skillsArray),
-							topSkills: skillsArray.slice(0, 5),
-							keywordDensity: analysis.keywordDensity || analysis.keyword_density || {}
-						},			// ATS Score data
-			atsCompatibility: analysis.atsCompatibility || generateATSCompatibility(analysis),
-			
+		// Enhanced transformation to match all tab features
+		// First extract skills from various possible backend formats
+		const extractedSkills =
+			analysis.extractedSkills ||
+			analysis.skills ||
+			analysis.nerAnalysis?.skills ||
+			analysis.nlp_skills ||
+			transformSkills(analysis.skills || analysis.entities || {});
+
+		// Transform skills to proper format
+		const skillsArray = transformSkills(extractedSkills);
+
+		const transformedAnalysis = {
+			// Overview data
+			overallScore:
+				analysis.overall_score ||
+				analysis.overallScore ||
+				analysis.atsScore ||
+				analysis.score ||
+				75,
+
+			// Skills Analysis data - Use actual extracted skills from resume
+			extractedSkills: skillsArray,
+			missingSkills:
+				analysis.missingSkills || generateMissingSkillsSuggestions(skillsArray),
+			skillAnalysis: analysis.skillAnalysis || {
+				totalSkills: skillsArray.length,
+				categories: categorizeSkills(skillsArray),
+				topSkills: skillsArray.slice(0, 5),
+				keywordDensity:
+					analysis.keywordDensity || analysis.keyword_density || {},
+			}, // ATS Score data
+			atsCompatibility:
+				analysis.atsCompatibility || generateATSCompatibility(analysis),
+
 			// Improvements data - Generate dynamic improvements based on actual analysis
-			improvements: analysis.improvements || analysis.recommendations || generateDynamicImprovements(analysis, skillsArray),
-			
+			improvements:
+				analysis.improvements ||
+				analysis.recommendations ||
+				generateDynamicImprovements(analysis, skillsArray),
+
 			// Career Match data
-			careerSuggestions: analysis.careerSuggestions || generateCareerSuggestions(analysis),
-			
+			careerSuggestions:
+				analysis.careerSuggestions || generateCareerSuggestions(analysis),
+
 			// Personal Info
-			personalInfo: analysis.personalInfo || analysis.contactInfo || analysis.personal_info || {},
-			contactInfo: analysis.contactInfo || analysis.personalInfo || analysis.personal_info || {},
-			
+			personalInfo:
+				analysis.personalInfo ||
+				analysis.contactInfo ||
+				analysis.personal_info ||
+				{},
+			contactInfo:
+				analysis.contactInfo ||
+				analysis.personalInfo ||
+				analysis.personal_info ||
+				{},
+
 			// Experience & Education
 			experience: analysis.experience || [],
 			education: analysis.education || [],
 			projects: analysis.projects || [],
 			certifications: analysis.certifications || [],
-			
+
 			// Additional data
-			summary: analysis.summary || "Resume processed successfully with comprehensive AI analysis",
+			summary:
+				analysis.summary ||
+				"Resume processed successfully with comprehensive AI analysis",
 			timestamp: new Date().toISOString(),
-			analysisType: analysis.analysis_method || analysis.analysisMethod || "enhanced_ai",
-			extractedContent: analysis.extractedContent || analysis.extractedContentPreview || "",
-			
+			analysisType:
+				analysis.analysis_method || analysis.analysisMethod || "enhanced_ai",
+			extractedContent:
+				analysis.extractedContent || analysis.extractedContentPreview || "",
+
 			// Industry benchmarking
 			industryBenchmark: analysis.industryBenchmark || {
 				averageScore: 65,
 				topPercentile: 85,
 				yourPercentile: Math.min(95, (analysis.overall_score || 75) + 5),
-				comparison: (analysis.overall_score || 75) >= 80 ? "Excellent" : 
-				           (analysis.overall_score || 75) >= 70 ? "Above Average" : 
-				           (analysis.overall_score || 75) >= 60 ? "Average" : "Below Average"
-			}
+				comparison:
+					(analysis.overall_score || 75) >= 80
+						? "Excellent"
+						: (analysis.overall_score || 75) >= 70
+						? "Above Average"
+						: (analysis.overall_score || 75) >= 60
+						? "Average"
+						: "Below Average",
+			},
 		};
 
 		return transformedAnalysis;
@@ -195,26 +401,79 @@ const ResumeAnalyzer = () => {
 
 	// Helper function to generate missing skills suggestions
 	const generateMissingSkillsSuggestions = (currentSkills) => {
-		const skillNames = (currentSkills || []).map(skill => 
-			typeof skill === 'string' ? skill.toLowerCase() : 
-			skill.name ? skill.name.toLowerCase() : ''
+		const skillNames = (currentSkills || []).map((skill) =>
+			typeof skill === "string"
+				? skill.toLowerCase()
+				: skill.name
+				? skill.name.toLowerCase()
+				: ""
 		);
-		
+
 		const commonMissingSkills = [
-			{ name: "TypeScript", impact: "+20%", priority: "High", reason: "High demand in modern web development" },
-			{ name: "Docker", impact: "+15%", priority: "Medium", reason: "Essential for DevOps and deployment" },
-			{ name: "AWS", impact: "+25%", priority: "High", reason: "Cloud computing skills are highly valued" },
-			{ name: "React", impact: "+18%", priority: "High", reason: "Popular frontend framework" },
-			{ name: "Node.js", impact: "+16%", priority: "Medium", reason: "Backend JavaScript development" },
-			{ name: "Python", impact: "+22%", priority: "High", reason: "Versatile programming language" },
-			{ name: "Git", impact: "+12%", priority: "Medium", reason: "Version control is essential" },
-			{ name: "Kubernetes", impact: "+18%", priority: "Medium", reason: "Container orchestration standard" },
-			{ name: "GraphQL", impact: "+14%", priority: "Low", reason: "Modern API query language" },
-			{ name: "MongoDB", impact: "+13%", priority: "Medium", reason: "Popular NoSQL database" }
+			{
+				name: "TypeScript",
+				impact: "+20%",
+				priority: "High",
+				reason: "High demand in modern web development",
+			},
+			{
+				name: "Docker",
+				impact: "+15%",
+				priority: "Medium",
+				reason: "Essential for DevOps and deployment",
+			},
+			{
+				name: "AWS",
+				impact: "+25%",
+				priority: "High",
+				reason: "Cloud computing skills are highly valued",
+			},
+			{
+				name: "React",
+				impact: "+18%",
+				priority: "High",
+				reason: "Popular frontend framework",
+			},
+			{
+				name: "Node.js",
+				impact: "+16%",
+				priority: "Medium",
+				reason: "Backend JavaScript development",
+			},
+			{
+				name: "Python",
+				impact: "+22%",
+				priority: "High",
+				reason: "Versatile programming language",
+			},
+			{
+				name: "Git",
+				impact: "+12%",
+				priority: "Medium",
+				reason: "Version control is essential",
+			},
+			{
+				name: "Kubernetes",
+				impact: "+18%",
+				priority: "Medium",
+				reason: "Container orchestration standard",
+			},
+			{
+				name: "GraphQL",
+				impact: "+14%",
+				priority: "Low",
+				reason: "Modern API query language",
+			},
+			{
+				name: "MongoDB",
+				impact: "+13%",
+				priority: "Medium",
+				reason: "Popular NoSQL database",
+			},
 		];
 
 		return commonMissingSkills
-			.filter(skill => !skillNames.includes(skill.name.toLowerCase()))
+			.filter((skill) => !skillNames.includes(skill.name.toLowerCase()))
 			.slice(0, 4);
 	};
 
@@ -228,26 +487,61 @@ const ResumeAnalyzer = () => {
 			cloud: [],
 			devops: [],
 			mobile: [],
-			other: []
+			other: [],
 		};
 
-		(skills || []).forEach(skill => {
-			const skillName = typeof skill === 'string' ? skill : skill.name;
+		(skills || []).forEach((skill) => {
+			const skillName = typeof skill === "string" ? skill : skill.name;
 			const skillLower = skillName.toLowerCase();
-			
-			if (['javascript', 'python', 'java', 'c++', 'c#', 'typescript', 'go', 'rust'].some(lang => skillLower.includes(lang))) {
+
+			if (
+				[
+					"javascript",
+					"python",
+					"java",
+					"c++",
+					"c#",
+					"typescript",
+					"go",
+					"rust",
+				].some((lang) => skillLower.includes(lang))
+			) {
 				categories.programming.push(skillName);
-			} else if (['react', 'vue', 'angular', 'html', 'css', 'sass', 'tailwind'].some(tech => skillLower.includes(tech))) {
+			} else if (
+				["react", "vue", "angular", "html", "css", "sass", "tailwind"].some(
+					(tech) => skillLower.includes(tech)
+				)
+			) {
 				categories.frontend.push(skillName);
-			} else if (['node', 'express', 'django', 'flask', 'spring', 'laravel'].some(tech => skillLower.includes(tech))) {
+			} else if (
+				["node", "express", "django", "flask", "spring", "laravel"].some(
+					(tech) => skillLower.includes(tech)
+				)
+			) {
 				categories.backend.push(skillName);
-			} else if (['mysql', 'postgresql', 'mongodb', 'redis', 'oracle'].some(db => skillLower.includes(db))) {
+			} else if (
+				["mysql", "postgresql", "mongodb", "redis", "oracle"].some((db) =>
+					skillLower.includes(db)
+				)
+			) {
 				categories.database.push(skillName);
-			} else if (['aws', 'azure', 'gcp', 'cloud', 'lambda', 's3'].some(cloud => skillLower.includes(cloud))) {
+			} else if (
+				["aws", "azure", "gcp", "cloud", "lambda", "s3"].some((cloud) =>
+					skillLower.includes(cloud)
+				)
+			) {
 				categories.cloud.push(skillName);
-			} else if (['docker', 'kubernetes', 'jenkins', 'ci/cd', 'devops'].some(devops => skillLower.includes(devops))) {
+			} else if (
+				["docker", "kubernetes", "jenkins", "ci/cd", "devops"].some((devops) =>
+					skillLower.includes(devops)
+				)
+			) {
 				categories.devops.push(skillName);
-			} else if (['react native', 'flutter', 'swift', 'kotlin', 'ios', 'android'].some(mobile => skillLower.includes(mobile))) {
+			} else if (
+				["react native", "flutter", "swift", "kotlin", "ios", "android"].some(
+					(mobile) => skillLower.includes(mobile)
+				)
+			) {
 				categories.mobile.push(skillName);
 			} else {
 				categories.other.push(skillName);
@@ -260,33 +554,53 @@ const ResumeAnalyzer = () => {
 	// Transform skills from backend format to frontend format
 	const transformSkills = (backendSkills) => {
 		console.log("🔍 Transforming skills from backend:", backendSkills);
-		
+
 		if (!backendSkills) return [];
-		
+
 		// Handle different formats from backend
 		if (Array.isArray(backendSkills)) {
 			console.log("📋 Processing skills array:", backendSkills);
 			return backendSkills.map((skill, index) => ({
-				name: typeof skill === 'string' ? skill : (skill.name || skill.text || skill.label || skill),
-				confidence: typeof skill === 'object' ? (skill.confidence || skill.score || Math.floor(Math.random() * 20) + 75) : Math.floor(Math.random() * 20) + 75,
-				category: typeof skill === 'object' ? (skill.category || skill.label || 'General') : 'General',
-				level: typeof skill === 'object' ? (skill.level || 'Intermediate') : 'Intermediate',
-				yearsExp: typeof skill === 'object' ? (skill.yearsExp || Math.floor(Math.random() * 3) + 1) : Math.floor(Math.random() * 3) + 1,
-				mentions: typeof skill === 'object' ? (skill.mentions || skill.count || 1) : 1
+				name:
+					typeof skill === "string"
+						? skill
+						: skill.name || skill.text || skill.label || skill,
+				confidence:
+					typeof skill === "object"
+						? skill.confidence ||
+						  skill.score ||
+						  Math.floor(Math.random() * 20) + 75
+						: Math.floor(Math.random() * 20) + 75,
+				category:
+					typeof skill === "object"
+						? skill.category || skill.label || "General"
+						: "General",
+				level:
+					typeof skill === "object"
+						? skill.level || "Intermediate"
+						: "Intermediate",
+				yearsExp:
+					typeof skill === "object"
+						? skill.yearsExp || Math.floor(Math.random() * 3) + 1
+						: Math.floor(Math.random() * 3) + 1,
+				mentions:
+					typeof skill === "object" ? skill.mentions || skill.count || 1 : 1,
 			}));
 		}
 
 		if (typeof backendSkills !== "object") {
 			// If it's a string, try to parse it or treat as single skill
-			if (typeof backendSkills === 'string') {
-				return [{
-					name: backendSkills,
-					confidence: 80,
-					category: 'General',
-					level: 'Intermediate',
-					yearsExp: 1,
-					mentions: 1
-				}];
+			if (typeof backendSkills === "string") {
+				return [
+					{
+						name: backendSkills,
+						confidence: 80,
+						category: "General",
+						level: "Intermediate",
+						yearsExp: 1,
+						mentions: 1,
+					},
+				];
 			}
 			return [];
 		}
@@ -297,41 +611,78 @@ const ResumeAnalyzer = () => {
 		// Look for common NER entities like SKILL, PERSON, ORG, etc.
 		Object.entries(backendSkills).forEach(([category, skillList]) => {
 			console.log(`📂 Processing category: ${category}`, skillList);
-			
+
 			if (Array.isArray(skillList)) {
 				skillList.forEach((skill) => {
-					const skillName = typeof skill === 'string' ? skill : 
-					                 skill.name || skill.text || skill.label || skill.word || 
-					                 JSON.stringify(skill);
-					
+					const skillName =
+						typeof skill === "string"
+							? skill
+							: skill.name ||
+							  skill.text ||
+							  skill.label ||
+							  skill.word ||
+							  JSON.stringify(skill);
+
 					// Filter out common non-skill entities
-					const excludeTerms = ['resume', 'cv', 'candidate', 'applicant', 'email', 'phone', 'address'];
-					if (skillName && !excludeTerms.some(term => skillName.toLowerCase().includes(term))) {
+					const excludeTerms = [
+						"resume",
+						"cv",
+						"candidate",
+						"applicant",
+						"email",
+						"phone",
+						"address",
+					];
+					if (
+						skillName &&
+						!excludeTerms.some((term) => skillName.toLowerCase().includes(term))
+					) {
 						skills.push({
 							name: skillName,
-							confidence: typeof skill === 'object' ? (skill.confidence || skill.score || Math.floor(Math.random() * 20) + 70) : Math.floor(Math.random() * 20) + 70,
-							category: category.replace(/_/g, " ").toLowerCase().replace(/^\w/, c => c.toUpperCase()),
-							level: typeof skill === 'object' ? (skill.level || 'Intermediate') : 'Intermediate',
+							confidence:
+								typeof skill === "object"
+									? skill.confidence ||
+									  skill.score ||
+									  Math.floor(Math.random() * 20) + 70
+									: Math.floor(Math.random() * 20) + 70,
+							category: category
+								.replace(/_/g, " ")
+								.toLowerCase()
+								.replace(/^\w/, (c) => c.toUpperCase()),
+							level:
+								typeof skill === "object"
+									? skill.level || "Intermediate"
+									: "Intermediate",
 							yearsExp: Math.floor(Math.random() * 5) + 1,
-							mentions: typeof skill === 'object' ? (skill.mentions || skill.count || 1) : 1
+							mentions:
+								typeof skill === "object"
+									? skill.mentions || skill.count || 1
+									: 1,
 						});
 					}
 				});
-			} else if (typeof skillList === 'object' && skillList !== null) {
+			} else if (typeof skillList === "object" && skillList !== null) {
 				// Handle nested objects
 				Object.entries(skillList).forEach(([subCategory, subSkillList]) => {
 					if (Array.isArray(subSkillList)) {
 						subSkillList.forEach((skill) => {
-							const skillName = typeof skill === 'string' ? skill : 
-							                 skill.name || skill.text || skill.label || skill;
+							const skillName =
+								typeof skill === "string"
+									? skill
+									: skill.name || skill.text || skill.label || skill;
 							if (skillName) {
 								skills.push({
 									name: skillName,
-									confidence: typeof skill === 'object' ? (skill.confidence || skill.score || Math.floor(Math.random() * 20) + 70) : Math.floor(Math.random() * 20) + 70,
+									confidence:
+										typeof skill === "object"
+											? skill.confidence ||
+											  skill.score ||
+											  Math.floor(Math.random() * 20) + 70
+											: Math.floor(Math.random() * 20) + 70,
 									category: `${category} - ${subCategory}`.replace(/_/g, " "),
-									level: 'Intermediate',
+									level: "Intermediate",
 									yearsExp: Math.floor(Math.random() * 3) + 1,
-									mentions: 1
+									mentions: 1,
 								});
 							}
 						});
@@ -348,74 +699,101 @@ const ResumeAnalyzer = () => {
 	const generateCareerSuggestions = (analysis) => {
 		const suggestions = [];
 		const skills = analysis.extractedSkills || analysis.skills || [];
-		const skillNames = skills.map(s => (typeof s === 'string' ? s : s.name).toLowerCase());
-		
+		const skillNames = skills.map((s) =>
+			(typeof s === "string" ? s : s.name).toLowerCase()
+		);
+
 		// Define career paths with skill requirements
 		const careerPaths = [
 			{
 				title: "Full Stack Developer",
-				requiredSkills: ['javascript', 'react', 'node', 'html', 'css'],
+				requiredSkills: ["javascript", "react", "node", "html", "css"],
 				salaryRange: "$70k-$120k",
 				growth: "High",
-				match: 0
+				match: 0,
 			},
 			{
-				title: "Frontend Engineer", 
-				requiredSkills: ['javascript', 'react', 'vue', 'angular', 'html', 'css'],
+				title: "Frontend Engineer",
+				requiredSkills: [
+					"javascript",
+					"react",
+					"vue",
+					"angular",
+					"html",
+					"css",
+				],
 				salaryRange: "$65k-$110k",
 				growth: "High",
-				match: 0
+				match: 0,
 			},
 			{
 				title: "Backend Developer",
-				requiredSkills: ['python', 'java', 'node', 'express', 'django'],
-				salaryRange: "$75k-$125k", 
+				requiredSkills: ["python", "java", "node", "express", "django"],
+				salaryRange: "$75k-$125k",
 				growth: "High",
-				match: 0
+				match: 0,
 			},
 			{
 				title: "DevOps Engineer",
-				requiredSkills: ['docker', 'kubernetes', 'aws', 'jenkins', 'linux'],
+				requiredSkills: ["docker", "kubernetes", "aws", "jenkins", "linux"],
 				salaryRange: "$80k-$140k",
-				growth: "Very High", 
-				match: 0
+				growth: "Very High",
+				match: 0,
 			},
 			{
 				title: "Data Scientist",
-				requiredSkills: ['python', 'machine learning', 'sql', 'pandas', 'tensorflow'],
+				requiredSkills: [
+					"python",
+					"machine learning",
+					"sql",
+					"pandas",
+					"tensorflow",
+				],
 				salaryRange: "$90k-$150k",
 				growth: "Very High",
-				match: 0
+				match: 0,
 			},
 			{
 				title: "Mobile Developer",
-				requiredSkills: ['react native', 'flutter', 'swift', 'kotlin', 'ios', 'android'],
+				requiredSkills: [
+					"react native",
+					"flutter",
+					"swift",
+					"kotlin",
+					"ios",
+					"android",
+				],
 				salaryRange: "$70k-$130k",
 				growth: "High",
-				match: 0
+				match: 0,
 			},
 			{
 				title: "Cloud Engineer",
-				requiredSkills: ['aws', 'azure', 'gcp', 'terraform', 'kubernetes'],
+				requiredSkills: ["aws", "azure", "gcp", "terraform", "kubernetes"],
 				salaryRange: "$85k-$145k",
 				growth: "Very High",
-				match: 0
+				match: 0,
 			},
 			{
 				title: "Software Engineer",
-				requiredSkills: ['programming', 'algorithms', 'data structures'],
-				salaryRange: "$70k-$130k", 
+				requiredSkills: ["programming", "algorithms", "data structures"],
+				salaryRange: "$70k-$130k",
 				growth: "High",
-				match: 0
-			}
+				match: 0,
+			},
 		];
 
 		// Calculate match percentage for each career
-		careerPaths.forEach(career => {
-			const matchedSkills = career.requiredSkills.filter(reqSkill => 
-				skillNames.some(userSkill => userSkill.includes(reqSkill) || reqSkill.includes(userSkill))
+		careerPaths.forEach((career) => {
+			const matchedSkills = career.requiredSkills.filter((reqSkill) =>
+				skillNames.some(
+					(userSkill) =>
+						userSkill.includes(reqSkill) || reqSkill.includes(userSkill)
+				)
 			);
-			career.match = Math.round((matchedSkills.length / career.requiredSkills.length) * 100);
+			career.match = Math.round(
+				(matchedSkills.length / career.requiredSkills.length) * 100
+			);
 			career.reason = `You have ${matchedSkills.length} of ${career.requiredSkills.length} key skills`;
 		});
 
@@ -423,59 +801,86 @@ const ResumeAnalyzer = () => {
 		return careerPaths
 			.sort((a, b) => b.match - a.match)
 			.slice(0, 4)
-			.filter(career => career.match > 20); // Only show if at least 20% match
+			.filter((career) => career.match > 20); // Only show if at least 20% match
 	};
 
 	// Enhanced ATS compatibility analysis using real resume data
 	const generateATSCompatibility = (analysis) => {
 		console.log("🎯 Generating ATS compatibility from analysis:", analysis);
-		
+
 		let score = 50; // Conservative base score
 		const issues = [];
 		const recommendations = [];
 		let detailedScores = {
 			contentQuality: 0,
-			contactInfo: 0, 
+			contactInfo: 0,
 			experience: 0,
-			formatKeywords: 0
+			formatKeywords: 0,
 		};
 
 		// Extract actual resume content for analysis
-		const extractedText = analysis.extractedContent || analysis.extracted_content_preview || 
-		                     analysis.extractedContentPreview || analysis.summary || "";
+		const extractedText =
+			analysis.extractedContent ||
+			analysis.extracted_content_preview ||
+			analysis.extractedContentPreview ||
+			analysis.summary ||
+			"";
 		const contentLength = extractedText.length;
-		
+
 		console.log("📄 Extracted content length:", contentLength);
 
 		// 1. Contact Information Analysis (25 points max)
-		const contactInfo = analysis.personalInfo || analysis.contactInfo || analysis.personal_info || {};
+		const contactInfo =
+			analysis.personalInfo ||
+			analysis.contactInfo ||
+			analysis.personal_info ||
+			{};
 		let contactScore = 0;
-		
+
 		// Check for email patterns in extracted text
-		const hasEmail = contactInfo.email || /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/i.test(extractedText);
+		const hasEmail =
+			contactInfo.email ||
+			/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/i.test(
+				extractedText
+			);
 		if (hasEmail) {
 			contactScore += 12;
 		} else {
-			issues.push({ type: "contact", severity: "High", description: "Email address not clearly detected" });
+			issues.push({
+				type: "contact",
+				severity: "High",
+				description: "Email address not clearly detected",
+			});
 		}
 
-		// Check for phone patterns  
-		const hasPhone = contactInfo.phone || /(\+\d{1,2}\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}/.test(extractedText);
+		// Check for phone patterns
+		const hasPhone =
+			contactInfo.phone ||
+			/(\+\d{1,2}\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}/.test(
+				extractedText
+			);
 		if (hasPhone) {
 			contactScore += 8;
 		} else {
-			issues.push({ type: "contact", severity: "Medium", description: "Phone number not found" });
+			issues.push({
+				type: "contact",
+				severity: "Medium",
+				description: "Phone number not found",
+			});
 		}
-		
+
 		// Check for location/address
-		const hasLocation = contactInfo.location || contactInfo.address || /\b\w+,\s*\w+\b/.test(extractedText);
+		const hasLocation =
+			contactInfo.location ||
+			contactInfo.address ||
+			/\b\w+,\s*\w+\b/.test(extractedText);
 		if (hasLocation) {
 			contactScore += 5;
 		}
-		
+
 		detailedScores.contactInfo = Math.min(25, contactScore);
 
-		// 2. Content Quality Analysis (25 points max)  
+		// 2. Content Quality Analysis (25 points max)
 		let contentScore = 0;
 		if (contentLength > 2000) {
 			contentScore += 15; // Comprehensive content
@@ -484,13 +889,25 @@ const ResumeAnalyzer = () => {
 		} else if (contentLength > 500) {
 			contentScore += 6; // Minimal content
 		} else {
-			issues.push({ type: "content", severity: "High", description: "Resume content appears too brief" });
+			issues.push({
+				type: "content",
+				severity: "High",
+				description: "Resume content appears too brief",
+			});
 		}
 
 		// Check for action verbs and quantifiable achievements
-		const actionVerbs = ['developed', 'implemented', 'managed', 'led', 'created', 'designed', 'improved'];
-		const actionVerbMatches = actionVerbs.filter(verb => 
-			new RegExp(`\\b${verb}`, 'i').test(extractedText)
+		const actionVerbs = [
+			"developed",
+			"implemented",
+			"managed",
+			"led",
+			"created",
+			"designed",
+			"improved",
+		];
+		const actionVerbMatches = actionVerbs.filter((verb) =>
+			new RegExp(`\\b${verb}`, "i").test(extractedText)
 		).length;
 		contentScore += Math.min(10, actionVerbMatches * 2);
 
@@ -499,9 +916,9 @@ const ResumeAnalyzer = () => {
 		// 3. Skills and Experience Analysis (25 points max)
 		const skills = analysis.extractedSkills || analysis.skills || [];
 		let experienceScore = 0;
-		
+
 		console.log("🔧 Detected skills count:", skills.length);
-		
+
 		if (skills.length >= 10) {
 			experienceScore += 15; // Rich skill set
 		} else if (skills.length >= 6) {
@@ -509,13 +926,25 @@ const ResumeAnalyzer = () => {
 		} else if (skills.length >= 3) {
 			experienceScore += 6; // Basic skills
 		} else {
-			issues.push({ type: "skills", severity: "High", description: `Only ${skills.length} skills detected - add more relevant technical skills` });
+			issues.push({
+				type: "skills",
+				severity: "High",
+				description: `Only ${skills.length} skills detected - add more relevant technical skills`,
+			});
 		}
 
 		// Check for work experience indicators
-		const experienceKeywords = ['experience', 'worked', 'employed', 'position', 'role', 'years', 'company'];
-		const experienceMatches = experienceKeywords.filter(keyword => 
-			new RegExp(`\\b${keyword}`, 'i').test(extractedText)
+		const experienceKeywords = [
+			"experience",
+			"worked",
+			"employed",
+			"position",
+			"role",
+			"years",
+			"company",
+		];
+		const experienceMatches = experienceKeywords.filter((keyword) =>
+			new RegExp(`\\b${keyword}`, "i").test(extractedText)
 		).length;
 		experienceScore += Math.min(10, experienceMatches * 2);
 
@@ -523,58 +952,102 @@ const ResumeAnalyzer = () => {
 
 		// 4. Format and Keywords (25 points max)
 		let formatScore = 0;
-		
+
 		// Check for section headers
-		const sections = ['experience', 'education', 'skills', 'summary', 'objective', 'projects'];
-		const sectionMatches = sections.filter(section => 
-			new RegExp(`\\b${section}\\b`, 'i').test(extractedText)
+		const sections = [
+			"experience",
+			"education",
+			"skills",
+			"summary",
+			"objective",
+			"projects",
+		];
+		const sectionMatches = sections.filter((section) =>
+			new RegExp(`\\b${section}\\b`, "i").test(extractedText)
 		).length;
 		formatScore += Math.min(10, sectionMatches * 2);
 
 		// Check for proper formatting indicators
-		if (extractedText.includes('\n') || extractedText.includes('•') || extractedText.includes('-')) {
+		if (
+			extractedText.includes("\n") ||
+			extractedText.includes("•") ||
+			extractedText.includes("-")
+		) {
 			formatScore += 8; // Good structure
 		}
 
 		// Technical keyword density
-		const techKeywords = ['software', 'development', 'programming', 'technical', 'engineer', 'analyst'];
-		const techMatches = techKeywords.filter(keyword => 
-			new RegExp(`\\b${keyword}`, 'i').test(extractedText)
+		const techKeywords = [
+			"software",
+			"development",
+			"programming",
+			"technical",
+			"engineer",
+			"analyst",
+		];
+		const techMatches = techKeywords.filter((keyword) =>
+			new RegExp(`\\b${keyword}`, "i").test(extractedText)
 		).length;
 		formatScore += Math.min(7, techMatches * 2);
 
 		detailedScores.formatKeywords = Math.min(25, formatScore);
 
 		// Calculate total score
-		const totalScore = Object.values(detailedScores).reduce((sum, score) => sum + score, 0);
-		
+		const totalScore = Object.values(detailedScores).reduce(
+			(sum, score) => sum + score,
+			0
+		);
+
 		console.log("📊 ATS Detailed Scores:", detailedScores);
 		console.log("📊 ATS Total Score:", totalScore);
 
 		// Generate specific recommendations based on analysis
 		if (detailedScores.contactInfo < 15) {
-			recommendations.push("Ensure contact information (email, phone) is clearly visible at the top");
+			recommendations.push(
+				"Ensure contact information (email, phone) is clearly visible at the top"
+			);
 		}
 		if (detailedScores.contentQuality < 15) {
-			recommendations.push("Add more detailed descriptions with quantifiable achievements");
+			recommendations.push(
+				"Add more detailed descriptions with quantifiable achievements"
+			);
 		}
 		if (detailedScores.experience < 15) {
-			recommendations.push("Include more relevant technical skills and work experience");
+			recommendations.push(
+				"Include more relevant technical skills and work experience"
+			);
 		}
 		if (detailedScores.formatKeywords < 15) {
-			recommendations.push("Use industry-specific keywords and improve resume structure");
+			recommendations.push(
+				"Use industry-specific keywords and improve resume structure"
+			);
 		}
-		
+
 		// Add general ATS recommendations
-		recommendations.push("Use standard section headings like 'Experience', 'Education', 'Skills'");
-		recommendations.push("Include keywords from job descriptions you're targeting");
-		recommendations.push("Keep formatting simple - avoid complex tables or graphics");
-		recommendations.push("Save resume in both PDF and Word formats for different ATS systems");
+		recommendations.push(
+			"Use standard section headings like 'Experience', 'Education', 'Skills'"
+		);
+		recommendations.push(
+			"Include keywords from job descriptions you're targeting"
+		);
+		recommendations.push(
+			"Keep formatting simple - avoid complex tables or graphics"
+		);
+		recommendations.push(
+			"Save resume in both PDF and Word formats for different ATS systems"
+		);
 
 		return {
 			overallScore: totalScore,
 			score: totalScore, // For backward compatibility
-			compatibility: totalScore >= 85 ? "Excellent" : totalScore >= 70 ? "Good" : totalScore >= 55 ? "Fair" : "Needs Improvement", 
+			compatibility:
+				totalScore >= 85
+					? "Excellent"
+					: totalScore >= 70
+					? "Good"
+					: totalScore >= 55
+					? "Fair"
+					: "Needs Improvement",
 			issues: issues,
 			recommendations: recommendations,
 			// Detailed breakdown for ATS Score tab
@@ -586,35 +1059,45 @@ const ResumeAnalyzer = () => {
 			detailedScores: detailedScores,
 			skillsDetected: (analysis.extractedSkills || []).length,
 			contentLength: contentLength,
-			hasEmail: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/i.test(extractedText),
-			hasPhone: /(\+\d{1,2}\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}/.test(extractedText)
+			hasEmail: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/i.test(
+				extractedText
+			),
+			hasPhone: /(\+\d{1,2}\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}/.test(
+				extractedText
+			),
 		};
 	};
 
 	// Generate dynamic improvements based on actual resume analysis
 	const generateDynamicImprovements = (analysis, skillsArray) => {
 		const improvements = [];
-		const extractedText = analysis.extractedContent || analysis.extracted_content_preview || "";
+		const extractedText =
+			analysis.extractedContent || analysis.extracted_content_preview || "";
 		const contentLength = extractedText.length;
 
-		console.log("🔍 Generating dynamic improvements for content length:", contentLength);
+		console.log(
+			"🔍 Generating dynamic improvements for content length:",
+			contentLength
+		);
 
 		// Content length improvements
 		if (contentLength < 500) {
 			improvements.push({
 				section: "Resume Length",
-				suggestion: "Your resume appears too brief. Add more detailed descriptions of your experience, projects, and achievements to reach at least 1-2 pages.",
+				suggestion:
+					"Your resume appears too brief. Add more detailed descriptions of your experience, projects, and achievements to reach at least 1-2 pages.",
 				priority: "High",
 				impact: "+25% ATS Score",
-				estimatedTime: "2-3 hours"
+				estimatedTime: "2-3 hours",
 			});
 		} else if (contentLength > 4000) {
 			improvements.push({
-				section: "Resume Length", 
-				suggestion: "Your resume might be too lengthy. Consider condensing information and focusing on the most relevant experiences.",
+				section: "Resume Length",
+				suggestion:
+					"Your resume might be too lengthy. Consider condensing information and focusing on the most relevant experiences.",
 				priority: "Medium",
 				impact: "+10% Readability",
-				estimatedTime: "1 hour"
+				estimatedTime: "1 hour",
 			});
 		}
 
@@ -624,76 +1107,106 @@ const ResumeAnalyzer = () => {
 				section: "Skills Section",
 				suggestion: `Only ${skillsArray.length} skills detected. Add more relevant technical skills, programming languages, and tools you've used.`,
 				priority: "High",
-				impact: "+20% ATS Score", 
-				estimatedTime: "30 minutes"
+				impact: "+20% ATS Score",
+				estimatedTime: "30 minutes",
 			});
 		}
 
 		// Contact information improvements
-		const hasEmail = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/i.test(extractedText);
-		const hasPhone = /(\+\d{1,2}\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}/.test(extractedText);
-		
+		const hasEmail =
+			/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/i.test(
+				extractedText
+			);
+		const hasPhone =
+			/(\+\d{1,2}\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}/.test(
+				extractedText
+			);
+
 		if (!hasEmail) {
 			improvements.push({
 				section: "Contact Information",
-				suggestion: "Email address not clearly detected. Ensure your email is prominently displayed at the top of your resume.",
-				priority: "High", 
+				suggestion:
+					"Email address not clearly detected. Ensure your email is prominently displayed at the top of your resume.",
+				priority: "High",
 				impact: "+15% ATS Score",
-				estimatedTime: "5 minutes"
+				estimatedTime: "5 minutes",
 			});
 		}
 
 		if (!hasPhone) {
 			improvements.push({
 				section: "Contact Information",
-				suggestion: "Phone number not found. Add your phone number to make it easy for recruiters to contact you.",
+				suggestion:
+					"Phone number not found. Add your phone number to make it easy for recruiters to contact you.",
 				priority: "Medium",
-				impact: "+8% ATS Score", 
-				estimatedTime: "5 minutes"
+				impact: "+8% ATS Score",
+				estimatedTime: "5 minutes",
 			});
 		}
 
 		// Action verbs and quantifiable achievements
-		const actionVerbs = ['developed', 'implemented', 'managed', 'led', 'created', 'designed', 'improved', 'increased', 'reduced'];
-		const actionVerbCount = actionVerbs.filter(verb => 
-			new RegExp(`\\b${verb}`, 'i').test(extractedText)
+		const actionVerbs = [
+			"developed",
+			"implemented",
+			"managed",
+			"led",
+			"created",
+			"designed",
+			"improved",
+			"increased",
+			"reduced",
+		];
+		const actionVerbCount = actionVerbs.filter((verb) =>
+			new RegExp(`\\b${verb}`, "i").test(extractedText)
 		).length;
 
 		if (actionVerbCount < 3) {
 			improvements.push({
 				section: "Experience Descriptions",
-				suggestion: "Use more action verbs to describe your achievements. Start bullet points with words like 'developed', 'implemented', 'managed', or 'led'.",
+				suggestion:
+					"Use more action verbs to describe your achievements. Start bullet points with words like 'developed', 'implemented', 'managed', or 'led'.",
 				priority: "Medium",
 				impact: "+12% Impact",
-				estimatedTime: "45 minutes"
+				estimatedTime: "45 minutes",
 			});
 		}
 
 		// Quantifiable achievements
-		const hasNumbers = /\b\d+(%|k|million|thousand|\$|years?|months?)\b/i.test(extractedText);
+		const hasNumbers = /\b\d+(%|k|million|thousand|\$|years?|months?)\b/i.test(
+			extractedText
+		);
 		if (!hasNumbers) {
 			improvements.push({
 				section: "Quantifiable Results",
-				suggestion: "Add specific numbers, percentages, or metrics to demonstrate the impact of your work (e.g., 'increased efficiency by 25%', 'managed team of 5').",
+				suggestion:
+					"Add specific numbers, percentages, or metrics to demonstrate the impact of your work (e.g., 'increased efficiency by 25%', 'managed team of 5').",
 				priority: "High",
 				impact: "+18% Credibility",
-				estimatedTime: "1 hour"
+				estimatedTime: "1 hour",
 			});
 		}
 
 		// Section headers
-		const sections = ['experience', 'education', 'skills', 'summary', 'objective', 'projects'];
-		const sectionCount = sections.filter(section => 
-			new RegExp(`\\b${section}\\b`, 'i').test(extractedText)
+		const sections = [
+			"experience",
+			"education",
+			"skills",
+			"summary",
+			"objective",
+			"projects",
+		];
+		const sectionCount = sections.filter((section) =>
+			new RegExp(`\\b${section}\\b`, "i").test(extractedText)
 		).length;
 
 		if (sectionCount < 3) {
 			improvements.push({
-				section: "Resume Structure", 
-				suggestion: "Use clear section headers like 'Professional Summary', 'Experience', 'Education', and 'Skills' to improve ATS parsing.",
+				section: "Resume Structure",
+				suggestion:
+					"Use clear section headers like 'Professional Summary', 'Experience', 'Education', and 'Skills' to improve ATS parsing.",
 				priority: "Medium",
 				impact: "+10% ATS Parsing",
-				estimatedTime: "20 minutes"
+				estimatedTime: "20 minutes",
 			});
 		}
 
@@ -809,7 +1322,9 @@ const ResumeAnalyzer = () => {
 			});
 
 			// PDF preview - text will be extracted during analysis
-			setExtractedText("PDF file selected. Text will be extracted during analysis.");
+			setExtractedText(
+				"PDF file selected. Text will be extracted during analysis."
+			);
 		} else {
 			// For Word documents
 			setResumePreview({
@@ -821,7 +1336,9 @@ const ResumeAnalyzer = () => {
 
 			try {
 				// Document preview - text will be extracted during analysis
-				setExtractedText("Document file selected. Text will be extracted during analysis.");
+				setExtractedText(
+					"Document file selected. Text will be extracted during analysis."
+				);
 			} catch (error) {
 				console.error("Document text extraction failed:", error);
 				setPreviewError("Could not extract text from document");
@@ -884,81 +1401,52 @@ const ResumeAnalyzer = () => {
 
 			console.log("🚀 Starting resume analysis process...");
 
-			// Check API status and inform user
-			toast.loading("Initializing AI analysis...");
+			// Check API status and inform user - PERPLEXITY ONLY
+			// toast.loading("Initializing Perplexity AI...");
 			const currentApiStatus = await apiService.getAIHealth();
 			setApiStatus(currentApiStatus);
 
-			if (currentApiStatus.recommended === "openai") {
-				toast.success("🚀 Using OpenAI for premium analysis!");
-			} else if (currentApiStatus.recommended === "gemini") {
-				toast.success("🤖 Using Gemini AI for smart analysis!");
-			} else {
-				// Provide positive messaging even for fallback
-				let statusMessage = "📊 Using enhanced analysis engine";
-				if (
-					currentApiStatus.openai.error &&
-					currentApiStatus.openai.error.includes("429")
-				) {
-					statusMessage += " - still providing comprehensive insights!";
-				} else if (currentApiStatus.gemini.error) {
-					statusMessage += " - delivering detailed results!";
-				}
+			// Always use Perplexity AI
+			toast.success("🚀 Using Perplexity AI for premium analysis!");
+			console.log("🚀 Perplexity AI Status:", currentApiStatus.perplexity);
 
-				toast(statusMessage, {
-					icon: "📊",
-					duration: 3000,
-				});
-
-				// Only log technical details to console
-				if (currentApiStatus.openai.error || currentApiStatus.gemini.error) {
-					console.warn("🔧 API Status Details:", currentApiStatus);
-				}
-			}
-
-			let resumeText = extractedText;
-
-			// Backend will handle text extraction
-			console.log("📄 Sending file to backend for text extraction and analysis");
+			let resumeText = extractedText; // Backend will handle text extraction
+			console.log(
+				"📄 Sending file to backend for text extraction and analysis"
+			);
 			resumeText = file.name; // Temporary placeholder - backend will extract actual text
 
-			// Analyze with AI using backend
-			toast.loading("Analyzing your resume with AI...");
+			// Analyze with AI using backend - ONLY PERPLEXITY
+			toast.loading("Analyzing your resume with Perplexity AI...");
 
 			// Create FormData for backend API
 			const formData = new FormData();
 			formData.append("file", file);
 
-			// Call the backend AI analysis API with fallback to internship analyzer
-			let response;
-			try {
-				response = await apiService.analyzeResumeAdvanced(formData);
-			} catch (e) {
-				console.warn(
-					"Advanced analyzer failed, falling back to internship analyzer",
-					e?.message || e
-				);
-				response = await apiService.internshipAnalyzeResume(formData);
-			}
+			// Call Perplexity backend API ONLY
+			console.log("🚀 Using Perplexity AI for analysis...");
+			const response = await apiService.analyzeResumeWithPerplexity(formData);
 
 			if (!response.data.success) {
 				throw new Error(response.data.message || "Analysis failed");
-			}
-
-			// Transform backend response to frontend format
+			} // Transform backend response to frontend format
 			const payload =
 				response.data.analysis || response.data.result || response.data;
 			const analysisResult = transformBackendAnalysis(payload);
 
 			// Extract the real resume text from the analysis response
-			const realExtractedText = payload.extractedContent || 
-			                         payload.extractedContentPreview ||
-			                         payload.nerAnalysis?.extracted_content_preview || 
-			                         payload.summary ||
-			                         resumeText;
-			                         
+			const realExtractedText =
+				payload.extractedContent ||
+				payload.extractedContentPreview ||
+				payload.nerAnalysis?.extracted_content_preview ||
+				payload.summary ||
+				resumeText;
+
 			if (realExtractedText && realExtractedText.trim().length > 50) {
-				console.log("✅ Setting real extracted text from analysis:", realExtractedText.substring(0, 200));
+				console.log(
+					"✅ Setting real extracted text from analysis:",
+					realExtractedText.substring(0, 200)
+				);
 				setExtractedText(realExtractedText);
 				// Also update resumeText for the database save
 				resumeText = realExtractedText;
@@ -1016,10 +1504,12 @@ const ResumeAnalyzer = () => {
 				} catch (error) {
 					console.error("Error saving to database:", error);
 					// Show a more informative message for schema issues
-					if (error.message && error.message.includes('formatting_score')) {
-						toast.warning("Analysis completed! Database needs schema update for saving.");
+					if (error.message && (error.message.includes("formatting_score") || error.message.includes("ats_score"))) {
+						toast.error(
+							"Analysis completed! Database needs schema update for saving."
+						);
 					} else {
-						toast.warning("Analysis completed but couldn't save to database.");
+						toast.error("Analysis completed but couldn't save to database.");
 					}
 				}
 			}
@@ -1496,7 +1986,10 @@ const ResumeAnalyzer = () => {
 		setLoading(true);
 		try {
 			// Generate improvements from analysis data - using dynamic content-based generation
-			const suggestions = generateDynamicImprovements(analysisResults, skillsAnalysis);
+			const suggestions = generateDynamicImprovements(
+				analysisResults,
+				skillsAnalysis
+			);
 			setImprovements(suggestions);
 			toast.success("Improvement plan generated successfully!");
 		} catch (error) {
@@ -1543,12 +2036,24 @@ const ResumeAnalyzer = () => {
 
 		setLoading(true);
 		try {
-			toast.loading(`Analyzing resume for ${roleTitle} role...`);
-			// Use enhanced backend API for role-specific analysis
-			const roleSpecificAnalysis = await apiService.analyzeResumeAdvanced(file, {
-				context: roleTitle,
-				analysis_type: 'role_specific'
+			toast.loading(
+				`Analyzing resume for ${roleTitle} role with Perplexity AI...`
+			);
+
+			// Create FormData with role-specific parameters
+			const formData = new FormData();
+			formData.append("file", file);
+			formData.append("target_role", roleTitle);
+
+			// Use Perplexity backend API for role-specific analysis
+			const response = await apiService.analyzeResumeWithPerplexity(formData, {
+				target_role: roleTitle,
 			});
+
+			const payload =
+				response.data.analysis || response.data.result || response.data;
+			const roleSpecificAnalysis = transformBackendAnalysis(payload);
+
 			setAnalysis(roleSpecificAnalysis);
 			setRealTimeScore(roleSpecificAnalysis.overallScore);
 			toast.success(`Analysis completed for ${roleTitle} role!`);
@@ -1615,9 +2120,6 @@ const ResumeAnalyzer = () => {
 						<div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
 							<Brain className="w-8 h-8 text-blue-600 animate-pulse" />
 						</div>
-						<h2 className="text-xl font-bold text-gray-900 mb-2">
-							Analyzing Your Resume
-						</h2>
 						<p className="text-gray-600">
 							Our AI is examining your resume in detail...
 						</p>
@@ -2319,7 +2821,8 @@ const ResumeAnalyzer = () => {
 														<div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-lg">
 															<Target className="w-5 h-5 text-blue-600" />
 															<span className="font-semibold text-blue-900">
-																{analysis.extractedSkills?.length || 0} Skills Detected
+																{analysis.extractedSkills?.length || 0} Skills
+																Detected
 															</span>
 														</div>
 													</div>
@@ -2328,72 +2831,108 @@ const ResumeAnalyzer = () => {
 													<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 														<div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center">
 															<div className="text-2xl font-bold text-blue-600">
-																{analysis.skillAnalysis?.categories?.programming?.length || 0}
+																{analysis.skillAnalysis?.categories?.programming
+																	?.length || 0}
 															</div>
-															<div className="text-sm text-blue-700">Programming</div>
+															<div className="text-sm text-blue-700">
+																Programming
+															</div>
 														</div>
 														<div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center">
 															<div className="text-2xl font-bold text-green-600">
-																{analysis.skillAnalysis?.categories?.frontend?.length || 0}
+																{analysis.skillAnalysis?.categories?.frontend
+																	?.length || 0}
 															</div>
-															<div className="text-sm text-green-700">Frontend</div>
+															<div className="text-sm text-green-700">
+																Frontend
+															</div>
 														</div>
 														<div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center">
 															<div className="text-2xl font-bold text-purple-600">
-																{analysis.skillAnalysis?.categories?.backend?.length || 0}
+																{analysis.skillAnalysis?.categories?.backend
+																	?.length || 0}
 															</div>
-															<div className="text-sm text-purple-700">Backend</div>
+															<div className="text-sm text-purple-700">
+																Backend
+															</div>
 														</div>
 														<div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 text-center">
 															<div className="text-2xl font-bold text-orange-600">
-																{analysis.skillAnalysis?.categories?.cloud?.length || 0}
+																{analysis.skillAnalysis?.categories?.cloud
+																	?.length || 0}
 															</div>
-															<div className="text-sm text-orange-700">Cloud & DevOps</div>
+															<div className="text-sm text-orange-700">
+																Cloud & DevOps
+															</div>
 														</div>
 													</div>
 
 													{/* Skill Categories */}
-													{analysis.skillAnalysis?.categories && Object.entries(analysis.skillAnalysis.categories).filter(([, skills]) => skills.length > 0).length > 0 && (
-														<div className="bg-white border rounded-lg p-6">
-															<h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-																<PieChart className="w-5 h-5 mr-2 text-blue-600" />
-																Skills by Category
-															</h4>
-															<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-																{Object.entries(analysis.skillAnalysis.categories)
-																	.filter(([, skills]) => skills.length > 0)
-																	.map(([category, skills]) => (
-																		<div key={category} className="bg-gray-50 rounded-lg p-4">
-																			<h5 className="font-semibold text-gray-900 mb-3 capitalize flex items-center">
-																				<div className={`w-3 h-3 rounded-full mr-2 ${
-																					category === 'programming' ? 'bg-blue-500' :
-																					category === 'frontend' ? 'bg-green-500' :
-																					category === 'backend' ? 'bg-purple-500' :
-																					category === 'cloud' ? 'bg-orange-500' :
-																					category === 'database' ? 'bg-red-500' :
-																					category === 'mobile' ? 'bg-pink-500' :
-																					'bg-gray-500'
-																				}`} />
-																				{category.replace(/([A-Z])/g, ' $1').trim()} ({skills.length})
-																			</h5>
-																			<div className="flex flex-wrap gap-2">
-																				{skills.map((skill, idx) => (
-																					<span key={idx} className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm font-medium border">
-																						{skill}
-																					</span>
-																				))}
+													{analysis.skillAnalysis?.categories &&
+														Object.entries(
+															analysis.skillAnalysis.categories
+														).filter(([, skills]) => skills.length > 0).length >
+															0 && (
+															<div className="bg-white border rounded-lg p-6">
+																<h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+																	<PieChart className="w-5 h-5 mr-2 text-blue-600" />
+																	Skills by Category
+																</h4>
+																<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+																	{Object.entries(
+																		analysis.skillAnalysis.categories
+																	)
+																		.filter(([, skills]) => skills.length > 0)
+																		.map(([category, skills]) => (
+																			<div
+																				key={category}
+																				className="bg-gray-50 rounded-lg p-4"
+																			>
+																				<h5 className="font-semibold text-gray-900 mb-3 capitalize flex items-center">
+																					<div
+																						className={`w-3 h-3 rounded-full mr-2 ${
+																							category === "programming"
+																								? "bg-blue-500"
+																								: category === "frontend"
+																								? "bg-green-500"
+																								: category === "backend"
+																								? "bg-purple-500"
+																								: category === "cloud"
+																								? "bg-orange-500"
+																								: category === "database"
+																								? "bg-red-500"
+																								: category === "mobile"
+																								? "bg-pink-500"
+																								: "bg-gray-500"
+																						}`}
+																					/>
+																					{category
+																						.replace(/([A-Z])/g, " $1")
+																						.trim()}{" "}
+																					({skills.length})
+																				</h5>
+																				<div className="flex flex-wrap gap-2">
+																					{skills.map((skill, idx) => (
+																						<span
+																							key={idx}
+																							className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm font-medium border"
+																						>
+																							{skill}
+																						</span>
+																					))}
+																				</div>
 																			</div>
-																		</div>
-																	))}
+																		))}
+																</div>
 															</div>
-														</div>
-													)}
+														)}
 
 													{/* Detected Skills */}
 													<div className="bg-white border rounded-lg p-6">
 														<h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
 															<CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-															Detailed Skills Analysis ({analysis.extractedSkills?.length || 0})
+															Detailed Skills Analysis (
+															{analysis.extractedSkills?.length || 0})
 														</h4>
 														<div className="space-y-3 max-h-96 overflow-y-auto">
 															{analysis.extractedSkills?.map((skill, index) => (
@@ -2402,18 +2941,25 @@ const ResumeAnalyzer = () => {
 																	className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
 																>
 																	<div className="flex items-center space-x-3">
-																		<div className={`w-2 h-2 rounded-full ${
-																			skill.confidence >= 90 ? 'bg-green-500' :
-																			skill.confidence >= 70 ? 'bg-blue-500' :
-																			skill.confidence >= 50 ? 'bg-yellow-500' :
-																			'bg-red-500'
-																		}`} />
+																		<div
+																			className={`w-2 h-2 rounded-full ${
+																				skill.confidence >= 90
+																					? "bg-green-500"
+																					: skill.confidence >= 70
+																					? "bg-blue-500"
+																					: skill.confidence >= 50
+																					? "bg-yellow-500"
+																					: "bg-red-500"
+																			}`}
+																		/>
 																		<div>
 																			<div className="font-medium text-gray-900">
 																				{skill.name}
 																			</div>
 																			<div className="text-sm text-gray-600">
-																				{skill.category} • {skill.mentions || 1} mention{(skill.mentions || 1) > 1 ? 's' : ''}
+																				{skill.category} • {skill.mentions || 1}{" "}
+																				mention
+																				{(skill.mentions || 1) > 1 ? "s" : ""}
 																			</div>
 																		</div>
 																	</div>
@@ -2443,7 +2989,8 @@ const ResumeAnalyzer = () => {
 													<div className="bg-white border rounded-lg p-6">
 														<h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
 															<Lightbulb className="w-5 h-5 mr-2 text-yellow-600" />
-															Recommended Skills to Add ({analysis.missingSkills?.length || 0})
+															Recommended Skills to Add (
+															{analysis.missingSkills?.length || 0})
 														</h4>
 														<div className="space-y-3">
 															{analysis.missingSkills?.map((skill, index) => (
@@ -2494,29 +3041,49 @@ const ResumeAnalyzer = () => {
 															<div className="flex items-start space-x-3">
 																<Award className="w-5 h-5 mt-1 text-blue-200" />
 																<div>
-																	<div className="font-medium">Add Skill Levels</div>
-																	<div className="text-sm text-blue-100">Specify beginner, intermediate, or expert for each skill</div>
+																	<div className="font-medium">
+																		Add Skill Levels
+																	</div>
+																	<div className="text-sm text-blue-100">
+																		Specify beginner, intermediate, or expert
+																		for each skill
+																	</div>
 																</div>
 															</div>
 															<div className="flex items-start space-x-3">
 																<Calendar className="w-5 h-5 mt-1 text-blue-200" />
 																<div>
-																	<div className="font-medium">Include Years of Experience</div>
-																	<div className="text-sm text-blue-100">Mention how long you've worked with each technology</div>
+																	<div className="font-medium">
+																		Include Years of Experience
+																	</div>
+																	<div className="text-sm text-blue-100">
+																		Mention how long you've worked with each
+																		technology
+																	</div>
 																</div>
 															</div>
 															<div className="flex items-start space-x-3">
 																<FileCheck className="w-5 h-5 mt-1 text-blue-200" />
 																<div>
-																	<div className="font-medium">Add Certifications</div>
-																	<div className="text-sm text-blue-100">Include relevant certificates and courses completed</div>
+																	<div className="font-medium">
+																		Add Certifications
+																	</div>
+																	<div className="text-sm text-blue-100">
+																		Include relevant certificates and courses
+																		completed
+																	</div>
 																</div>
 															</div>
 															<div className="flex items-start space-x-3">
 																<Code className="w-5 h-5 mt-1 text-blue-200" />
 																<div>
-																	<div className="font-medium">Showcase Projects</div>
-																	<div className="text-sm text-blue-100">Link skills to specific projects and achievements</div>
+																	<div className="font-medium">
+																		Showcase Projects
+																	</div>
+																	<div className="text-sm text-blue-100">
+																		Link skills to specific projects and
+																		achievements
+																	</div>
 																</div>
 															</div>
 														</div>
@@ -2539,7 +3106,8 @@ const ResumeAnalyzer = () => {
 														<div className="flex items-center space-x-2">
 															<Shield className="w-5 h-5 text-green-600" />
 															<span className="font-semibold text-green-900">
-																{analysis.atsCompatibility?.compatibility || 'Good'}
+																{analysis.atsCompatibility?.compatibility ||
+																	"Good"}
 															</span>
 														</div>
 													</div>
@@ -2552,20 +3120,39 @@ const ResumeAnalyzer = () => {
 																	ATS Compatibility Score
 																</h4>
 																<p className="text-green-100 mb-4">
-																	How well your resume works with Applicant Tracking Systems
+																	How well your resume works with Applicant
+																	Tracking Systems
 																</p>
 																<div className="flex items-center space-x-4">
 																	<div className="bg-white/20 rounded-lg px-3 py-2">
-																		<div className="text-sm text-blue-100">Readability</div>
-																		<div className="font-semibold">{analysis.atsCompatibility?.contentQuality || 85}%</div>
+																		<div className="text-sm text-blue-100">
+																			Readability
+																		</div>
+																		<div className="font-semibold">
+																			{analysis.atsCompatibility
+																				?.contentQuality || 85}
+																			%
+																		</div>
 																	</div>
 																	<div className="bg-white/20 rounded-lg px-3 py-2">
-																		<div className="text-sm text-blue-100">Contact Info</div>
-																		<div className="font-semibold">{analysis.atsCompatibility?.contactScore || 80}%</div>
+																		<div className="text-sm text-blue-100">
+																			Contact Info
+																		</div>
+																		<div className="font-semibold">
+																			{analysis.atsCompatibility
+																				?.contactScore || 80}
+																			%
+																		</div>
 																	</div>
 																	<div className="bg-white/20 rounded-lg px-3 py-2">
-																		<div className="text-sm text-blue-100">Keywords</div>
-																		<div className="font-semibold">{analysis.atsCompatibility?.formatScore || 85}%</div>
+																		<div className="text-sm text-blue-100">
+																			Keywords
+																		</div>
+																		<div className="font-semibold">
+																			{analysis.atsCompatibility?.formatScore ||
+																				85}
+																			%
+																		</div>
 																	</div>
 																</div>
 															</div>
@@ -2573,12 +3160,19 @@ const ResumeAnalyzer = () => {
 																<div className="text-5xl font-bold mb-2">
 																	{analysis.atsCompatibility?.score || 0}%
 																</div>
-																<div className={`px-4 py-2 rounded-full text-sm font-medium ${
-																	(analysis.atsCompatibility?.score || 0) >= 85 ? 'bg-green-400 text-green-900' :
-																	(analysis.atsCompatibility?.score || 0) >= 70 ? 'bg-yellow-400 text-yellow-900' :
-																	'bg-red-400 text-red-900'
-																}`}>
-																	{analysis.atsCompatibility?.compatibility || 'Good'}
+																<div
+																	className={`px-4 py-2 rounded-full text-sm font-medium ${
+																		(analysis.atsCompatibility?.score || 0) >=
+																		85
+																			? "bg-green-400 text-green-900"
+																			: (analysis.atsCompatibility?.score ||
+																					0) >= 70
+																			? "bg-yellow-400 text-yellow-900"
+																			: "bg-red-400 text-red-900"
+																	}`}
+																>
+																	{analysis.atsCompatibility?.compatibility ||
+																		"Good"}
 																</div>
 															</div>
 														</div>
@@ -2588,78 +3182,121 @@ const ResumeAnalyzer = () => {
 													<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 														<div className="bg-white border rounded-lg p-4">
 															<div className="flex items-center justify-between mb-3">
-																<h5 className="font-semibold text-gray-900">Content Quality</h5>
+																<h5 className="font-semibold text-gray-900">
+																	Content Quality
+																</h5>
 																<Gauge className="w-5 h-5 text-blue-600" />
 															</div>
 															<div className="flex items-center space-x-2">
 																<div className="flex-1 bg-gray-200 rounded-full h-2">
-																	<div 
+																	<div
 																		className="bg-blue-600 h-2 rounded-full transition-all duration-1000"
-																		style={{ width: `${analysis.atsCompatibility?.contentQuality || 85}%` }}
+																		style={{
+																			width: `${
+																				analysis.atsCompatibility
+																					?.contentQuality || 85
+																			}%`,
+																		}}
 																	/>
 																</div>
 																<span className="text-sm font-medium text-gray-900">
-																	{analysis.atsCompatibility?.contentQuality || 85}%
+																	{analysis.atsCompatibility?.contentQuality ||
+																		85}
+																	%
 																</span>
 															</div>
-															<p className="text-xs text-gray-600 mt-2">Resume length and structure quality</p>
+															<p className="text-xs text-gray-600 mt-2">
+																Resume length and structure quality
+															</p>
 														</div>
 
 														<div className="bg-white border rounded-lg p-4">
 															<div className="flex items-center justify-between mb-3">
-																<h5 className="font-semibold text-gray-900">Contact Info</h5>
+																<h5 className="font-semibold text-gray-900">
+																	Contact Info
+																</h5>
 																<Mail className="w-5 h-5 text-green-600" />
 															</div>
 															<div className="flex items-center space-x-2">
 																<div className="flex-1 bg-gray-200 rounded-full h-2">
-																	<div 
+																	<div
 																		className="bg-green-600 h-2 rounded-full transition-all duration-1000"
-																		style={{ width: `${analysis.atsCompatibility?.contactScore || 80}%` }}
+																		style={{
+																			width: `${
+																				analysis.atsCompatibility
+																					?.contactScore || 80
+																			}%`,
+																		}}
 																	/>
 																</div>
 																<span className="text-sm font-medium text-gray-900">
-																	{analysis.atsCompatibility?.contactScore || 80}%
+																	{analysis.atsCompatibility?.contactScore ||
+																		80}
+																	%
 																</span>
 															</div>
-															<p className="text-xs text-gray-600 mt-2">Email, phone, and location visibility</p>
+															<p className="text-xs text-gray-600 mt-2">
+																Email, phone, and location visibility
+															</p>
 														</div>
 
 														<div className="bg-white border rounded-lg p-4">
 															<div className="flex items-center justify-between mb-3">
-																<h5 className="font-semibold text-gray-900">Experience</h5>
+																<h5 className="font-semibold text-gray-900">
+																	Experience
+																</h5>
 																<Briefcase className="w-5 h-5 text-purple-600" />
 															</div>
 															<div className="flex items-center space-x-2">
 																<div className="flex-1 bg-gray-200 rounded-full h-2">
-																	<div 
+																	<div
 																		className="bg-purple-600 h-2 rounded-full transition-all duration-1000"
-																		style={{ width: `${analysis.atsCompatibility?.experienceScore || 75}%` }}
+																		style={{
+																			width: `${
+																				analysis.atsCompatibility
+																					?.experienceScore || 75
+																			}%`,
+																		}}
 																	/>
 																</div>
 																<span className="text-sm font-medium text-gray-900">
-																	{analysis.atsCompatibility?.experienceScore || 75}%
+																	{analysis.atsCompatibility?.experienceScore ||
+																		75}
+																	%
 																</span>
 															</div>
-															<p className="text-xs text-gray-600 mt-2">Work history clarity and format</p>
+															<p className="text-xs text-gray-600 mt-2">
+																Work history clarity and format
+															</p>
 														</div>
 
 														<div className="bg-white border rounded-lg p-4">
 															<div className="flex items-center justify-between mb-3">
-																<h5 className="font-semibold text-gray-900">Format & Keywords</h5>
+																<h5 className="font-semibold text-gray-900">
+																	Format & Keywords
+																</h5>
 																<Search className="w-5 h-5 text-orange-600" />
 															</div>
 															<div className="flex items-center space-x-2">
 																<div className="flex-1 bg-gray-200 rounded-full h-2">
-																	<div 
+																	<div
 																		className="bg-orange-600 h-2 rounded-full transition-all duration-1000"
-																		style={{ width: `${analysis.atsCompatibility?.formatScore || 85}%` }}
+																		style={{
+																			width: `${
+																				analysis.atsCompatibility
+																					?.formatScore || 85
+																			}%`,
+																		}}
 																	/>
 																</div>
 																<span className="text-sm font-medium text-gray-900">
-																	{analysis.atsCompatibility?.formatScore || 85}%
+																	{analysis.atsCompatibility?.formatScore || 85}
+																	%
 																</span>
 															</div>
-															<p className="text-xs text-gray-600 mt-2">ATS-friendly formatting and keywords</p>
+															<p className="text-xs text-gray-600 mt-2">
+																ATS-friendly formatting and keywords
+															</p>
 														</div>
 													</div>
 
@@ -2668,41 +3305,44 @@ const ResumeAnalyzer = () => {
 														<div className="bg-white border rounded-lg p-6">
 															<h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
 																<AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
-																Issues Found ({analysis.atsCompatibility.issues.length})
+																Issues Found (
+																{analysis.atsCompatibility.issues.length})
 															</h4>
 															<div className="space-y-3">
-																{analysis.atsCompatibility.issues.map((issue, index) => (
-																	<div
-																		key={index}
-																		className="flex items-start space-x-3 p-4 bg-red-50 border border-red-200 rounded-lg"
-																	>
-																		<AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-																		<div className="flex-1">
-																			<div className="flex items-center space-x-2 mb-1">
-																				<span className="font-medium text-gray-900 capitalize">
-																					{issue.type} Issue
-																				</span>
-																				<span
-																					className={`px-2 py-1 rounded-full text-xs font-medium ${
-																						issue.severity === "High"
-																							? "bg-red-100 text-red-800"
-																							: issue.severity === "Medium"
-																							? "bg-yellow-100 text-yellow-800"
-																							: "bg-blue-100 text-blue-800"
-																					}`}
-																				>
-																					{issue.severity} Priority
-																				</span>
+																{analysis.atsCompatibility.issues.map(
+																	(issue, index) => (
+																		<div
+																			key={index}
+																			className="flex items-start space-x-3 p-4 bg-red-50 border border-red-200 rounded-lg"
+																		>
+																			<AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+																			<div className="flex-1">
+																				<div className="flex items-center space-x-2 mb-1">
+																					<span className="font-medium text-gray-900 capitalize">
+																						{issue.type} Issue
+																					</span>
+																					<span
+																						className={`px-2 py-1 rounded-full text-xs font-medium ${
+																							issue.severity === "High"
+																								? "bg-red-100 text-red-800"
+																								: issue.severity === "Medium"
+																								? "bg-yellow-100 text-yellow-800"
+																								: "bg-blue-100 text-blue-800"
+																						}`}
+																					>
+																						{issue.severity} Priority
+																					</span>
+																				</div>
+																				<p className="text-sm text-gray-600">
+																					{issue.description}
+																				</p>
 																			</div>
-																			<p className="text-sm text-gray-600">
-																				{issue.description}
-																			</p>
+																			<button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+																				Fix Now
+																			</button>
 																		</div>
-																		<button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-																			Fix Now
-																		</button>
-																	</div>
-																))}
+																	)
+																)}
 															</div>
 														</div>
 													)}
@@ -2753,32 +3393,43 @@ const ResumeAnalyzer = () => {
 
 													{/* Priority Summary */}
 													<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-														{['High', 'Medium', 'Low'].map((priority) => {
-															const priorityImprovements = analysis.improvements?.filter(
-																imp => imp.priority === priority
-															) || [];
+														{["High", "Medium", "Low"].map((priority) => {
+															const priorityImprovements =
+																analysis.improvements?.filter(
+																	(imp) => imp.priority === priority
+																) || [];
 															return (
 																<div
 																	key={priority}
 																	className={`p-4 rounded-lg border-2 ${
-																		priority === 'High' ? 'border-red-200 bg-red-50' :
-																		priority === 'Medium' ? 'border-yellow-200 bg-yellow-50' :
-																		'border-green-200 bg-green-50'
+																		priority === "High"
+																			? "border-red-200 bg-red-50"
+																			: priority === "Medium"
+																			? "border-yellow-200 bg-yellow-50"
+																			: "border-green-200 bg-green-50"
 																	}`}
 																>
 																	<div className="text-center">
-																		<div className={`text-3xl font-bold ${
-																			priority === 'High' ? 'text-red-600' :
-																			priority === 'Medium' ? 'text-yellow-600' :
-																			'text-green-600'
-																		}`}>
+																		<div
+																			className={`text-3xl font-bold ${
+																				priority === "High"
+																					? "text-red-600"
+																					: priority === "Medium"
+																					? "text-yellow-600"
+																					: "text-green-600"
+																			}`}
+																		>
 																			{priorityImprovements.length}
 																		</div>
-																		<div className={`text-sm font-medium ${
-																			priority === 'High' ? 'text-red-800' :
-																			priority === 'Medium' ? 'text-yellow-800' :
-																			'text-green-800'
-																		}`}>
+																		<div
+																			className={`text-sm font-medium ${
+																				priority === "High"
+																					? "text-red-800"
+																					: priority === "Medium"
+																					? "text-yellow-800"
+																					: "text-green-800"
+																			}`}
+																		>
 																			{priority} Priority
 																		</div>
 																	</div>
@@ -2789,97 +3440,117 @@ const ResumeAnalyzer = () => {
 
 													{/* Improvements List */}
 													<div className="space-y-4">
-														{analysis.improvements?.map((improvement, index) => (
-															<div
-																key={index}
-																className={`bg-white border-l-4 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow ${
-																	improvement.priority === 'High' ? 'border-red-400' :
-																	improvement.priority === 'Medium' ? 'border-yellow-400' :
-																	'border-green-400'
-																}`}
-															>
-																<div className="flex items-start justify-between">
-																	<div className="flex items-start space-x-3 flex-1">
-																		<div className={`p-2 rounded-lg ${
-																			improvement.priority === 'High' ? 'bg-red-100' :
-																			improvement.priority === 'Medium' ? 'bg-yellow-100' :
-																			'bg-green-100'
-																		}`}>
-																			{improvement.priority === 'High' ? (
-																				<AlertCircle className="w-5 h-5 text-red-600" />
-																			) : improvement.priority === 'Medium' ? (
-																				<AlertTriangle className="w-5 h-5 text-yellow-600" />
-																			) : (
-																				<CheckCircle className="w-5 h-5 text-green-600" />
-																			)}
-																		</div>
-																		<div className="flex-1">
-																			<div className="flex items-center space-x-2 mb-2">
-																				<h4 className="text-lg font-semibold text-gray-900">
-																					{improvement.section}
-																				</h4>
-																				<span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(improvement.priority)}`}>
-																					{improvement.priority} Priority
-																				</span>
+														{analysis.improvements?.map(
+															(improvement, index) => (
+																<div
+																	key={index}
+																	className={`bg-white border-l-4 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow ${
+																		improvement.priority === "High"
+																			? "border-red-400"
+																			: improvement.priority === "Medium"
+																			? "border-yellow-400"
+																			: "border-green-400"
+																	}`}
+																>
+																	<div className="flex items-start justify-between">
+																		<div className="flex items-start space-x-3 flex-1">
+																			<div
+																				className={`p-2 rounded-lg ${
+																					improvement.priority === "High"
+																						? "bg-red-100"
+																						: improvement.priority === "Medium"
+																						? "bg-yellow-100"
+																						: "bg-green-100"
+																				}`}
+																			>
+																				{improvement.priority === "High" ? (
+																					<AlertCircle className="w-5 h-5 text-red-600" />
+																				) : improvement.priority ===
+																				  "Medium" ? (
+																					<AlertTriangle className="w-5 h-5 text-yellow-600" />
+																				) : (
+																					<CheckCircle className="w-5 h-5 text-green-600" />
+																				)}
 																			</div>
-																			<p className="text-gray-600 mb-4 leading-relaxed">
-																				{improvement.suggestion}
-																			</p>
-																			
-																			{/* Impact and Actions */}
-																			<div className="flex items-center justify-between">
-																				<div className="flex items-center space-x-4">
-																					<div className="flex items-center space-x-2">
-																						<TrendingUp className="w-4 h-4 text-blue-600" />
-																						<span className="text-sm font-medium text-gray-700">
-																							Impact: {improvement.impact}
-																						</span>
-																					</div>
-																					{improvement.estimatedTime && (
+																			<div className="flex-1">
+																				<div className="flex items-center space-x-2 mb-2">
+																					<h4 className="text-lg font-semibold text-gray-900">
+																						{improvement.section}
+																					</h4>
+																					<span
+																						className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(
+																							improvement.priority
+																						)}`}
+																					>
+																						{improvement.priority} Priority
+																					</span>
+																				</div>
+																				<p className="text-gray-600 mb-4 leading-relaxed">
+																					{improvement.suggestion}
+																				</p>
+
+																				{/* Impact and Actions */}
+																				<div className="flex items-center justify-between">
+																					<div className="flex items-center space-x-4">
 																						<div className="flex items-center space-x-2">
-																							<Clock className="w-4 h-4 text-purple-600" />
+																							<TrendingUp className="w-4 h-4 text-blue-600" />
 																							<span className="text-sm font-medium text-gray-700">
-																								{improvement.estimatedTime}
+																								Impact: {improvement.impact}
 																							</span>
 																						</div>
-																					)}
-																				</div>
-																				
-																				<div className="flex items-center space-x-2">
-																					{improvement.applied ? (
-																						<div className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-green-100 text-green-800 rounded-lg">
-																							<Check className="w-4 h-4" />
-																							<span>Applied</span>
-																						</div>
-																					) : (
-																						<button
-																							onClick={() => applyImprovement(improvement)}
-																							className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-																						>
-																							<Edit className="w-4 h-4" />
-																							<span>Apply Fix</span>
+																						{improvement.estimatedTime && (
+																							<div className="flex items-center space-x-2">
+																								<Clock className="w-4 h-4 text-purple-600" />
+																								<span className="text-sm font-medium text-gray-700">
+																									{improvement.estimatedTime}
+																								</span>
+																							</div>
+																						)}
+																					</div>
+
+																					<div className="flex items-center space-x-2">
+																						{improvement.applied ? (
+																							<div className="flex items-center space-x-1 px-3 py-1.5 text-sm bg-green-100 text-green-800 rounded-lg">
+																								<Check className="w-4 h-4" />
+																								<span>Applied</span>
+																							</div>
+																						) : (
+																							<button
+																								onClick={() =>
+																									applyImprovement(improvement)
+																								}
+																								className="flex items-center space-x-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+																							>
+																								<Edit className="w-4 h-4" />
+																								<span>Apply Fix</span>
+																							</button>
+																						)}
+																						<button className="flex items-center space-x-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+																							<BookOpen className="w-4 h-4" />
+																							<span>Learn More</span>
 																						</button>
-																					)}
-																					<button className="flex items-center space-x-1 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-																						<BookOpen className="w-4 h-4" />
-																						<span>Learn More</span>
-																					</button>
-																					{improvement.details && (
-																						<button
-																							onClick={() => toast(improvement.details, { icon: "💡", duration: 5000 })}
-																							className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
-																							title="View details"
-																						>
-																							<Info className="w-4 h-4" />
-																						</button>
-																					)}
+																						{improvement.details && (
+																							<button
+																								onClick={() =>
+																									toast(improvement.details, {
+																										icon: "💡",
+																										duration: 5000,
+																									})
+																								}
+																								className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+																								title="View details"
+																							>
+																								<Info className="w-4 h-4" />
+																							</button>
+																						)}
+																					</div>
 																				</div>
 																			</div>
 																		</div>
 																	</div>
 																</div>
-															</div>
-														))}
+															)
+														)}
 													</div>
 
 													{/* Quick Actions Panel */}
@@ -2892,22 +3563,34 @@ const ResumeAnalyzer = () => {
 															<button className="flex items-center space-x-3 p-4 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
 																<FileText className="w-6 h-6" />
 																<div className="text-left">
-																	<div className="font-semibold">Auto-Fix Format</div>
-																	<div className="text-sm text-blue-100">Fix spacing & layout</div>
+																	<div className="font-semibold">
+																		Auto-Fix Format
+																	</div>
+																	<div className="text-sm text-blue-100">
+																		Fix spacing & layout
+																	</div>
 																</div>
 															</button>
 															<button className="flex items-center space-x-3 p-4 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
 																<Award className="w-6 h-6" />
 																<div className="text-left">
-																	<div className="font-semibold">Add Keywords</div>
-																	<div className="text-sm text-blue-100">Boost ATS score</div>
+																	<div className="font-semibold">
+																		Add Keywords
+																	</div>
+																	<div className="text-sm text-blue-100">
+																		Boost ATS score
+																	</div>
 																</div>
 															</button>
 															<button className="flex items-center space-x-3 p-4 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
 																<Target className="w-6 h-6" />
 																<div className="text-left">
-																	<div className="font-semibold">Optimize Sections</div>
-																	<div className="text-sm text-blue-100">Reorder & enhance</div>
+																	<div className="font-semibold">
+																		Optimize Sections
+																	</div>
+																	<div className="text-sm text-blue-100">
+																		Reorder & enhance
+																	</div>
 																</div>
 															</button>
 														</div>
@@ -2921,27 +3604,48 @@ const ResumeAnalyzer = () => {
 														</h4>
 														<div className="space-y-4">
 															<div className="flex items-center justify-between">
-																<span className="text-sm font-medium text-gray-700">Overall Resume Score</span>
-																<span className="text-sm text-gray-600">{analysis.atsCompatibility?.overallScore || 'N/A'}%</span>
+																<span className="text-sm font-medium text-gray-700">
+																	Overall Resume Score
+																</span>
+																<span className="text-sm text-gray-600">
+																	{analysis.atsCompatibility?.overallScore ||
+																		"N/A"}
+																	%
+																</span>
 															</div>
 															<div className="w-full bg-gray-200 rounded-full h-3">
-																<div 
+																<div
 																	className="h-3 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 transition-all duration-1000"
-																	style={{ width: `${analysis.atsCompatibility?.overallScore || 0}%` }}
+																	style={{
+																		width: `${
+																			analysis.atsCompatibility?.overallScore ||
+																			0
+																		}%`,
+																	}}
 																/>
 															</div>
 															<div className="grid grid-cols-2 gap-4 mt-4">
 																<div className="text-center p-3 bg-green-50 rounded-lg">
 																	<div className="text-2xl font-bold text-green-600">
-																		{analysis.improvements?.filter(imp => imp.priority === 'Low').length || 0}
+																		{analysis.improvements?.filter(
+																			(imp) => imp.priority === "Low"
+																		).length || 0}
 																	</div>
-																	<div className="text-sm text-green-800">Easy Wins</div>
+																	<div className="text-sm text-green-800">
+																		Easy Wins
+																	</div>
 																</div>
 																<div className="text-center p-3 bg-blue-50 rounded-lg">
 																	<div className="text-2xl font-bold text-blue-600">
-																		+{Math.round((analysis.improvements?.length || 0) * 2.5)}%
+																		+
+																		{Math.round(
+																			(analysis.improvements?.length || 0) * 2.5
+																		)}
+																		%
 																	</div>
-																	<div className="text-sm text-blue-800">Potential Boost</div>
+																	<div className="text-sm text-blue-800">
+																		Potential Boost
+																	</div>
 																</div>
 															</div>
 														</div>
@@ -2964,171 +3668,187 @@ const ResumeAnalyzer = () => {
 														<div className="flex items-center space-x-2 bg-purple-50 px-4 py-2 rounded-lg">
 															<Briefcase className="w-5 h-5 text-purple-600" />
 															<span className="font-semibold text-purple-900">
-																{analysis.careerSuggestions?.length || 0} Matches Found
+																{analysis.careerSuggestions?.length || 0}{" "}
+																Matches Found
 															</span>
 														</div>
 													</div>
 
 													{/* Best Match Highlight */}
-													{analysis.careerSuggestions && analysis.careerSuggestions.length > 0 && (
-														<div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl p-6">
-															<div className="flex items-center justify-between">
-																<div>
-																	<h4 className="text-xl font-bold mb-2 flex items-center">
-																		<Star className="w-6 h-6 mr-2 text-yellow-300" />
-																		Top Career Match
-																	</h4>
-																	<h5 className="text-2xl font-bold mb-1">
-																		{analysis.careerSuggestions[0]?.title}
-																	</h5>
-																	<p className="text-purple-100 mb-4">
-																		{analysis.careerSuggestions[0]?.reason}
-																	</p>
-																	<div className="flex items-center space-x-6">
-																		<div className="flex items-center space-x-2">
-																			<DollarSign className="w-5 h-5 text-green-300" />
-																			<span className="font-semibold">
-																				{analysis.careerSuggestions[0]?.salaryRange}
-																			</span>
-																		</div>
-																		<div className="flex items-center space-x-2">
-																			<TrendingUp className="w-5 h-5 text-blue-300" />
-																			<span className="font-semibold">
-																				{analysis.careerSuggestions[0]?.growth} Growth
-																			</span>
+													{analysis.careerSuggestions &&
+														analysis.careerSuggestions.length > 0 && (
+															<div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl p-6">
+																<div className="flex items-center justify-between">
+																	<div>
+																		<h4 className="text-xl font-bold mb-2 flex items-center">
+																			<Star className="w-6 h-6 mr-2 text-yellow-300" />
+																			Top Career Match
+																		</h4>
+																		<h5 className="text-2xl font-bold mb-1">
+																			{analysis.careerSuggestions[0]?.title}
+																		</h5>
+																		<p className="text-purple-100 mb-4">
+																			{analysis.careerSuggestions[0]?.reason}
+																		</p>
+																		<div className="flex items-center space-x-6">
+																			<div className="flex items-center space-x-2">
+																				<DollarSign className="w-5 h-5 text-green-300" />
+																				<span className="font-semibold">
+																					{
+																						analysis.careerSuggestions[0]
+																							?.salaryRange
+																					}
+																				</span>
+																			</div>
+																			<div className="flex items-center space-x-2">
+																				<TrendingUp className="w-5 h-5 text-blue-300" />
+																				<span className="font-semibold">
+																					{
+																						analysis.careerSuggestions[0]
+																							?.growth
+																					}{" "}
+																					Growth
+																				</span>
+																			</div>
 																		</div>
 																	</div>
-																</div>
-																<div className="text-center">
-																	<div className="text-5xl font-bold mb-2">
-																		{analysis.careerSuggestions[0]?.match}%
-																	</div>
-																	<div className="bg-white/20 rounded-full px-4 py-2 text-sm font-medium">
-																		Perfect Match
+																	<div className="text-center">
+																		<div className="text-5xl font-bold mb-2">
+																			{analysis.careerSuggestions[0]?.match}%
+																		</div>
+																		<div className="bg-white/20 rounded-full px-4 py-2 text-sm font-medium">
+																			Perfect Match
+																		</div>
 																	</div>
 																</div>
 															</div>
-														</div>
-													)}
+														)}
 
 													{/* All Career Matches */}
 													<div className="grid gap-4">
-														{analysis.careerSuggestions?.map((career, index) => (
-															<div
-																key={index}
-																className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow"
-															>
-																<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-																	<div className="flex-1">
-																		<div className="flex items-start justify-between mb-3">
-																			<div className="flex-1">
-																				<div className="flex items-center space-x-2 mb-2">
-																					<h4 className="text-lg font-semibold text-gray-900">
-																						{career.title}
-																					</h4>
-																					{index === 0 && (
-																						<span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
-																							Top Match
-																						</span>
-																					)}
-																				</div>
-																				<p className="text-sm text-gray-600 mb-3">
-																					{career.reason}
-																				</p>
-																				
-																				{/* Match Progress Bar */}
-																				<div className="mb-3">
-																					<div className="flex items-center justify-between mb-1">
-																						<span className="text-sm font-medium text-gray-700">
-																							Skill Match
-																						</span>
-																						<span className="text-sm text-gray-600">
-																							{career.match}%
-																						</span>
+														{analysis.careerSuggestions?.map(
+															(career, index) => (
+																<div
+																	key={index}
+																	className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-200 hover:border-blue-400"
+																>
+																	<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+																		<div className="flex-1">
+																			<div className="flex items-start justify-between mb-3">
+																				<div className="flex-1">
+																					<div className="flex items-center space-x-2 mb-2">
+																						<h4 className="text-lg font-semibold text-gray-900">
+																							{career.title}
+																						</h4>
+																						{index === 0 && (
+																							<span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
+																								Top Match
+																							</span>
+																						)}
 																					</div>
-																					<div className="w-full bg-gray-200 rounded-full h-3">
-																						<div 
-																							className={`h-3 rounded-full transition-all duration-1000 ${
-																								career.match >= 80 ? 'bg-green-500' :
-																								career.match >= 60 ? 'bg-blue-500' :
-																								career.match >= 40 ? 'bg-yellow-500' :
-																								'bg-red-500'
-																							}`}
-																							style={{ width: `${career.match}%` }}
-																						/>
+																					<p className="text-sm text-gray-600 mb-3">
+																						{career.reason}
+																					</p>
+
+																					{/* Match Progress Bar */}
+																					<div className="mb-3">
+																						<div className="flex items-center justify-between mb-1">
+																							<span className="text-sm font-medium text-gray-700">
+																								Skill Match
+																							</span>
+																							<span className="text-sm text-gray-600">
+																								{career.match}%
+																							</span>
+																						</div>
+																						<div className="w-full bg-gray-200 rounded-full h-3">
+																							<div
+																								className={`h-3 rounded-full transition-all duration-1000 ${
+																									career.match >= 80
+																										? "bg-green-500"
+																										: career.match >= 60
+																										? "bg-blue-500"
+																										: career.match >= 40
+																										? "bg-yellow-500"
+																										: "bg-red-500"
+																								}`}
+																								style={{
+																									width: `${career.match}%`,
+																								}}
+																							/>
+																						</div>
+																					</div>
+
+																					{/* Career Details */}
+																					<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+																						<div className="flex items-center space-x-2">
+																							<DollarSign className="w-4 h-4 text-green-600 flex-shrink-0" />
+																							<div>
+																								<div className="text-sm font-medium text-gray-900">
+																									{career.salaryRange}
+																								</div>
+																								<div className="text-xs text-gray-600">
+																									Salary Range
+																								</div>
+																							</div>
+																						</div>
+																						<div className="flex items-center space-x-2">
+																							<TrendingUp className="w-4 h-4 text-blue-600 flex-shrink-0" />
+																							<div>
+																								<div className="text-sm font-medium text-gray-900">
+																									{career.growth} Growth
+																								</div>
+																								<div className="text-xs text-gray-600">
+																									Market Demand
+																								</div>
+																							</div>
+																						</div>
+																						<div className="flex items-center space-x-2">
+																							<MapPin className="w-4 h-4 text-purple-600 flex-shrink-0" />
+																							<div>
+																								<div className="text-sm font-medium text-gray-900">
+																									Remote Friendly
+																								</div>
+																								<div className="text-xs text-gray-600">
+																									Work Options
+																								</div>
+																							</div>
+																						</div>
 																					</div>
 																				</div>
 
-																				{/* Career Details */}
-																				<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-																					<div className="flex items-center space-x-2">
-																						<DollarSign className="w-4 h-4 text-green-600 flex-shrink-0" />
-																						<div>
-																							<div className="text-sm font-medium text-gray-900">
-																								{career.salaryRange}
-																							</div>
-																							<div className="text-xs text-gray-600">
-																								Salary Range
-																							</div>
-																						</div>
+																				<div className="text-center lg:ml-6">
+																					<div className="text-3xl font-bold text-blue-600 mb-1">
+																						{career.match}%
 																					</div>
-																					<div className="flex items-center space-x-2">
-																						<TrendingUp className="w-4 h-4 text-blue-600 flex-shrink-0" />
-																						<div>
-																							<div className="text-sm font-medium text-gray-900">
-																								{career.growth} Growth
-																							</div>
-																							<div className="text-xs text-gray-600">
-																								Market Demand
-																							</div>
-																						</div>
+																					<div className="text-sm text-gray-500">
+																						match
 																					</div>
-																					<div className="flex items-center space-x-2">
-																						<MapPin className="w-4 h-4 text-purple-600 flex-shrink-0" />
-																						<div>
-																							<div className="text-sm font-medium text-gray-900">
-																								Remote Friendly
-																							</div>
-																							<div className="text-xs text-gray-600">
-																								Work Options
-																							</div>
-																						</div>
-																					</div>
-																				</div>
-																			</div>
-																			
-																			<div className="text-center lg:ml-6">
-																				<div className="text-3xl font-bold text-blue-600 mb-1">
-																					{career.match}%
-																				</div>
-																				<div className="text-sm text-gray-500">
-																					match
 																				</div>
 																			</div>
 																		</div>
 																	</div>
-																</div>
 
-																{/* Action Buttons */}
-																<div className="flex items-center justify-between pt-4 border-t border-gray-200">
-																	<div className="flex items-center space-x-3">
-																		<button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
-																			<Search className="w-4 h-4" />
-																			<span>Find Jobs</span>
-																		</button>
-																		<button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-																			<BookOpen className="w-4 h-4" />
-																			<span>Learn Skills</span>
-																		</button>
-																	</div>
-																	
-																	<div className="flex items-center space-x-2 text-sm text-gray-600">
-																		<Users className="w-4 h-4" />
-																		<span>High demand role</span>
+																	{/* Action Buttons */}
+																	<div className="flex items-center justify-between pt-4 border-t border-gray-200">
+																		<div className="flex items-center space-x-3">
+																			<button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+																				<Search className="w-4 h-4" />
+																				<span>Find Jobs</span>
+																			</button>
+																			<button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+																				<BookOpen className="w-4 h-4" />
+																				<span>Learn Skills</span>
+																			</button>
+																		</div>
+
+																		<div className="flex items-center space-x-2 text-sm text-gray-600">
+																			<Users className="w-4 h-4" />
+																			<span>High demand role</span>
+																		</div>
 																	</div>
 																</div>
-															</div>
-														))}
+															)
+														)}
 													</div>
 
 													{/* Career Growth Suggestions */}
@@ -3142,18 +3862,25 @@ const ResumeAnalyzer = () => {
 																<div className="flex items-start space-x-3">
 																	<div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
 																	<div>
-																		<h5 className="font-medium text-gray-900">Skill Development</h5>
+																		<h5 className="font-medium text-gray-900">
+																			Skill Development
+																		</h5>
 																		<p className="text-sm text-gray-600">
-																			Focus on the missing skills identified in your top career matches to improve your match percentage
+																			Focus on the missing skills identified in
+																			your top career matches to improve your
+																			match percentage
 																		</p>
 																	</div>
 																</div>
 																<div className="flex items-start space-x-3">
 																	<div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
 																	<div>
-																		<h5 className="font-medium text-gray-900">Experience Building</h5>
+																		<h5 className="font-medium text-gray-900">
+																			Experience Building
+																		</h5>
 																		<p className="text-sm text-gray-600">
-																			Consider projects or internships that align with your target career path
+																			Consider projects or internships that
+																			align with your target career path
 																		</p>
 																	</div>
 																</div>
@@ -3162,18 +3889,24 @@ const ResumeAnalyzer = () => {
 																<div className="flex items-start space-x-3">
 																	<div className="w-2 h-2 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
 																	<div>
-																		<h5 className="font-medium text-gray-900">Networking</h5>
+																		<h5 className="font-medium text-gray-900">
+																			Networking
+																		</h5>
 																		<p className="text-sm text-gray-600">
-																			Connect with professionals in your target roles through LinkedIn and industry events
+																			Connect with professionals in your target
+																			roles through LinkedIn and industry events
 																		</p>
 																	</div>
 																</div>
 																<div className="flex items-start space-x-3">
 																	<div className="w-2 h-2 rounded-full bg-orange-500 mt-2 flex-shrink-0" />
 																	<div>
-																		<h5 className="font-medium text-gray-900">Certification</h5>
+																		<h5 className="font-medium text-gray-900">
+																			Certification
+																		</h5>
 																		<p className="text-sm text-gray-600">
-																			Obtain relevant industry certifications to validate your skills and knowledge
+																			Obtain relevant industry certifications to
+																			validate your skills and knowledge
 																		</p>
 																	</div>
 																</div>
@@ -3221,22 +3954,37 @@ const ResumeAnalyzer = () => {
 																	AI-Optimized Resume Building
 																</h4>
 																<p className="text-green-100 mb-4">
-																	Based on your analysis, we've identified the best template and content optimizations for your profile
+																	Based on your analysis, we've identified the
+																	best template and content optimizations for
+																	your profile
 																</p>
 																<div className="flex items-center space-x-6">
 																	<div className="flex items-center space-x-2">
 																		<Target className="w-5 h-5 text-green-300" />
-																		<span>ATS Score: {analysis.atsCompatibility?.overallScore || 0}%</span>
+																		<span>
+																			ATS Score:{" "}
+																			{analysis.atsCompatibility
+																				?.overallScore || 0}
+																			%
+																		</span>
 																	</div>
 																	<div className="flex items-center space-x-2">
 																		<Award className="w-5 h-5 text-blue-300" />
-																		<span>Skills Matched: {analysis.skillAnalysis?.matchedSkills?.length || 0}</span>
+																		<span>
+																			Skills Matched:{" "}
+																			{analysis.skillAnalysis?.matchedSkills
+																				?.length || 0}
+																		</span>
 																	</div>
 																</div>
 															</div>
 															<div className="text-center">
 																<div className="text-4xl font-bold mb-2">
-																	{Math.round((analysis.atsCompatibility?.overallScore || 0) + 15)}%
+																	{Math.round(
+																		(analysis.atsCompatibility?.overallScore ||
+																			0) + 15
+																	)}
+																	%
 																</div>
 																<div className="bg-white/20 rounded-full px-4 py-2 text-sm font-medium">
 																	Optimized Score
@@ -3253,31 +4001,65 @@ const ResumeAnalyzer = () => {
 														</h4>
 														<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 															{[
-																{ name: 'ATS-Optimized', icon: Settings, score: 95, desc: 'Maximum ATS compatibility', color: 'green' },
-																{ name: 'Modern Professional', icon: Briefcase, score: 88, desc: 'Clean and contemporary', color: 'blue' },
-																{ name: 'Creative Design', icon: Sparkles, score: 82, desc: 'Stand out visually', color: 'purple' },
-																{ name: 'Executive', icon: Award, score: 90, desc: 'Senior-level positions', color: 'indigo' }
+																{
+																	name: "ATS-Optimized",
+																	icon: Settings,
+																	score: 95,
+																	desc: "Maximum ATS compatibility",
+																	color: "green",
+																},
+																{
+																	name: "Modern Professional",
+																	icon: Briefcase,
+																	score: 88,
+																	desc: "Clean and contemporary",
+																	color: "blue",
+																},
+																{
+																	name: "Creative Design",
+																	icon: Sparkles,
+																	score: 82,
+																	desc: "Stand out visually",
+																	color: "purple",
+																},
+																{
+																	name: "Executive",
+																	icon: Award,
+																	score: 90,
+																	desc: "Senior-level positions",
+																	color: "indigo",
+																},
 															].map((template, index) => (
 																<button
 																	key={template.name}
 																	className={`p-4 border-2 rounded-lg text-center transition-all hover:shadow-md ${
-																		index === 0 ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-blue-500'
+																		index === 0
+																			? "border-green-500 bg-green-50"
+																			: "border-gray-300 hover:border-blue-500"
 																	}`}
 																>
-																	<template.icon className={`w-8 h-8 mx-auto mb-2 ${
-																		index === 0 ? 'text-green-600' : 'text-gray-400'
-																	}`} />
+																	<template.icon
+																		className={`w-8 h-8 mx-auto mb-2 ${
+																			index === 0
+																				? "text-green-600"
+																				: "text-gray-400"
+																		}`}
+																	/>
 																	<div className="text-sm font-medium text-gray-900 mb-1">
 																		{template.name}
 																	</div>
 																	<div className="text-xs text-gray-600 mb-2">
 																		{template.desc}
 																	</div>
-																	<div className={`text-sm font-bold ${
-																		template.score >= 90 ? 'text-green-600' :
-																		template.score >= 85 ? 'text-blue-600' :
-																		'text-yellow-600'
-																	}`}>
+																	<div
+																		className={`text-sm font-bold ${
+																			template.score >= 90
+																				? "text-green-600"
+																				: template.score >= 85
+																				? "text-blue-600"
+																				: "text-yellow-600"
+																		}`}
+																	>
 																		{template.score}% Score
 																	</div>
 																	{index === 0 && (
@@ -3298,18 +4080,39 @@ const ResumeAnalyzer = () => {
 														</h4>
 														<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 															<div className="space-y-4">
-																<h5 className="font-medium text-gray-900">Sections to Enhance</h5>
+																<h5 className="font-medium text-gray-900">
+																	Sections to Enhance
+																</h5>
 																{[
-																	{ section: 'Professional Summary', status: 'optimized', improvement: '+12%' },
-																	{ section: 'Skills Keywords', status: 'needs-work', improvement: '+8%' },
-																	{ section: 'Experience Bullets', status: 'optimized', improvement: '+15%' },
-																	{ section: 'Education Format', status: 'good', improvement: '+3%' }
+																	{
+																		section: "Professional Summary",
+																		status: "optimized",
+																		improvement: "+12%",
+																	},
+																	{
+																		section: "Skills Keywords",
+																		status: "needs-work",
+																		improvement: "+8%",
+																	},
+																	{
+																		section: "Experience Bullets",
+																		status: "optimized",
+																		improvement: "+15%",
+																	},
+																	{
+																		section: "Education Format",
+																		status: "good",
+																		improvement: "+3%",
+																	},
 																].map((item, index) => (
-																	<div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+																	<div
+																		key={index}
+																		className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+																	>
 																		<div className="flex items-center space-x-3">
-																			{item.status === 'optimized' ? (
+																			{item.status === "optimized" ? (
 																				<CheckCircle className="w-5 h-5 text-green-500" />
-																			) : item.status === 'needs-work' ? (
+																			) : item.status === "needs-work" ? (
 																				<AlertCircle className="w-5 h-5 text-yellow-500" />
 																			) : (
 																				<Info className="w-5 h-5 text-blue-500" />
@@ -3331,23 +4134,46 @@ const ResumeAnalyzer = () => {
 															</div>
 
 															<div className="space-y-4">
-																<h5 className="font-medium text-gray-900">Smart Suggestions</h5>
+																<h5 className="font-medium text-gray-900">
+																	Smart Suggestions
+																</h5>
 																<div className="space-y-3">
 																	{[
-																		{ text: 'Add action verbs to experience bullets', impact: 'High' },
-																		{ text: 'Include industry-specific keywords', impact: 'High' },
-																		{ text: 'Quantify achievements with numbers', impact: 'Medium' },
-																		{ text: 'Optimize section ordering', impact: 'Low' }
+																		{
+																			text: "Add action verbs to experience bullets",
+																			impact: "High",
+																		},
+																		{
+																			text: "Include industry-specific keywords",
+																			impact: "High",
+																		},
+																		{
+																			text: "Quantify achievements with numbers",
+																			impact: "Medium",
+																		},
+																		{
+																			text: "Optimize section ordering",
+																			impact: "Low",
+																		},
 																	].map((suggestion, index) => (
-																		<div key={index} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg">
+																		<div
+																			key={index}
+																			className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg"
+																		>
 																			<Lightbulb className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
 																			<div className="flex-1">
-																				<p className="text-sm text-gray-900">{suggestion.text}</p>
-																				<span className={`inline-block mt-1 px-2 py-0.5 text-xs rounded-full ${
-																					suggestion.impact === 'High' ? 'bg-red-100 text-red-800' :
-																					suggestion.impact === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-																					'bg-green-100 text-green-800'
-																				}`}>
+																				<p className="text-sm text-gray-900">
+																					{suggestion.text}
+																				</p>
+																				<span
+																					className={`inline-block mt-1 px-2 py-0.5 text-xs rounded-full ${
+																						suggestion.impact === "High"
+																							? "bg-red-100 text-red-800"
+																							: suggestion.impact === "Medium"
+																							? "bg-yellow-100 text-yellow-800"
+																							: "bg-green-100 text-green-800"
+																					}`}
+																				>
 																					{suggestion.impact} Impact
 																				</span>
 																			</div>
@@ -3367,8 +4193,12 @@ const ResumeAnalyzer = () => {
 														<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 															<div className="p-4 border border-gray-200 rounded-lg text-center">
 																<FileText className="w-8 h-8 text-red-600 mx-auto mb-2" />
-																<div className="text-sm font-medium text-gray-900 mb-1">PDF Format</div>
-																<div className="text-xs text-gray-600 mb-3">Universal compatibility</div>
+																<div className="text-sm font-medium text-gray-900 mb-1">
+																	PDF Format
+																</div>
+																<div className="text-xs text-gray-600 mb-3">
+																	Universal compatibility
+																</div>
 																<button
 																	onClick={() => exportResume("pdf")}
 																	className="w-full px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
@@ -3378,8 +4208,12 @@ const ResumeAnalyzer = () => {
 															</div>
 															<div className="p-4 border border-gray-200 rounded-lg text-center">
 																<FileText className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-																<div className="text-sm font-medium text-gray-900 mb-1">DOCX Format</div>
-																<div className="text-xs text-gray-600 mb-3">Editable document</div>
+																<div className="text-sm font-medium text-gray-900 mb-1">
+																	DOCX Format
+																</div>
+																<div className="text-xs text-gray-600 mb-3">
+																	Editable document
+																</div>
 																<button
 																	onClick={() => exportResume("docx")}
 																	className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
@@ -3389,8 +4223,12 @@ const ResumeAnalyzer = () => {
 															</div>
 															<div className="p-4 border border-gray-200 rounded-lg text-center">
 																<Share className="w-8 h-8 text-green-600 mx-auto mb-2" />
-																<div className="text-sm font-medium text-gray-900 mb-1">Share Link</div>
-																<div className="text-xs text-gray-600 mb-3">Online portfolio</div>
+																<div className="text-sm font-medium text-gray-900 mb-1">
+																	Share Link
+																</div>
+																<div className="text-xs text-gray-600 mb-3">
+																	Online portfolio
+																</div>
 																<button className="w-full px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
 																	Get Link
 																</button>
@@ -3474,7 +4312,7 @@ const ResumeAnalyzer = () => {
 													</div>
 
 													{getFilteredAndSortedHistory().length > 0 ? (
-														<div className="space-y-4 max-h-96 overflow-y-auto">
+														<div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
 															{getFilteredAndSortedHistory().map((item) => {
 																const preview = getAnalysisPreview(
 																	item.analysis
@@ -3482,7 +4320,7 @@ const ResumeAnalyzer = () => {
 																return (
 																	<div
 																		key={item.id}
-																		className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow"
+																		className="bg-white border-2 border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-200 hover:border-blue-400"
 																	>
 																		<div className="flex flex-col space-y-4">
 																			{/* Header Row */}
@@ -3738,7 +4576,7 @@ const ResumeAnalyzer = () => {
 										<div className="flex items-center space-x-1">
 											<div
 												className={`w-2 h-2 rounded-full ${
-													apiStatus.openai.available
+													apiStatus?.openai?.available
 														? "bg-green-500"
 														: "bg-red-500"
 												}`}
@@ -3748,7 +4586,7 @@ const ResumeAnalyzer = () => {
 										<div className="flex items-center space-x-1">
 											<div
 												className={`w-2 h-2 rounded-full ${
-													apiStatus.gemini.available
+													apiStatus?.gemini?.available
 														? "bg-green-500"
 														: "bg-yellow-500"
 												}`}

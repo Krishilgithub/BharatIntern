@@ -28,7 +28,7 @@ export const analyzeResumeWithPerplexity = async (resumeText, options = {}) => {
 				Authorization: `Bearer ${apiKey}`,
 			},
 			body: JSON.stringify({
-				model: options.model || "llama-3.1-sonar-large-128k-online",
+				model: options.model || "sonar-pro",
 				messages: [
 					{
 						role: "system",
@@ -263,7 +263,7 @@ export const analyzeResumeWithFocus = async (
 				Authorization: `Bearer ${apiKey}`,
 			},
 			body: JSON.stringify({
-				model: "llama-3.1-sonar-large-128k-online",
+				model: "sonar-pro",
 				messages: [
 					{
 						role: "system",
@@ -324,7 +324,7 @@ Return JSON array of career suggestions with: title, industry, match_score, requ
 				Authorization: `Bearer ${apiKey}`,
 			},
 			body: JSON.stringify({
-				model: "llama-3.1-sonar-large-128k-online",
+				model: "sonar-pro",
 				messages: [
 					{
 						role: "system",
@@ -396,7 +396,7 @@ Return JSON with:
 				Authorization: `Bearer ${apiKey}`,
 			},
 			body: JSON.stringify({
-				model: "llama-3.1-sonar-large-128k-online",
+				model: "sonar-pro",
 				messages: [
 					{
 						role: "system",
