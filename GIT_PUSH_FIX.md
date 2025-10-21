@@ -1,7 +1,9 @@
 # Fix Git Push Protection - API Key in History
 
 ## The Problem
+
 GitHub detected your Perplexity API key in commit `b8aa202` in these files:
+
 - INTEGRATION_COMPLETE.md:32
 - PERPLEXITY_INTEGRATION.md:24
 - PERPLEXITY_ONLY_INTEGRATION.md:106

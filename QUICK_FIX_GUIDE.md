@@ -19,17 +19,17 @@
 ```sql
 BEGIN;
 
-ALTER TABLE public.ats_compatibility 
+ALTER TABLE public.ats_compatibility
 ADD COLUMN IF NOT EXISTS ats_score INTEGER,
 ADD COLUMN IF NOT EXISTS parsing_success BOOLEAN DEFAULT true,
 ADD COLUMN IF NOT EXISTS format_issues TEXT[],
 ADD COLUMN IF NOT EXISTS keyword_optimization TEXT;
 
-ALTER TABLE public.ats_compatibility 
+ALTER TABLE public.ats_compatibility
 ALTER COLUMN score DROP NOT NULL;
 
-UPDATE public.ats_compatibility 
-SET ats_score = score 
+UPDATE public.ats_compatibility
+SET ats_score = score
 WHERE ats_score IS NULL AND score IS NOT NULL;
 
 COMMIT;

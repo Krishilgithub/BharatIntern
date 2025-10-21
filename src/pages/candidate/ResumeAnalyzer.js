@@ -109,33 +109,33 @@ const ResumeAnalyzer = () => {
 		const analysisText =
 			perplexityResponse.analysis_text || perplexityResponse.analysisText || "";
 
-	// Extract sections using regex patterns
-	const extractSection = (text, sectionName) => {
-		if (!text || typeof text !== 'string') return "";
-		const regex = new RegExp(
-			`\\*\\*${sectionName}\\*\\*([\\s\\S]*?)(?=\\*\\*[A-Z]|$)`,
-			"i"
-		);
-		const match = text.match(regex);
-		return match && match[1] ? match[1].trim() : "";
-	};
+		// Extract sections using regex patterns
+		const extractSection = (text, sectionName) => {
+			if (!text || typeof text !== "string") return "";
+			const regex = new RegExp(
+				`\\*\\*${sectionName}\\*\\*([\\s\\S]*?)(?=\\*\\*[A-Z]|$)`,
+				"i"
+			);
+			const match = text.match(regex);
+			return match && match[1] ? match[1].trim() : "";
+		};
 
-	const extractListItems = (text) => {
-		if (!text || typeof text !== 'string') return [];
-		const lines = text.split("\n").filter((line) => line.trim());
-		return lines
-			.map((line) => line.replace(/^[•\-\d.]+\s*/, "").trim())
-			.filter((item) => item.length > 0);
-	};
+		const extractListItems = (text) => {
+			if (!text || typeof text !== "string") return [];
+			const lines = text.split("\n").filter((line) => line.trim());
+			return lines
+				.map((line) => line.replace(/^[•\-\d.]+\s*/, "").trim())
+				.filter((item) => item.length > 0);
+		};
 
-	const extractScore = (text, pattern) => {
-		if (!text || typeof text !== 'string') return 75;
-		const match = text.match(pattern);
-		return match && match[1] ? parseInt(match[1]) : 75;
-	};
+		const extractScore = (text, pattern) => {
+			if (!text || typeof text !== "string") return 75;
+			const match = text.match(pattern);
+			return match && match[1] ? parseInt(match[1]) : 75;
+		};
 
-	// Parse structured sections
-	const summary = extractSection(analysisText, "OVERALL SUMMARY");
+		// Parse structured sections
+		const summary = extractSection(analysisText, "OVERALL SUMMARY");
 		const strengthsText = extractSection(analysisText, "STRENGTHS");
 		const weaknessesText = extractSection(
 			analysisText,
@@ -1504,7 +1504,11 @@ const ResumeAnalyzer = () => {
 				} catch (error) {
 					console.error("Error saving to database:", error);
 					// Show a more informative message for schema issues
-					if (error.message && (error.message.includes("formatting_score") || error.message.includes("ats_score"))) {
+					if (
+						error.message &&
+						(error.message.includes("formatting_score") ||
+							error.message.includes("ats_score"))
+					) {
 						toast.error(
 							"Analysis completed! Database needs schema update for saving."
 						);
