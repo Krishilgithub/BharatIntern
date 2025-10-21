@@ -36,6 +36,120 @@ import {
   Phone,
 } from "lucide-react";
 
+// Move languages and translations outside component to avoid circular dependency
+const languages = [
+  { code: "en", name: "English", flag: "🇺🇸" },
+  { code: "hi", name: "हिंदी", flag: "🇮🇳" },
+  { code: "bn", name: "বাংলা", flag: "🇧🇩" },
+  { code: "te", name: "తెలుగు", flag: "🇮🇳" },
+  { code: "mr", name: "मराठी", flag: "🇮🇳" },
+  { code: "ta", name: "தமிழ்", flag: "🇮🇳" },
+  { code: "gu", name: "ગુજરાતી", flag: "🇮🇳" },
+  { code: "kn", name: "ಕನ್ನಡ", flag: "🇮🇳" },
+];
+
+// Translation object - moved outside to prevent circular dependency
+const translations = {
+  en: {
+    heroTitle: "AI-Driven Internship",
+    heroSubtitle: "Recommendation Engine",
+    heroDescription:
+      "Empowering the PM Internship Scheme with intelligent matching, quota management, and seamless allocation processes.",
+    aboutTitle: "About BharatIntern",
+    aboutDescription:
+      "Revolutionizing internship allocation through AI-driven matching, intelligent quota management, and seamless user experiences for the PM Internship Scheme.",
+    contactTitle: "Contact Us",
+    contactDescription:
+      "Have questions? We're here to help. Get in touch with our support team.",
+    mission: "Our Mission",
+    missionText:
+      "To democratize access to quality internship opportunities by leveraging artificial intelligence and data-driven insights, ensuring fair and efficient allocation while maintaining the highest standards of transparency and accountability.",
+    features: {
+      aiMatching: "AI-Powered Matching",
+      aiMatchingDesc:
+        "Advanced algorithms analyze skills and preferences for optimal matches",
+      quotaEnforcement: "Quota Enforcement",
+      quotaEnforcementDesc:
+        "Automated compliance with affirmative action and diversity requirements",
+      securePlatform: "Secure Platform",
+      securePlatformDesc:
+        "Enterprise-grade security with comprehensive audit trails and data protection",
+    },
+    contact: {
+      emailUs: "Email Us",
+      emailDesc: "Send us an email and we'll respond within 24 hours",
+      callUs: "Call Us",
+      callDesc: "Monday to Friday, 9:00 AM to 6:00 PM IST",
+      visitUs: "Visit Us",
+      visitDesc: "Ministry of Education, Government of India",
+      sendMessage: "Send us a message",
+      yourName: "Your Name",
+      yourEmail: "Your Email",
+      subject: "Subject",
+      yourMessage: "Your Message",
+      sendMsg: "Send Message",
+    },
+    buttons: {
+      getStarted: "Get Started Now",
+      learnMore: "Learn More",
+    },
+  },
+  hi: {
+    heroTitle: "एआई-संचालित इंटर्नशिप",
+    heroSubtitle: "सिफारिश इंजन",
+    heroDescription:
+      "बुद्धिमान मैचिंग, कोटा प्रबंधन और निर्बाध आवंटन प्रक्रियाओं के साथ पीएम इंटर्नशिप योजना को सशक्त बनाना।",
+    aboutTitle: "भारत इंटर्न के बारे में",
+    aboutDescription:
+      "पीएम इंटर्नशिप योजना के लिए एआई-संचालित मैचिंग, बुद्धिमान कोटा प्रबंधन और निर्बाध उपयोगकर्ता अनुभवों के माध्यम से इंटर्नशिप आवंटन में क्रांति।",
+    contactTitle: "हमसे संपर्क करें",
+    contactDescription:
+      "कोई प्रश्न है? हम यहाँ मदद के लिए हैं। हमारी सहायता टीम से संपर्क करें।",
+    mission: "हमारा मिशन",
+    missionText:
+      "कृत्रिम बुद्धिमत्ता और डेटा-संचालित अंतर्दृष्टि का लाभ उठाकर गुणवत्तापूर्ण इंटर्नशिप अवसरों तक पहुंच को लोकतांत्रिक बनाना।",
+    features: {
+      aiMatching: "एआई-संचालित मैचिंग",
+      aiMatchingDesc:
+        "उन्नत एल्गोरिदम कौशल और प्राथमिकताओं का विश्लेषण करते हैं",
+      quotaEnforcement: "कोटा प्रवर्तन",
+      quotaEnforcementDesc:
+        "सकारात्मक कार्रवाई और विविधता आवश्यकताओं के साथ स्वचालित अनुपालन",
+      securePlatform: "सुरक्षित प्लेटफॉर्म",
+      securePlatformDesc:
+        "व्यापक ऑडिट ट्रेल्स और डेटा सुरक्षा के साथ एंटरप्राइज़-ग्रेड सुरक्षा",
+    },
+    contact: {
+      emailUs: "हमें ईमेल करें",
+      emailDesc: "हमें ईमेल भेजें और हम 24 घंटे के भीतर जवाब देंगे",
+      callUs: "हमें कॉल करें",
+      callDesc: "सोमवार से शुक्रवार, सुबह 9:00 बजे से शाम 6:00 बजे तक",
+      visitUs: "हमसे मिलें",
+      visitDesc: "शिक्षा मंत्रालय, भारत सरकार",
+      sendMessage: "हमें संदेश भेजें",
+      yourName: "आपका नाम",
+      yourEmail: "आपका ईमेल",
+      subject: "विषय",
+      yourMessage: "आपका संदेश",
+      sendMsg: "संदेश भेजें",
+    },
+    buttons: {
+      getStarted: "अभी शुरू करें",
+      learnMore: "और जानें",
+    },
+  },
+};
+
+// Translation helper function
+const getTranslation = (currentLanguage, key) => {
+  const keys = key.split(".");
+  let value = translations[currentLanguage];
+  for (const k of keys) {
+    value = value?.[k];
+  }
+  return value || translations.en[key] || key;
+};
+
 const LandingPage = () => {
   const { user } = useAuth();
   const router = useRouter();
@@ -140,118 +254,8 @@ const LandingPage = () => {
     };
   }, []);
 
-  const languages = [
-    { code: "en", name: "English", flag: "🇺🇸" },
-    { code: "hi", name: "हिंदी", flag: "🇮🇳" },
-    { code: "bn", name: "বাংলা", flag: "🇧🇩" },
-    { code: "te", name: "తెలుగు", flag: "🇮🇳" },
-    { code: "mr", name: "मराठी", flag: "🇮🇳" },
-    { code: "ta", name: "தமிழ்", flag: "🇮🇳" },
-    { code: "gu", name: "ગુજરાતી", flag: "🇮🇳" },
-    { code: "kn", name: "ಕನ್ನಡ", flag: "🇮🇳" },
-  ];
-
-  // Translation object
-  const translations = {
-    en: {
-      heroTitle: "AI-Driven Internship",
-      heroSubtitle: "Recommendation Engine",
-      heroDescription:
-        "Empowering the PM Internship Scheme with intelligent matching, quota management, and seamless allocation processes.",
-      aboutTitle: "About BharatIntern",
-      aboutDescription:
-        "Revolutionizing internship allocation through AI-driven matching, intelligent quota management, and seamless user experiences for the PM Internship Scheme.",
-      contactTitle: "Contact Us",
-      contactDescription:
-        "Have questions? We're here to help. Get in touch with our support team.",
-      mission: "Our Mission",
-      missionText:
-        "To democratize access to quality internship opportunities by leveraging artificial intelligence and data-driven insights, ensuring fair and efficient allocation while maintaining the highest standards of transparency and accountability.",
-      features: {
-        aiMatching: "AI-Powered Matching",
-        aiMatchingDesc:
-          "Advanced algorithms analyze skills and preferences for optimal matches",
-        quotaEnforcement: "Quota Enforcement",
-        quotaEnforcementDesc:
-          "Automated compliance with affirmative action and diversity requirements",
-        securePlatform: "Secure Platform",
-        securePlatformDesc:
-          "Enterprise-grade security with comprehensive audit trails and data protection",
-      },
-      contact: {
-        emailUs: "Email Us",
-        emailDesc: "Send us an email and we'll respond within 24 hours",
-        callUs: "Call Us",
-        callDesc: "Monday to Friday, 9:00 AM to 6:00 PM IST",
-        visitUs: "Visit Us",
-        visitDesc: "Ministry of Education, Government of India",
-        sendMessage: "Send us a message",
-        yourName: "Your Name",
-        yourEmail: "Your Email",
-        subject: "Subject",
-        yourMessage: "Your Message",
-        sendMsg: "Send Message",
-      },
-      buttons: {
-        getStarted: "Get Started Now",
-        learnMore: "Learn More",
-      },
-    },
-    hi: {
-      heroTitle: "एआई-संचालित इंटर्नशिप",
-      heroSubtitle: "सिफारिश इंजन",
-      heroDescription:
-        "बुद्धिमान मैचिंग, कोटा प्रबंधन और निर्बाध आवंटन प्रक्रियाओं के साथ पीएम इंटर्नशिप योजना को सशक्त बनाना।",
-      aboutTitle: "भारत इंटर्न के बारे में",
-      aboutDescription:
-        "पीएम इंटर्नशिप योजना के लिए एआई-संचालित मैचिंग, बुद्धिमान कोटा प्रबंधन और निर्बाध उपयोगकर्ता अनुभवों के माध्यम से इंटर्नशिप आवंटन में क्रांति।",
-      contactTitle: "हमसे संपर्क करें",
-      contactDescription:
-        "कोई प्रश्न है? हम यहाँ मदद के लिए हैं। हमारी सहायता टीम से संपर्क करें।",
-      mission: "हमारा मिशन",
-      missionText:
-        "कृत्रिम बुद्धिमत्ता और डेटा-संचालित अंतर्दृष्टि का लाभ उठाकर गुणवत्तापूर्ण इंटर्नशिप अवसरों तक पहुंच को लोकतांत्रिक बनाना।",
-      features: {
-        aiMatching: "एआई-संचालित मैचिंग",
-        aiMatchingDesc:
-          "उन्नत एल्गोरिदम कौशल और प्राथमिकताओं का विश्लेषण करते हैं",
-        quotaEnforcement: "कोटा प्रवर्तन",
-        quotaEnforcementDesc:
-          "सकारात्मक कार्रवाई और विविधता आवश्यकताओं के साथ स्वचालित अनुपालन",
-        securePlatform: "सुरक्षित प्लेटफॉर्म",
-        securePlatformDesc:
-          "व्यापक ऑडिट ट्रेल्स और डेटा सुरक्षा के साथ एंटरप्राइज़-ग्रेड सुरक्षा",
-      },
-      contact: {
-        emailUs: "हमें ईमेल करें",
-        emailDesc: "हमें ईमेल भेजें और हम 24 घंटे के भीतर जवाब देंगे",
-        callUs: "हमें कॉल करें",
-        callDesc: "सोमवार से शुक्रवार, सुबह 9:00 बजे से शाम 6:00 बजे तक",
-        visitUs: "हमसे मिलें",
-        visitDesc: "शिक्षा मंत्रालय, भारत सरकार",
-        sendMessage: "हमें संदेश भेजें",
-        yourName: "आपका नाम",
-        yourEmail: "आपका ईमेल",
-        subject: "विषय",
-        yourMessage: "आपका संदेश",
-        sendMsg: "संदेश भेजें",
-      },
-      buttons: {
-        getStarted: "अभी शुरू करें",
-        learnMore: "और जानें",
-      },
-    },
-  };
-
-  // Translation function
-  const t = (key) => {
-    const keys = key.split(".");
-    let value = translations[currentLanguage];
-    for (const k of keys) {
-      value = value?.[k];
-    }
-    return value || translations.en[key] || key;
-  };
+  // Translation function using the helper
+  const t = (key) => getTranslation(currentLanguage, key);
 
   const userTypes = [
     {
