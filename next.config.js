@@ -47,12 +47,12 @@ const nextConfig = {
 	},
 	// Use default SWC transformer for better performance
 	swcMinify: true,
-	
+
 	// Force cache invalidation for Vercel
 	generateBuildId: async () => {
 		return Date.now().toString();
 	},
-	
+
 	// Skip build-time pre-rendering for pages with context issues
 };
 

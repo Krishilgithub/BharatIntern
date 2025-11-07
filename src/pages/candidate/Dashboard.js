@@ -109,11 +109,16 @@ const CandidateDashboard = () => {
 	});
 
 	useEffect(() => {
+		console.log("Dashboard useEffect triggered, user:", user);
 		if (user) {
 			loadDashboardData();
 			calculateProfileCompletion();
+		} else {
+			// If no user, set loading to false to prevent infinite loading
+			setLoading(false);
 		}
-	}, [user, loadDashboardData]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user]);
 
 	// Separate effect for auto-refresh to avoid dependency issues
 	useEffect(() => {
@@ -124,7 +129,8 @@ const CandidateDashboard = () => {
 		}, 5 * 60 * 1000);
 
 		return () => clearInterval(interval);
-	}, [user, loadDashboardData]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user]);
 
 	const calculateProfileCompletion = useCallback(() => {
 		if (!user) return;
@@ -151,6 +157,7 @@ const CandidateDashboard = () => {
 
 	const loadDashboardData = useCallback(
 		async (isRefresh = false) => {
+			console.log("loadDashboardData called, isRefresh:", isRefresh);
 			if (isRefresh) {
 				setRefreshing(true);
 			} else {
@@ -159,11 +166,13 @@ const CandidateDashboard = () => {
 
 			try {
 				// Load critical data first (recommendations and applications)
+				console.log("Loading recommendations and applications...");
 				await Promise.all([loadRecommendations(), loadApplications()]);
 
 				// Load non-critical data with reduced priority
 				setTimeout(async () => {
 					try {
+						console.log("Loading secondary data...");
 						await Promise.all([
 							loadStats(),
 							loadRecentActivity(),
@@ -184,11 +193,20 @@ const CandidateDashboard = () => {
 				console.error("Error loading dashboard data:", error);
 				toast.error("Failed to load critical dashboard data");
 			} finally {
+				console.log("loadDashboardData finished");
 				setLoading(false);
 				setRefreshing(false);
 			}
 		},
-		[user]
+		[
+			loadRecommendations,
+			loadApplications,
+			loadStats,
+			loadRecentActivity,
+			loadSkillProgress,
+			loadNotifications,
+			loadUpcomingDeadlines,
+		]
 	);
 
 	const handleRefresh = useCallback(() => {

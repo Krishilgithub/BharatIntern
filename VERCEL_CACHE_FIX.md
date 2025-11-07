@@ -1,23 +1,29 @@
 # Vercel Cache Invalidation Fix
 
 ## Problem
+
 The error **"ReferenceError: Cannot access 'en' before initialization"** was occurring in the Vercel production deployment, even though:
+
 - The source code had been fixed (LandingPage.js)
 - Local builds were successful
 - Unused i18n packages were removed
 
 ## Root Cause
+
 **Vercel was serving a cached build** from before the fix was applied. The old build artifacts in the production deployment still contained the circular dependency issue.
 
 ## Solution Applied
 
 ### 1. Source Code Already Fixed ✅
+
 The LandingPage.js file was already correctly refactored:
+
 - `translations` object moved outside component (line 53)
 - `languages` array moved outside component (line 37)
 - `getTranslation` helper function moved outside component (line 164)
 
 ### 2. Cache Invalidation Added
+
 Modified `next.config.js` to force Vercel to invalidate its cache on every build:
 
 ```javascript
@@ -30,6 +36,7 @@ generateBuildId: async () => {
 This generates a unique build ID on every deployment, preventing Vercel from reusing cached builds.
 
 ### 3. Deployment Triggered
+
 - Changes committed: `fb2f1b3`
 - Pushed to GitHub master branch
 - Vercel will automatically detect and rebuild
@@ -56,6 +63,7 @@ After Vercel completes the deployment:
 ## Why This Happened
 
 Next.js/Vercel caching is aggressive:
+
 - **Build Cache**: Webpack/Next.js cache compilation results
 - **Page Cache**: Pre-rendered pages are cached
 - **Chunk Cache**: JavaScript chunks are cached by content hash
@@ -64,12 +72,12 @@ When the source code was fixed but the build ID remained deterministic, Vercel r
 
 ## Commits Timeline
 
-| Date | Commit | Description |
-|------|--------|-------------|
-| Oct 21 | `ea88b76` | Removed unused i18n packages |
-| Oct 21 | `1fbde5d` | Documentation update |
-| Oct 21 | `49f8191` | Fixed LandingPage.js circular dependency |
-| Today | `fb2f1b3` | Added cache invalidation to force fresh build |
+| Date   | Commit    | Description                                   |
+| ------ | --------- | --------------------------------------------- |
+| Oct 21 | `ea88b76` | Removed unused i18n packages                  |
+| Oct 21 | `1fbde5d` | Documentation update                          |
+| Oct 21 | `49f8191` | Fixed LandingPage.js circular dependency      |
+| Today  | `fb2f1b3` | Added cache invalidation to force fresh build |
 
 ## Additional Notes
 
