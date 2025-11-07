@@ -48,9 +48,9 @@ const nextConfig = {
 	// Use default SWC transformer for better performance
 	swcMinify: true,
 
-	// Force cache invalidation for Vercel
+	// Force cache invalidation for Vercel - Updated to force rebuild
 	generateBuildId: async () => {
-		return Date.now().toString();
+		return `build-${Date.now()}`;
 	},
 
 	// Skip build-time pre-rendering for pages with context issues
