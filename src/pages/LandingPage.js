@@ -150,6 +150,79 @@ const getTranslation = (currentLanguage, key) => {
 	return value || translations.en[key] || key;
 };
 
+// User types configuration - moved outside component to prevent circular dependency
+const userTypes = [
+	{
+		type: "students",
+		title: "Students",
+		icon: <GraduationCap className="w-12 h-12 text-blue-600" />,
+		description: "Find your perfect internship opportunity",
+		features: ["AI-Powered Matching", "Skill Assessment", "Career Guidance"],
+		color: "blue",
+		link: "/signup?type=candidate",
+	},
+	{
+		type: "companies",
+		title: "Companies",
+		icon: <Building2 className="w-12 h-12 text-green-600" />,
+		description: "Discover talented interns for your organization",
+		features: ["Smart Recruitment", "Bulk Hiring", "Analytics Dashboard"],
+		color: "green",
+		subcategories: ["MSME", "MNC", "NGO", "PSU"],
+		link: "/signup?type=company",
+	},
+	{
+		type: "institutions",
+		title: "Training Partners/Institutions",
+		icon: <School className="w-12 h-12 text-purple-600" />,
+		description: "Partner with us to train future workforce",
+		features: [
+			"Curriculum Integration",
+			"Progress Tracking",
+			"Certification",
+		],
+		color: "purple",
+		link: "/signup?type=institution",
+	},
+	{
+		type: "government",
+		title: "Government Administrators",
+		icon: <Settings className="w-12 h-12 text-red-600" />,
+		description: "Oversee and manage the internship ecosystem",
+		features: ["Policy Management", "Compliance Monitoring", "Analytics"],
+		color: "red",
+		link: "/signup?type=admin",
+	},
+];
+
+// Features configuration - moved outside component to prevent circular dependency
+const features = [
+	{
+		icon: <Target className="w-8 h-8 text-primary" />,
+		title: "AI-Powered Matching",
+		description:
+			"Advanced algorithms match candidates with the perfect internship based on skills, preferences, and requirements.",
+	},
+	{
+		icon: <BarChart3 className="w-8 h-8 text-primary" />,
+		title: "Quota Management",
+		description:
+			"Intelligent quota enforcement ensures fair distribution across demographics while maintaining quality standards.",
+	},
+	{
+		icon: <Zap className="w-8 h-8 text-primary" />,
+		title: "Resume Analysis",
+		description:
+			"Automated resume parsing extracts skills and suggests improvements to boost your chances of selection.",
+	},
+	{
+		icon: <Shield className="w-8 h-8 text-primary" />,
+		title: "Secure & Reliable",
+		description:
+			"Enterprise-grade security with comprehensive audit trails and data protection measures.",
+	},
+];
+
 const LandingPage = () => {
 	const { user } = useAuth();
 	const router = useRouter();
@@ -256,77 +329,6 @@ const LandingPage = () => {
 
 	// Translation function using the helper
 	const t = (key) => getTranslation(currentLanguage, key);
-
-	const userTypes = [
-		{
-			type: "students",
-			title: "Students",
-			icon: <GraduationCap className="w-12 h-12 text-blue-600" />,
-			description: "Find your perfect internship opportunity",
-			features: ["AI-Powered Matching", "Skill Assessment", "Career Guidance"],
-			color: "blue",
-			link: "/signup?type=candidate",
-		},
-		{
-			type: "companies",
-			title: "Companies",
-			icon: <Building2 className="w-12 h-12 text-green-600" />,
-			description: "Discover talented interns for your organization",
-			features: ["Smart Recruitment", "Bulk Hiring", "Analytics Dashboard"],
-			color: "green",
-			subcategories: ["MSME", "MNC", "NGO", "PSU"],
-			link: "/signup?type=company",
-		},
-		{
-			type: "institutions",
-			title: "Training Partners/Institutions",
-			icon: <School className="w-12 h-12 text-purple-600" />,
-			description: "Partner with us to train future workforce",
-			features: [
-				"Curriculum Integration",
-				"Progress Tracking",
-				"Certification",
-			],
-			color: "purple",
-			link: "/signup?type=institution",
-		},
-		{
-			type: "government",
-			title: "Government Administrators",
-			icon: <Settings className="w-12 h-12 text-red-600" />,
-			description: "Oversee and manage the internship ecosystem",
-			features: ["Policy Management", "Compliance Monitoring", "Analytics"],
-			color: "red",
-			link: "/signup?type=admin",
-		},
-	];
-
-	const features = [
-		{
-			icon: <Target className="w-8 h-8 text-primary" />,
-			title: "AI-Powered Matching",
-			description:
-				"Advanced algorithms match candidates with the perfect internship based on skills, preferences, and requirements.",
-		},
-		{
-			icon: <BarChart3 className="w-8 h-8 text-primary" />,
-			title: "Quota Management",
-			description:
-				"Intelligent quota enforcement ensures fair distribution across demographics while maintaining quality standards.",
-		},
-		{
-			icon: <Zap className="w-8 h-8 text-primary" />,
-			title: "Resume Analysis",
-			description:
-				"Automated resume parsing extracts skills and suggests improvements to boost your chances of selection.",
-		},
-		{
-			icon: <Shield className="w-8 h-8 text-primary" />,
-			title: "Secure & Reliable",
-			description:
-				"Enterprise-grade security with comprehensive audit trails and data protection measures.",
-		},
-	];
 
 	return (
 		<div className="min-h-screen">

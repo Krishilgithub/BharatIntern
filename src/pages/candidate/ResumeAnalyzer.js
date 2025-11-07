@@ -72,6 +72,17 @@ import { apiService } from "../../services/api";
 import { resumeDatabase } from "../../services/resumeDatabase";
 import { useAuth } from "../../contexts/AuthContext";
 
+// Tab configuration - moved outside component to prevent circular dependency
+const tabs = [
+	{ id: "overview", label: "Overview", icon: BarChart3 },
+	{ id: "skills", label: "Skills Analysis", icon: Target },
+	{ id: "ats", label: "ATS Score", icon: Shield },
+	{ id: "improvements", label: "Improvements", icon: TrendingUp },
+	{ id: "career", label: "Career Match", icon: Briefcase },
+	{ id: "builder", label: "Resume Builder", icon: Edit3 },
+	{ id: "history", label: "History", icon: Clock },
+];
+
 const ResumeAnalyzer = () => {
 	const { user } = useAuth();
 	const [file, setFile] = useState(null);
@@ -2100,16 +2111,6 @@ const ResumeAnalyzer = () => {
 
 		toast.success("Analysis report downloaded successfully!");
 	};
-
-	const tabs = [
-		{ id: "overview", label: "Overview", icon: BarChart3 },
-		{ id: "skills", label: "Skills Analysis", icon: Target },
-		{ id: "ats", label: "ATS Score", icon: Shield },
-		{ id: "improvements", label: "Improvements", icon: TrendingUp },
-		{ id: "career", label: "Career Match", icon: Briefcase },
-		{ id: "builder", label: "Resume Builder", icon: Edit3 },
-		{ id: "history", label: "History", icon: Clock },
-	];
 
 	// Processing Screen
 	if (loading && activeTab === "processing") {
