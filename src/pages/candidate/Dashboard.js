@@ -84,6 +84,61 @@ const StatsCard = memo(({ title, value, icon: Icon, change, loading }) => {
 });
 StatsCard.displayName = "StatsCard";
 
+// Utility function for status colors
+const getStatusColor = (status) => {
+	switch (status) {
+		case "Shortlisted":
+			return "text-green-600 bg-green-100";
+		case "Applied":
+			return "text-blue-600 bg-blue-100";
+		case "Interview Scheduled":
+			return "text-purple-600 bg-purple-100";
+		case "Rejected":
+			return "text-red-600 bg-red-100";
+		default:
+			return "text-gray-600 bg-gray-100";
+	}
+};
+
+// Quick actions configuration
+const quickActions = [
+	{
+		title: "Resume Analyzer",
+		description: "Analyze and improve your resume",
+		icon: FileText,
+		link: "/candidate/resume-analyzer",
+		color: "bg-blue-500",
+	},
+	{
+		title: "Take Assessment",
+		description: "Complete skill assessments",
+		icon: Brain,
+		link: "/candidate/assessments",
+		color: "bg-green-500",
+	},
+	{
+		title: "Browse Jobs",
+		description: "Explore recommendations",
+		icon: Target,
+		link: "/candidate/recommendations",
+		color: "bg-purple-500",
+	},
+	{
+		title: "Learning Path",
+		description: "Continue your learning journey",
+		icon: BookOpen,
+		link: "/candidate/learning",
+		color: "bg-orange-500",
+	},
+	{
+		title: "Internship Assessment",
+		description: "Complete comprehensive internship evaluation",
+		icon: Award,
+		link: "/candidate/internship-assessment",
+		color: "bg-indigo-500",
+	},
+];
+
 const CandidateDashboard = () => {
 	const { user } = useAuth();
 	const router = useRouter();
@@ -570,59 +625,6 @@ const CandidateDashboard = () => {
 			},
 		]);
 	}, []);
-
-	const getStatusColor = (status) => {
-		switch (status) {
-			case "Shortlisted":
-				return "text-green-600 bg-green-100";
-			case "Applied":
-				return "text-blue-600 bg-blue-100";
-			case "Interview Scheduled":
-				return "text-purple-600 bg-purple-100";
-			case "Rejected":
-				return "text-red-600 bg-red-100";
-			default:
-				return "text-gray-600 bg-gray-100";
-		}
-	};
-
-	const quickActions = [
-		{
-			title: "Resume Analyzer",
-			description: "Analyze and improve your resume",
-			icon: FileText,
-			link: "/candidate/resume-analyzer",
-			color: "bg-blue-500",
-		},
-		{
-			title: "Take Assessment",
-			description: "Complete skill assessments",
-			icon: Brain,
-			link: "/candidate/assessments",
-			color: "bg-green-500",
-		},
-		{
-			title: "Browse Jobs",
-			description: "Explore recommendations",
-			icon: Target,
-			link: "/candidate/recommendations",
-			color: "bg-purple-500",
-		},
-		{
-			title: "Learning Path",
-			description: "Continue your learning journey",
-			icon: BookOpen,
-			link: "/candidate/learning",
-			color: "bg-orange-500",
-		},
-		{
-			title: "Internship Assessment",
-			description: "Complete comprehensive internship evaluation",
-			icon: Award,
-			link: "/candidate/internship-assessment",
-			color: "bg-indigo-500",
-		},
-	];
 
 	if (loading) {
 		return (
