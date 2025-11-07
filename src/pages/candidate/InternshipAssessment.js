@@ -25,6 +25,14 @@ import {
 import { aiService } from "../../services/aiService";
 import { toast } from "react-hot-toast";
 
+// Tab configuration - moved outside component to prevent circular dependency
+const tabs = [
+	{ id: "resume", label: "Resume Analysis", icon: FileText },
+	{ id: "technical", label: "Technical Test", icon: Code },
+	{ id: "skills", label: "Skill Assessment", icon: Target },
+	{ id: "matching", label: "Find Internships", icon: Briefcase },
+];
+
 const InternshipAssessment = () => {
 	const [activeTab, setActiveTab] = useState("resume");
 	const [isLoading, setIsLoading] = useState(false);
@@ -818,13 +826,6 @@ const InternshipAssessment = () => {
 			)}
 		</div>
 	);
-
-	const tabs = [
-		{ id: "resume", label: "Resume Analysis", icon: FileText },
-		{ id: "technical", label: "Technical Test", icon: Code },
-		{ id: "skills", label: "Skill Assessment", icon: Target },
-		{ id: "matching", label: "Find Internships", icon: Briefcase },
-	];
 
 	return (
 		<div className="min-h-screen bg-gray-50 py-8">
